@@ -1,1704 +1,1627 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta charset="UTF-8">
+<title>Chloe DWG — Research Universe</title>
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>Chloe DWG — Research Universe</title>
-
-  <style>
-
-    html,
-    body {
-
-      margin: 0;
-      padding: 0;
-
-      width: 100%;
-      height: 100%;
-
-      overflow: hidden;
-
-      background: #020207;
-
-      font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-      touch-action: none;
-
+<style>
+    * {
+        box-sizing: border-box;
     }
 
-
-    #canvas-container {
-
-      position: fixed;
-
-      inset: 0;
-
-      width: 100%;
-      height: 100%;
-
+    html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #02040a;
+        font-family: Arial, Helvetica, sans-serif;
+        color: white;
     }
 
+    #universe {
+        position: fixed;
+        inset: 0;
+    }
 
     canvas {
-
-      display: block;
-
-      width: 100%;
-      height: 100%;
-
-      touch-action: none;
-
+        display: block;
     }
 
+    /* ---------- TOP UI ---------- */
 
-    .title {
-
-      position: fixed;
-
-      top: 30px;
-      left: 35px;
-
-      z-index: 10;
-
-      color: white;
-
-      font-size: 14px;
-
-      letter-spacing: 4px;
-
-      font-weight: 400;
-
-      pointer-events: none;
-
+    #header {
+        position: fixed;
+        top: 25px;
+        left: 30px;
+        z-index: 20;
+        pointer-events: none;
+        letter-spacing: 0.08em;
     }
 
-
-    .instructions {
-
-      position: fixed;
-
-      bottom: 28px;
-      left: 35px;
-
-      z-index: 10;
-
-      color:
-        rgba(
-          255,
-          255,
-          255,
-          0.55
-        );
-
-      font-size: 11px;
-
-      letter-spacing: 2px;
-
-      pointer-events: none;
-
+    #name {
+        font-size: 13px;
+        opacity: 0.65;
+        margin-bottom: 5px;
     }
 
+    #title {
+        font-size: 20px;
+        font-weight: 500;
+    }
 
-    /* =========================================
-       PLANET LABEL
-       ========================================= */
+    /* ---------- INSTRUCTIONS ---------- */
+
+    #instructions {
+        position: fixed;
+        bottom: 25px;
+        left: 30px;
+        z-index: 20;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    /* ---------- PLANET LABEL ---------- */
 
     .planet-label {
-
-      position: fixed;
-
-      z-index: 20;
-
-      transform:
-        translate(
-          -50%,
-          -50%
-        );
-
-      color: white;
-
-      font-size: 13px;
-
-      letter-spacing: 3px;
-
-      pointer-events: none;
-
-      opacity: 0;
-
-      transition:
-        opacity 0.3s ease;
-
-      text-shadow:
-        0 0 10px
-        rgba(
-          255,
-          255,
-          255,
-          0.8
-        );
-
+        position: fixed;
+        z-index: 15;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 
-
-    /* =========================================
-       MAP VIEW
-       ========================================= */
-
-    #map-view {
-
-      position: fixed;
-
-      inset: 0;
-
-      z-index: 100;
-
-      background: white;
-
-      opacity: 0;
-
-      pointer-events: none;
-
-      transition:
-        opacity 0.8s ease;
-
+    .planet-label .planet-name {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
     }
 
-
-    #map-view.active {
-
-      opacity: 1;
-
-      pointer-events: auto;
-
+    .planet-label .planet-subtitle {
+        font-size: 10px;
+        opacity: 0.5;
+        margin-top: 5px;
     }
 
+    /* ---------- PLANET MODE ---------- */
 
-    #map-frame {
-
-      position: absolute;
-
-      top: 0;
-      left: 0;
-
-      width: 100%;
-      height: 100%;
-
-      border: none;
-
+    #planetMode {
+        display: none;
+        position: fixed;
+        top: 25px;
+        right: 30px;
+        z-index: 30;
     }
 
-
-    /* =========================================
-       BACK BUTTON
-       ========================================= */
-
-    #back-button {
-
-      position: fixed;
-
-      top: 25px;
-      left: 25px;
-
-      z-index: 200;
-
-      padding:
-        12px 18px;
-
-      border:
-        1px solid
-        rgba(
-          0,
-          0,
-          0,
-          0.25
-        );
-
-      background:
-        rgba(
-          255,
-          255,
-          255,
-          0.92
-        );
-
-      color: #111;
-
-      font-size: 10px;
-
-      letter-spacing: 2px;
-
-      cursor: pointer;
-
-      display: none;
-
+    #backButton {
+        border: 1px solid rgba(255,255,255,0.35);
+        background: rgba(0,0,0,0.35);
+        color: white;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        backdrop-filter: blur(8px);
     }
 
-
-    #back-button:hover {
-
-      background: white;
-
+    #backButton:hover {
+        background: rgba(255,255,255,0.12);
     }
 
+    /* ---------- RESEARCH PIN ---------- */
 
-  </style>
+    #researchPin {
+        display: none;
+        position: fixed;
+        z-index: 50;
+        width: 300px;
+        padding: 18px;
+        background: rgba(5, 8, 15, 0.82);
+        border: 1px solid rgba(255,255,255,0.25);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+    }
 
+    #pinCountry {
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        opacity: 0.65;
+        margin-bottom: 10px;
+    }
+
+    #pinTitle {
+        font-size: 18px;
+        line-height: 1.3;
+        margin-bottom: 18px;
+    }
+
+    #pinLink {
+        color: white;
+        text-decoration: none;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        border-bottom: 1px solid rgba(255,255,255,0.5);
+        padding-bottom: 3px;
+    }
+
+    #pinLink:hover {
+        border-bottom-color: white;
+    }
+
+    #closePin {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        border: none;
+        background: none;
+        color: white;
+        opacity: 0.5;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    /* ---------- LOADING ---------- */
+
+    #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: #02040a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        opacity: 1;
+        transition: opacity 0.8s ease;
+    }
+
+    #loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* ---------- PLANET MODE TITLE ---------- */
+
+    #planetTitle {
+        display: none;
+        position: fixed;
+        top: 25px;
+        left: 30px;
+        z-index: 30;
+        pointer-events: none;
+    }
+
+    #planetTitleMain {
+        font-size: 18px;
+        letter-spacing: 0.08em;
+    }
+
+    #planetTitleSub {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        opacity: 0.45;
+        margin-top: 5px;
+    }
+</style>
 </head>
-
 
 <body>
 
+<div id="universe"></div>
 
-  <!-- =========================================
-       3D UNIVERSE
-       ========================================= -->
+<div id="loading">
+    ENTERING RESEARCH UNIVERSE
+</div>
 
-  <div id="canvas-container"></div>
+<div id="header">
+    <div id="name">CHLOE DWG</div>
+    <div id="title">RESEARCH UNIVERSE</div>
+</div>
 
-
-  <div class="title">
-    CHLOE DWG — RESEARCH UNIVERSE
-  </div>
-
-
-  <div class="instructions">
+<div id="instructions">
     DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD
-  </div>
+</div>
+
+<div id="planetMode">
+    <button id="backButton">← RETURN TO GALAXY</button>
+</div>
+
+<div id="planetTitle">
+    <div id="planetTitleMain"></div>
+    <div id="planetTitleSub">RESEARCH LOCATIONS</div>
+</div>
+
+<div id="researchPin">
+    <button id="closePin">×</button>
+    <div id="pinCountry"></div>
+    <div id="pinTitle"></div>
+    <a id="pinLink" href="#" target="_blank" rel="noopener">
+        READ THE FULL ANALYSIS →
+    </a>
+</div>
 
 
-  <div
-    id="planet-label"
-    class="planet-label"
-  >
-    UNGA 81
-  </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+
+/* =========================================================
+   DATA
+   ========================================================= */
+
+const DATA_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub?gid=0&single=true&output=csv";
 
 
-  <!-- =========================================
-       MAP
-       ========================================= -->
+/* =========================================================
+   BASIC THREE.JS SETUP
+   ========================================================= */
 
-  <div id="map-view">
+const container = document.getElementById("universe");
 
-    <iframe
-      id="map-frame"
-      src=""
-      title="UN General Assembly Research Map">
-    </iframe>
+const scene = new THREE.Scene();
 
-  </div>
+const camera = new THREE.PerspectiveCamera(
+    55,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+);
 
+camera.position.set(0, 2, 20);
 
-  <button id="back-button">
-    ← RESEARCH UNIVERSE
-  </button>
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: false
+});
 
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-  <!-- =========================================
-       THREE.JS
-       ========================================= -->
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-
-  <script>
+container.appendChild(renderer.domElement);
 
 
-    // ==================================================
-    // SCENE
-    // ==================================================
+/* =========================================================
+   LIGHTING
+   ========================================================= */
 
-    const scene =
-      new THREE.Scene();
+const ambientLight = new THREE.AmbientLight(
+    0xffffff,
+    0.45
+);
 
+scene.add(ambientLight);
 
-    scene.background =
-      new THREE.Color(
-        0x020207
-      );
+const sunLight = new THREE.DirectionalLight(
+    0xffffff,
+    1.2
+);
 
+sunLight.position.set(5, 3, 8);
 
-    // ==================================================
-    // CAMERA
-    // ==================================================
-
-    const camera =
-      new THREE.PerspectiveCamera(
-        55,
-        window.innerWidth /
-          window.innerHeight,
-        0.1,
-        1000
-      );
+scene.add(sunLight);
 
 
-    camera.position.set(
-      0,
-      2,
-      20
+/* =========================================================
+   GALAXY GROUP
+   ========================================================= */
+
+const galaxy = new THREE.Group();
+
+scene.add(galaxy);
+
+
+/* =========================================================
+   STARS
+   ========================================================= */
+
+const starGeometry = new THREE.BufferGeometry();
+
+const starCount = 5000;
+
+const starPositions = [];
+
+for (let i = 0; i < starCount; i++) {
+
+    const radius = 120 + Math.random() * 500;
+
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(
+        2 * Math.random() - 1
     );
 
-
-    // ==================================================
-    // RENDERER
-    // ==================================================
-
-    const renderer =
-      new THREE.WebGLRenderer({
-
-        antialias: true
-
-      });
-
-
-    renderer.setSize(
-      window.innerWidth,
-      window.innerHeight
+    starPositions.push(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.sin(phi) * Math.sin(theta),
+        radius * Math.cos(phi)
     );
+}
+
+starGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(
+        starPositions,
+        3
+    )
+);
+
+const starMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.7,
+    transparent: true,
+    opacity: 0.7
+});
+
+const stars = new THREE.Points(
+    starGeometry,
+    starMaterial
+);
+
+galaxy.add(stars);
 
 
-    renderer.setPixelRatio(
-      Math.min(
-        window.devicePixelRatio,
-        2
-      )
-    );
+/* =========================================================
+   EARTH / UNGA PLANET
+   ========================================================= */
+
+const textureLoader = new THREE.TextureLoader();
+
+const earthTexture = textureLoader.load(
+    "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
+);
+
+const earthGeometry = new THREE.SphereGeometry(
+    3,
+    64,
+    64
+);
+
+const earthMaterial = new THREE.MeshPhongMaterial({
+    map: earthTexture,
+    transparent: true,
+    opacity: 0.92
+});
+
+const earth = new THREE.Mesh(
+    earthGeometry,
+    earthMaterial
+);
+
+earth.position.set(0, 0, 0);
+
+earth.userData = {
+    type: "planet",
+    project: "UNGA81"
+};
+
+galaxy.add(earth);
 
 
-    document
-      .getElementById(
-        "canvas-container"
-      )
-      .appendChild(
-        renderer.domElement
-      );
+/* =========================================================
+   EARTH ATMOSPHERE
+   ========================================================= */
 
+const atmosphereGeometry =
+    new THREE.SphereGeometry(3.12, 64, 64);
 
-    // ==================================================
-    // LIGHTING
-    // ==================================================
+const atmosphereMaterial =
+    new THREE.MeshBasicMaterial({
+        color: 0x4aa8ff,
+        transparent: true,
+        opacity: 0.09,
+        side: THREE.BackSide
+    });
 
-    const ambient =
-      new THREE.AmbientLight(
-        0xffffff,
-        0.45
-      );
-
-
-    scene.add(
-      ambient
-    );
-
-
-    const sun =
-      new THREE.DirectionalLight(
-        0xffffff,
-        2
-      );
-
-
-    sun.position.set(
-      8,
-      5,
-      10
-    );
-
-
-    scene.add(
-      sun
-    );
-
-
-    // ==================================================
-    // TEXTURE LOADER
-    // ==================================================
-
-    const loader =
-      new THREE.TextureLoader();
-
-
-    // ==================================================
-    // EARTH
-    // ==================================================
-
-    const earthGeometry =
-      new THREE.SphereGeometry(
-        3,
-        64,
-        64
-      );
-
-
-    const earthTexture =
-      loader.load(
-        "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
-      );
-
-
-    const earthMaterial =
-      new THREE.MeshPhongMaterial({
-
-        map:
-          earthTexture,
-
-        shininess:
-          8
-
-      });
-
-
-    const earth =
-      new THREE.Mesh(
-        earthGeometry,
-        earthMaterial
-      );
-
-
-    earth.position.set(
-      0,
-      0,
-      0
-    );
-
-
-    earth.userData.project =
-      "UNGA 81";
-
-
-    scene.add(
-      earth
-    );
-
-
-    // ==================================================
-    // ATMOSPHERE
-    // ==================================================
-
-    const atmosphereGeometry =
-      new THREE.SphereGeometry(
-        3.12,
-        64,
-        64
-      );
-
-
-    const atmosphereMaterial =
-      new THREE.MeshBasicMaterial({
-
-        color:
-          0x4f8cff,
-
-        transparent:
-          true,
-
-        opacity:
-          0.16,
-
-        side:
-          THREE.BackSide
-
-      });
-
-
-    const atmosphere =
-      new THREE.Mesh(
+const atmosphere =
+    new THREE.Mesh(
         atmosphereGeometry,
         atmosphereMaterial
-      );
-
-
-    scene.add(
-      atmosphere
     );
 
+earth.add(atmosphere);
 
-    // ==================================================
-    // OTHER PLANETS
-    // ==================================================
 
-    function createPlanet(
-      name,
-      x,
-      y,
-      z,
-      radius,
-      colour
-    ) {
+/* =========================================================
+   SUBTLE EARTH GRID
+   ========================================================= */
 
-      const geometry =
-        new THREE.SphereGeometry(
-          radius,
-          48,
-          48
+const gridMaterial =
+    new THREE.LineBasicMaterial({
+        color: 0x6bbcff,
+        transparent: true,
+        opacity: 0.08
+    });
+
+const gridGroup = new THREE.Group();
+
+earth.add(gridGroup);
+
+
+/* latitude lines */
+
+for (let lat = -60; lat <= 60; lat += 30) {
+
+    const points = [];
+
+    for (let lon = -180; lon <= 180; lon += 4) {
+
+        points.push(
+            latLonToVector3(
+                lat,
+                lon,
+                3.025
+            )
         );
-
-
-      const material =
-        new THREE.MeshStandardMaterial({
-
-          color:
-            colour,
-
-          roughness:
-            0.75,
-
-          metalness:
-            0.05
-
-        });
-
-
-      const planet =
-        new THREE.Mesh(
-          geometry,
-          material
-        );
-
-
-      planet.position.set(
-        x,
-        y,
-        z
-      );
-
-
-      planet.userData.project =
-        name;
-
-
-      scene.add(
-        planet
-      );
-
-
-      return planet;
-
     }
 
+    const geometry =
+        new THREE.BufferGeometry().setFromPoints(points);
 
-    const cop =
-      createPlanet(
-        "COP",
-        -7,
-        3,
-        -4,
-        1.7,
-        0x3d8f68
-      );
-
-
-    const refugee =
-      createPlanet(
-        "REFUGEE CAMPS",
-        7,
-        -2,
-        -5,
-        2,
-        0xa95757
-      );
+    gridGroup.add(
+        new THREE.Line(
+            geometry,
+            gridMaterial
+        )
+    );
+}
 
 
-    const future =
-      createPlanet(
-        "FUTURE PROJECT",
-        -4,
-        -5,
-        -7,
-        1.2,
-        0xb58b3d
-      );
+/* longitude lines */
+
+for (let lon = -180; lon < 180; lon += 30) {
+
+    const points = [];
+
+    for (let lat = -90; lat <= 90; lat += 4) {
+
+        points.push(
+            latLonToVector3(
+                lat,
+                lon,
+                3.025
+            )
+        );
+    }
+
+    const geometry =
+        new THREE.BufferGeometry().setFromPoints(points);
+
+    gridGroup.add(
+        new THREE.Line(
+            geometry,
+            gridMaterial
+        )
+    );
+}
 
 
-    // ==================================================
-    // GLOW
-    // ==================================================
+/* =========================================================
+   OTHER RESEARCH WORLDS
+   ========================================================= */
 
-    function addGlow(
-      planet,
-      colour
-    ) {
+const planets = [];
 
-      const radius =
-        planet.geometry
-          .parameters
-          .radius;
+function createPlanet(
+    name,
+    project,
+    position,
+    radius,
+    colour
+) {
 
-
-      const geometry =
+    const geometry =
         new THREE.SphereGeometry(
-          radius * 1.08,
-          32,
-          32
+            radius,
+            48,
+            48
         );
 
+    const material =
+        new THREE.MeshPhongMaterial({
+            color: colour,
+            transparent: true,
+            opacity: 0.75
+        });
 
-      const material =
+    const planet =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    planet.position.set(
+        position.x,
+        position.y,
+        position.z
+    );
+
+    planet.userData = {
+        type: "planet",
+        project: project,
+        name: name
+    };
+
+    galaxy.add(planet);
+
+    planets.push(planet);
+
+    /* subtle glow */
+
+    const glowGeometry =
+        new THREE.SphereGeometry(
+            radius * 1.12,
+            32,
+            32
+        );
+
+    const glowMaterial =
         new THREE.MeshBasicMaterial({
-
-          color:
-            colour,
-
-          transparent:
-            true,
-
-          opacity:
-            0.10,
-
-          side:
-            THREE.BackSide
-
+            color: colour,
+            transparent: true,
+            opacity: 0.08,
+            side: THREE.BackSide
         });
 
-
-      const glow =
+    const glow =
         new THREE.Mesh(
-          geometry,
-          material
+            glowGeometry,
+            glowMaterial
         );
 
+    planet.add(glow);
 
-      planet.add(
-        glow
-      );
-
-    }
+    return planet;
+}
 
 
-    addGlow(
-      cop,
-      0x4fc58a
-    );
+const copPlanet = createPlanet(
+    "COP",
+    "COP",
+    { x: -7, y: 3, z: -4 },
+    1.7,
+    0x4fa878
+);
+
+const refugeePlanet = createPlanet(
+    "REFUGEE CAMPS",
+    "REFUGEE",
+    { x: 7, y: -2, z: -5 },
+    2,
+    0xc66b70
+);
+
+const futurePlanet = createPlanet(
+    "FUTURE RESEARCH",
+    "FUTURE",
+    { x: -4, y: -5, z: -7 },
+    1.2,
+    0xd2a94f
+);
 
 
-    addGlow(
-      refugee,
-      0xff7777
-    );
+/* =========================================================
+   PLANET LABELS
+   ========================================================= */
+
+const labels = [];
+
+function createLabel(
+    text,
+    subtitle,
+    planet
+) {
+
+    const label =
+        document.createElement("div");
+
+    label.className = "planet-label";
+
+    label.innerHTML = `
+        <div class="planet-name">${text}</div>
+        <div class="planet-subtitle">${subtitle}</div>
+    `;
+
+    document.body.appendChild(label);
+
+    labels.push({
+        element: label,
+        planet: planet
+    });
+}
+
+createLabel(
+    "UNGA 81",
+    "201 GENERAL ASSEMBLY SPEECHES",
+    earth
+);
+
+createLabel(
+    "COP",
+    "CLIMATE RESEARCH",
+    copPlanet
+);
+
+createLabel(
+    "REFUGEE CAMPS",
+    "PLACE / DISPLACEMENT",
+    refugeePlanet
+);
+
+createLabel(
+    "FUTURE",
+    "RESEARCH PROJECT",
+    futurePlanet
+);
 
 
-    addGlow(
-      future,
-      0xe8b95a
-    );
+/* =========================================================
+   RESEARCH DATA
+   ========================================================= */
+
+let researchData = [];
+
+const researchPoints = new THREE.Group();
+
+earth.add(researchPoints);
 
 
-    // ==================================================
-    // STARS
-    // ==================================================
+/* =========================================================
+   CSV PARSER
+   ========================================================= */
 
-    const starGeometry =
-      new THREE.BufferGeometry();
+function parseCSV(text) {
 
+    const rows = [];
 
-    const starCount =
-      5000;
+    let row = [];
+    let value = "";
+    let insideQuotes = false;
 
+    for (let i = 0; i < text.length; i++) {
 
-    const positions =
-      new Float32Array(
-        starCount * 3
-      );
+        const char = text[i];
+        const next = text[i + 1];
 
-
-    for (
-      let i = 0;
-      i < starCount * 3;
-      i++
-    ) {
-
-      positions[i] =
-        (
-          Math.random() -
-          0.5
-        ) * 300;
-
-    }
-
-
-    starGeometry.setAttribute(
-
-      "position",
-
-      new THREE.BufferAttribute(
-        positions,
-        3
-      )
-
-    );
-
-
-    const starMaterial =
-      new THREE.PointsMaterial({
-
-        color:
-          0xffffff,
-
-        size:
-          0.07,
-
-        transparent:
-          true,
-
-        opacity:
-          0.85
-
-      });
-
-
-    const stars =
-      new THREE.Points(
-        starGeometry,
-        starMaterial
-      );
-
-
-    scene.add(
-      stars
-    );
-
-
-    // ==================================================
-    // NAVIGATION
-    // ==================================================
-
-    let targetRotationX = 0;
-
-    let targetRotationY = 0;
-
-    let currentRotationX = 0;
-
-    let currentRotationY = 0;
-
-
-    let targetZoom = 20;
-
-    let currentZoom = 20;
-
-
-    let dragging = false;
-
-
-    let previousX = 0;
-
-    let previousY = 0;
-
-
-    // ==================================================
-    // MOUSE DRAG
-    // ==================================================
-
-    renderer.domElement.addEventListener(
-      "mousedown",
-
-      function(event) {
-
-        if (
-          isFlying ||
-          mapOpen
-        ) {
-          return;
+        if (char === '"' && insideQuotes && next === '"') {
+            value += '"';
+            i++;
         }
 
+        else if (char === '"') {
+            insideQuotes = !insideQuotes;
+        }
+
+        else if (char === "," && !insideQuotes) {
+            row.push(value.trim());
+            value = "";
+        }
+
+        else if (
+            (char === "\n" || char === "\r") &&
+            !insideQuotes
+        ) {
+
+            if (char === "\r" && next === "\n") {
+                i++;
+            }
+
+            row.push(value.trim());
+            value = "";
+
+            if (row.some(cell => cell !== "")) {
+                rows.push(row);
+            }
+
+            row = [];
+        }
+
+        else {
+            value += char;
+        }
+    }
+
+    if (value !== "" || row.length > 0) {
+        row.push(value.trim());
+
+        if (row.some(cell => cell !== "")) {
+            rows.push(row);
+        }
+    }
+
+    if (rows.length === 0) {
+        return [];
+    }
+
+    const headers = rows[0].map(
+        h => h.toLowerCase().trim()
+    );
+
+    return rows.slice(1).map(row => {
+
+        const object = {};
+
+        headers.forEach((header, index) => {
+            object[header] =
+                (row[index] || "").trim();
+        });
+
+        return object;
+    });
+}
+
+
+/* =========================================================
+   LAT / LONG → 3D POSITION
+   ========================================================= */
+
+function latLonToVector3(
+    lat,
+    lon,
+    radius
+) {
+
+    const phi =
+        (90 - lat) * Math.PI / 180;
+
+    const theta =
+        (lon + 180) * Math.PI / 180;
+
+    return new THREE.Vector3(
+        -radius *
+        Math.sin(phi) *
+        Math.cos(theta),
+
+        radius *
+        Math.cos(phi),
+
+        radius *
+        Math.sin(phi) *
+        Math.sin(theta)
+    );
+}
+
+
+/* =========================================================
+   CREATE RESEARCH POINTS
+   ========================================================= */
+
+function createResearchPoints(data) {
+
+    researchPoints.clear();
+
+    researchData = data.filter(row => {
+
+        return (
+            row.project &&
+            row.project.toUpperCase() === "UNGA81" &&
+            row.country &&
+            row.lat &&
+            row.long
+        );
+
+    });
+
+    researchData.forEach((item, index) => {
+
+        const lat =
+            parseFloat(item.lat);
+
+        const lon =
+            parseFloat(item.long);
+
+        if (
+            !Number.isFinite(lat) ||
+            !Number.isFinite(lon)
+        ) {
+            return;
+        }
+
+        const geometry =
+            new THREE.SphereGeometry(
+                0.045,
+                12,
+                12
+            );
+
+        const material =
+            new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.25
+            });
+
+        const point =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+        point.position.copy(
+            latLonToVector3(
+                lat,
+                lon,
+                3.075
+            )
+        );
+
+        point.userData = {
+            type: "research",
+            country: item.country,
+            title: item.title,
+            url: item.url || item.URL,
+            lat: lat,
+            lon: lon
+        };
+
+        /*
+         * IMPORTANT:
+         * Points are deliberately NOT independently
+         * clickable in galaxy mode.
+         */
+
+        researchPoints.add(point);
+    });
+
+    console.log(
+        "Loaded research points:",
+        researchData.length
+    );
+}
+
+
+/* =========================================================
+   LOAD GOOGLE SHEET
+   ========================================================= */
+
+fetch(DATA_URL)
+
+    .then(response => {
+
+        if (!response.ok) {
+            throw new Error(
+                "Could not load spreadsheet"
+            );
+        }
+
+        return response.text();
+    })
+
+    .then(csv => {
+
+        const data =
+            parseCSV(csv);
+
+        createResearchPoints(data);
+
+        setTimeout(() => {
+
+            document
+                .getElementById("loading")
+                .classList.add("hidden");
+
+        }, 700);
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        document
+            .getElementById("loading")
+            .textContent =
+            "COULD NOT LOAD RESEARCH DATA";
+
+    });
+
+
+/* =========================================================
+   INTERACTION STATE
+   ========================================================= */
+
+let mode = "galaxy";
+
+let selectedPlanet = null;
+
+let cameraAnimating = false;
+
+let targetCameraPosition =
+    new THREE.Vector3(
+        0,
+        2,
+        20
+    );
+
+
+/* =========================================================
+   MOUSE ROTATION
+   ========================================================= */
+
+let dragging = false;
+
+let previousMouseX = 0;
+let previousMouseY = 0;
+
+let rotationVelocityX = 0;
+let rotationVelocityY = 0;
+
+renderer.domElement.addEventListener(
+    "pointerdown",
+    event => {
 
         dragging = true;
 
+        previousMouseX =
+            event.clientX;
 
-        previousX =
-          event.clientX;
+        previousMouseY =
+            event.clientY;
+    }
+);
 
-
-        previousY =
-          event.clientY;
-
-      }
-
-    );
-
-
-    window.addEventListener(
-      "mouseup",
-
-      function() {
-
+window.addEventListener(
+    "pointerup",
+    () => {
         dragging = false;
+    }
+);
 
-      }
-    );
+window.addEventListener(
+    "pointermove",
+    event => {
 
-
-    window.addEventListener(
-      "mousemove",
-
-      function(event) {
-
-        if (
-          !dragging ||
-          isFlying ||
-          mapOpen
-        ) {
-          return;
+        if (!dragging) {
+            return;
         }
 
+        const dx =
+            event.clientX -
+            previousMouseX;
 
-        const movementX =
-          event.clientX -
-          previousX;
+        const dy =
+            event.clientY -
+            previousMouseY;
 
+        previousMouseX =
+            event.clientX;
 
-        const movementY =
-          event.clientY -
-          previousY;
+        previousMouseY =
+            event.clientY;
 
+        rotationVelocityY =
+            dx * 0.0008;
 
-        targetRotationY +=
-          movementX * 0.005;
+        rotationVelocityX =
+            dy * 0.0008;
 
+        galaxy.rotation.y +=
+            rotationVelocityY;
 
-        targetRotationX +=
-          movementY * 0.005;
-
-
-        targetRotationX =
-          Math.max(
-            -1.2,
-            Math.min(
-              1.2,
-              targetRotationX
-            )
-          );
-
-
-        previousX =
-          event.clientX;
+        galaxy.rotation.x +=
+            rotationVelocityX;
+    }
+);
 
 
-        previousY =
-          event.clientY;
+/* =========================================================
+   ZOOM
+   ========================================================= */
 
-      }
-    );
+window.addEventListener(
+    "wheel",
+    event => {
 
-
-    // ==================================================
-    // MOUSE ZOOM
-    // ==================================================
-
-    renderer.domElement.addEventListener(
-      "wheel",
-
-      function(event) {
-
-        if (
-          isFlying ||
-          mapOpen
-        ) {
-          return;
+        if (cameraAnimating) {
+            return;
         }
 
+        const amount =
+            event.deltaY * 0.008;
 
-        event.preventDefault();
+        if (mode === "galaxy") {
 
+            camera.position.z += amount;
 
-        targetZoom +=
-          event.deltaY * 0.01;
-
-
-        targetZoom =
-          Math.max(
-            7,
-            Math.min(
-              45,
-              targetZoom
-            )
-          );
-
-      },
-
-      {
-        passive: false
-      }
-    );
-
-
-    // ==================================================
-    // TOUCH
-    // ==================================================
-
-    let touches = {};
-
-    let lastTouchDistance = null;
-
-
-    renderer.domElement.addEventListener(
-      "touchstart",
-
-      function(event) {
-
-        if (
-          isFlying ||
-          mapOpen
-        ) {
-          return;
-        }
-
-
-        event.preventDefault();
-
-
-        touches = {};
-
-
-        for (
-          let i = 0;
-          i < event.touches.length;
-          i++
-        ) {
-
-          touches[
-            event.touches[i].identifier
-          ] = {
-
-            x:
-              event.touches[i].clientX,
-
-            y:
-              event.touches[i].clientY
-
-          };
+            camera.position.z =
+                Math.max(
+                    9,
+                    Math.min(
+                        40,
+                        camera.position.z
+                    )
+                );
 
         }
 
+        else if (mode === "planet") {
 
-        if (
-          event.touches.length === 2
-        ) {
+            camera.position.z += amount;
 
-          const dx =
-            event.touches[0].clientX -
-            event.touches[1].clientX;
+            camera.position.z =
+                Math.max(
+                    3.8,
+                    Math.min(
+                        10,
+                        camera.position.z
+                    )
+                );
+        }
+    }
+);
 
 
-          const dy =
-            event.touches[0].clientY -
-            event.touches[1].clientY;
+/* =========================================================
+   RAYCASTING
+   ========================================================= */
+
+const raycaster =
+    new THREE.Raycaster();
+
+const mouse =
+    new THREE.Vector2();
 
 
-          lastTouchDistance =
-            Math.sqrt(
-              dx * dx +
-              dy * dy
+function getMouse(event) {
+
+    mouse.x =
+        (event.clientX /
+            window.innerWidth) * 2 - 1;
+
+    mouse.y =
+        -(event.clientY /
+            window.innerHeight) * 2 + 1;
+}
+
+
+/* =========================================================
+   CLICK
+   ========================================================= */
+
+renderer.domElement.addEventListener(
+    "click",
+    event => {
+
+        /*
+         * GALAXY MODE
+         *
+         * Only planets are checked.
+         * Research points are completely ignored.
+         */
+
+        if (mode === "galaxy") {
+
+            getMouse(event);
+
+            raycaster.setFromCamera(
+                mouse,
+                camera
             );
 
-        }
-
-      },
-
-      {
-        passive: false
-      }
-    );
-
-
-    renderer.domElement.addEventListener(
-      "touchmove",
-
-      function(event) {
-
-        if (
-          isFlying ||
-          mapOpen
-        ) {
-          return;
-        }
-
-
-        event.preventDefault();
-
-
-        if (
-          event.touches.length === 1
-        ) {
-
-          const touch =
-            event.touches[0];
-
-
-          const previous =
-            touches[
-              touch.identifier
+            const objects = [
+                earth,
+                ...planets
             ];
 
+            const hits =
+                raycaster.intersectObjects(
+                    objects,
+                    false
+                );
 
-          if (previous) {
+            if (
+                hits.length > 0 &&
+                !cameraAnimating
+            ) {
 
-            const dx =
-              touch.clientX -
-              previous.x;
+                const planet =
+                    hits[0].object;
 
+                enterPlanet(planet);
+            }
 
-            const dy =
-              touch.clientY -
-              previous.y;
-
-
-            targetRotationY +=
-              dx * 0.005;
-
-
-            targetRotationX +=
-              dy * 0.005;
-
-
-            targetRotationX =
-              Math.max(
-                -1.2,
-                Math.min(
-                  1.2,
-                  targetRotationX
-                )
-              );
-
-          }
-
-
-          touches[
-            touch.identifier
-          ] = {
-
-            x:
-              touch.clientX,
-
-            y:
-              touch.clientY
-
-          };
-
+            return;
         }
 
 
-        if (
-          event.touches.length === 2
-        ) {
+        /*
+         * PLANET MODE
+         *
+         * Now research points are active.
+         */
 
-          const dx =
-            event.touches[0].clientX -
-            event.touches[1].clientX;
+        if (mode === "planet") {
 
+            getMouse(event);
 
-          const dy =
-            event.touches[0].clientY -
-            event.touches[1].clientY;
-
-
-          const distance =
-            Math.sqrt(
-              dx * dx +
-              dy * dy
+            raycaster.setFromCamera(
+                mouse,
+                camera
             );
 
+            const hits =
+                raycaster.intersectObjects(
+                    researchPoints.children,
+                    false
+                );
 
-          if (
-            lastTouchDistance !== null
-          ) {
+            if (hits.length > 0) {
 
-            const difference =
-              distance -
-              lastTouchDistance;
-
-
-            targetZoom -=
-              difference * 0.03;
-
-
-            targetZoom =
-              Math.max(
-                7,
-                Math.min(
-                  45,
-                  targetZoom
-                )
-              );
-
-          }
-
-
-          lastTouchDistance =
-            distance;
-
+                showResearchPin(
+                    hits[0].object
+                );
+            }
         }
-
-      },
-
-      {
-        passive: false
-      }
-    );
-
-
-    renderer.domElement.addEventListener(
-      "touchend",
-
-      function(event) {
-
-        lastTouchDistance =
-          null;
-
-
-        touches = {};
-
-      },
-
-      {
-        passive: false
-      }
-    );
-
-
-    // ==================================================
-    // CLICK DETECTION
-    // ==================================================
-
-    const raycaster =
-      new THREE.Raycaster();
-
-
-    const mouse =
-      new THREE.Vector2();
-
-
-    let clickStartX = 0;
-
-    let clickStartY = 0;
-
-
-    renderer.domElement.addEventListener(
-      "mousedown",
-
-      function(event) {
-
-        clickStartX =
-          event.clientX;
-
-
-        clickStartY =
-          event.clientY;
-
-      }
-    );
-
-
-    renderer.domElement.addEventListener(
-      "click",
-
-      function(event) {
-
-        if (
-          isFlying ||
-          mapOpen
-        ) {
-          return;
-        }
-
-
-        const distanceMoved =
-          Math.sqrt(
-
-            Math.pow(
-              event.clientX -
-              clickStartX,
-              2
-            )
-
-            +
-
-            Math.pow(
-              event.clientY -
-              clickStartY,
-              2
-            )
-
-          );
-
-
-        // Don't interpret a drag as a click
-
-        if (
-          distanceMoved > 8
-        ) {
-          return;
-        }
-
-
-        mouse.x =
-          (
-            event.clientX /
-            window.innerWidth
-          ) * 2 - 1;
-
-
-        mouse.y =
-          -(
-            event.clientY /
-            window.innerHeight
-          ) * 2 + 1;
-
-
-        raycaster.setFromCamera(
-          mouse,
-          camera
-        );
-
-
-        const hits =
-          raycaster.intersectObjects(
-            [
-              earth,
-              cop,
-              refugee,
-              future
-            ]
-          );
-
-
-        if (
-          hits.length > 0
-        ) {
-
-          const selected =
-            hits[0].object;
-
-
-          if (
-            selected.userData.project ===
-            "UNGA 81"
-          ) {
-
-            flyToEarth();
-
-          }
-
-        }
-
-      }
-    );
-
-
-    // ==================================================
-    // CAMERA FLIGHT
-    // ==================================================
-
-    let isFlying = false;
-
-    let mapOpen = false;
-
-
-    let flightStartTime = 0;
-
-    const flightDuration =
-      3000;
-
-
-    let startCameraPosition =
-      new THREE.Vector3();
-
-
-    let startTarget =
-      new THREE.Vector3();
-
-
-    function flyToEarth() {
-
-
-      isFlying = true;
-
-
-      flightStartTime =
-        performance.now();
-
-
-      startCameraPosition.copy(
-        camera.position
-      );
-
-
-      startTarget.set(
-        0,
-        0,
-        0
-      );
-
-
-      document
-        .getElementById(
-          "planet-label"
-        )
-        .style.opacity =
-        "1";
-
     }
+);
 
 
-    // ==================================================
-    // OPEN UNGA MAP
-    // ==================================================
+/* =========================================================
+   ENTER PLANET
+   ========================================================= */
 
-    function openMap() {
+function enterPlanet(planet) {
 
+    selectedPlanet = planet;
 
-      mapOpen = true;
+    mode = "planet";
 
-      isFlying = false;
-
-
-      document
-        .getElementById(
-          "map-frame"
-        )
-        .src =
-        "https://flo.uri.sh/visualisation/30476762/embed";
-
-
-      document
-        .getElementById(
-          "map-view"
-        )
-        .classList
-        .add(
-          "active"
-        );
-
-
-      document
-        .getElementById(
-          "back-button"
-        )
-        .style.display =
-        "block";
-
-
-      document
-        .querySelector(
-          ".title"
-        )
-        .style.display =
-        "none";
-
-
-      document
-        .querySelector(
-          ".instructions"
-        )
-        .style.display =
-        "none";
-
-
-      document
-        .getElementById(
-          "planet-label"
-        )
-        .style.display =
-        "none";
-
-    }
-
-
-    // ==================================================
-    // RETURN TO UNIVERSE
-    // ==================================================
+    cameraAnimating = true;
 
     document
-      .getElementById(
-        "back-button"
-      )
-      .addEventListener(
-        "click",
+        .getElementById("planetMode")
+        .style.display = "block";
 
-        function() {
+    document
+        .getElementById("instructions")
+        .style.display = "none";
 
+    document
+        .getElementById("header")
+        .style.display = "none";
 
-          document
-            .getElementById(
-              "map-view"
-            )
-            .classList
-            .remove(
-              "active"
-            );
+    document
+        .getElementById("planetTitle")
+        .style.display = "block";
 
+    document
+        .getElementById("planetTitleMain")
+        .textContent =
+        planet.userData.project;
 
-          document
-            .getElementById(
-              "map-frame"
-            )
-            .src =
-            "";
+    /*
+     * Move camera towards the selected planet.
+     *
+     * Earth is at the centre, so for now this is
+     * a smooth journey into the same object rather
+     * than opening another page.
+     */
 
+    const destination =
+        new THREE.Vector3(
+            planet.position.x,
+            planet.position.y,
+            planet.position.z + 7
+        );
 
-          document
-            .getElementById(
-              "back-button"
-            )
-            .style.display =
-            "none";
+    targetCameraPosition.copy(
+        destination
+    );
 
+    animateCameraTo(
+        targetCameraPosition,
+        1800,
+        () => {
 
-          document
-            .querySelector(
-              ".title"
-            )
-            .style.display =
-            "block";
+            cameraAnimating = false;
 
+            /*
+             * Make research points visible once
+             * we have entered planet mode.
+             */
 
-          document
-            .querySelector(
-              ".instructions"
-            )
-            .style.display =
-            "block";
+            researchPoints.children
+                .forEach(point => {
 
-
-          document
-            .getElementById(
-              "planet-label"
-            )
-            .style.display =
-            "block";
-
-
-          mapOpen = false;
-
-
-          // Reset camera
-
-          camera.position.set(
-            0,
-            2,
-            20
-          );
-
-
-          targetZoom = 20;
-
-          currentZoom = 20;
-
-
-          isFlying = false;
-
+                    point.material.opacity = 0.9;
+                    point.scale.set(
+                        1.25,
+                        1.25,
+                        1.25
+                    );
+                });
         }
-      );
+    );
+}
 
 
-    // ==================================================
-    // ANIMATION
-    // ==================================================
+/* =========================================================
+   CAMERA ANIMATION
+   ========================================================= */
+
+function animateCameraTo(
+    destination,
+    duration,
+    callback
+) {
+
+    const start =
+        camera.position.clone();
+
+    const startTime =
+        performance.now();
 
     function animate() {
 
-
-      requestAnimationFrame(
-        animate
-      );
-
-
-      // --------------------------------
-      // NORMAL NAVIGATION
-      // --------------------------------
-
-      if (
-        !isFlying &&
-        !mapOpen
-      ) {
-
-        currentRotationX +=
-          (
-            targetRotationX -
-            currentRotationX
-          ) * 0.08;
-
-
-        currentRotationY +=
-          (
-            targetRotationY -
-            currentRotationY
-          ) * 0.08;
-
-
-        scene.rotation.x =
-          currentRotationX;
-
-
-        scene.rotation.y =
-          currentRotationY;
-
-
-        currentZoom +=
-          (
-            targetZoom -
-            currentZoom
-          ) * 0.08;
-
-
-        camera.position.z =
-          currentZoom;
-
-      }
-
-
-      // --------------------------------
-      // CAMERA FLIGHT
-      // --------------------------------
-
-      if (
-        isFlying
-      ) {
-
         const elapsed =
-          performance.now() -
-          flightStartTime;
-
+            performance.now() -
+            startTime;
 
         let progress =
-          elapsed /
-          flightDuration;
+            Math.min(
+                elapsed / duration,
+                1
+            );
 
+        /*
+         * Smooth ease-in/ease-out
+         */
 
         progress =
-          Math.min(
-            progress,
-            1
-          );
-
-
-        // Smooth ease-in/ease-out
-
-        const eased =
-          progress < 0.5
-
-            ?
-
-            2 *
             progress *
+            progress *
+            (3 - 2 * progress);
+
+        camera.position.lerpVectors(
+            start,
+            destination,
             progress
-
-            :
-
-            1 -
-            Math.pow(
-              -2 *
-              progress +
-              2,
-              2
-            ) / 2;
-
-
-        camera.position.z =
-          THREE.MathUtils.lerp(
-            startCameraPosition.z,
-            5.8,
-            eased
-          );
-
-
-        camera.position.y =
-          THREE.MathUtils.lerp(
-            startCameraPosition.y,
-            0,
-            eased
-          );
-
-
-        if (
-          progress >= 1
-        ) {
-
-          openMap();
-
-        }
-
-      }
-
-
-      // --------------------------------
-      // PLANET ROTATION
-      // --------------------------------
-
-      earth.rotation.y +=
-        0.0015;
-
-
-      atmosphere.rotation.y +=
-        0.0005;
-
-
-      cop.rotation.y +=
-        0.001;
-
-
-      refugee.rotation.y +=
-        0.0012;
-
-
-      future.rotation.y +=
-        0.001;
-
-
-      stars.rotation.y +=
-        0.00008;
-
-
-      // --------------------------------
-      // RENDER
-      // --------------------------------
-
-      renderer.render(
-        scene,
-        camera
-      );
-
-    }
-
-
-    animate();
-
-
-    // ==================================================
-    // RESIZE
-    // ==================================================
-
-    window.addEventListener(
-      "resize",
-
-      function() {
-
-
-        camera.aspect =
-          window.innerWidth /
-          window.innerHeight;
-
-
-        camera.updateProjectionMatrix();
-
-
-        renderer.setSize(
-          window.innerWidth,
-          window.innerHeight
         );
 
-      }
+        camera.lookAt(
+            selectedPlanet
+                ? selectedPlanet.position
+                : new THREE.Vector3(0,0,0)
+        );
+
+        if (progress < 1) {
+
+            requestAnimationFrame(
+                animate
+            );
+
+        } else {
+
+            callback();
+        }
+    }
+
+    animate();
+}
+
+
+/* =========================================================
+   RESEARCH PIN
+   ========================================================= */
+
+function showResearchPin(point) {
+
+    const data =
+        point.userData;
+
+    document
+        .getElementById("pinCountry")
+        .textContent =
+        data.country;
+
+    document
+        .getElementById("pinTitle")
+        .textContent =
+        data.title;
+
+    const link =
+        document.getElementById(
+            "pinLink"
+        );
+
+    link.href =
+        data.url || "#";
+
+    const screenPosition =
+        point.position.clone();
+
+    point.parent.localToWorld(
+        screenPosition
+    );
+
+    screenPosition.project(
+        camera
+    );
+
+    let x =
+        (screenPosition.x * 0.5 + 0.5) *
+        window.innerWidth;
+
+    let y =
+        (-screenPosition.y * 0.5 + 0.5) *
+        window.innerHeight;
+
+    /*
+     * Keep the card on screen.
+     */
+
+    x =
+        Math.max(
+            160,
+            Math.min(
+                window.innerWidth - 160,
+                x + 30
+            )
+        );
+
+    y =
+        Math.max(
+            100,
+            Math.min(
+                window.innerHeight - 100,
+                y
+            )
+        );
+
+    const pin =
+        document.getElementById(
+            "researchPin"
+        );
+
+    pin.style.left =
+        x + "px";
+
+    pin.style.top =
+        y + "px";
+
+    pin.style.display =
+        "block";
+}
+
+
+/* =========================================================
+   CLOSE PIN
+   ========================================================= */
+
+document
+    .getElementById("closePin")
+    .addEventListener(
+        "click",
+        () => {
+
+            document
+                .getElementById(
+                    "researchPin"
+                )
+                .style.display = "none";
+        }
     );
 
 
-  </script>
+/* =========================================================
+   RETURN TO GALAXY
+   ========================================================= */
+
+document
+    .getElementById("backButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            mode = "galaxy";
+
+            selectedPlanet = null;
+
+            document
+                .getElementById(
+                    "planetMode"
+                )
+                .style.display = "none";
+
+            document
+                .getElementById(
+                    "planetTitle"
+                )
+                .style.display = "none";
+
+            document
+                .getElementById(
+                    "researchPin"
+                )
+                .style.display = "none";
+
+            document
+                .getElementById(
+                    "header"
+                )
+                .style.display = "block";
+
+            document
+                .getElementById(
+                    "instructions"
+                )
+                .style.display = "block";
+
+            cameraAnimating = true;
+
+            animateCameraTo(
+                new THREE.Vector3(
+                    0,
+                    2,
+                    20
+                ),
+                1500,
+                () => {
+
+                    cameraAnimating = false;
+                }
+            );
+
+            researchPoints.children
+                .forEach(point => {
+
+                    point.material.opacity =
+                        0.25;
+
+                    point.scale.set(
+                        1,
+                        1,
+                        1
+                    );
+                });
+        }
+    );
+
+
+/* =========================================================
+   LABEL POSITIONING
+   ========================================================= */
+
+function updateLabels() {
+
+    labels.forEach(item => {
+
+        const planet =
+            item.planet;
+
+        const position =
+            planet.position.clone();
+
+        position.project(
+            camera
+        );
+
+        const x =
+            (position.x * 0.5 + 0.5) *
+            window.innerWidth;
+
+        const y =
+            (-position.y * 0.5 + 0.5) *
+            window.innerHeight;
+
+        item.element.style.left =
+            x + "px";
+
+        item.element.style.top =
+            (y -
+                planet.geometry.parameters.radius -
+                25) + "px";
+
+        /*
+         * Hide labels when behind camera.
+         */
+
+        const distance =
+            camera.position.distanceTo(
+                planet.position
+            );
+
+        if (
+            mode === "galaxy" &&
+            distance < 18
+        ) {
+
+            item.element.style.opacity =
+                "0.8";
+
+        } else if (
+            mode === "galaxy"
+        ) {
+
+            item.element.style.opacity =
+                "0.5";
+
+        } else {
+
+            item.element.style.opacity =
+                "0";
+        }
+    });
+}
+
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+function animate() {
+
+    requestAnimationFrame(
+        animate
+    );
+
+    /*
+     * Slow movement of the research universe.
+     */
+
+    if (!dragging) {
+
+        galaxy.rotation.y +=
+            rotationVelocityY;
+
+        galaxy.rotation.x +=
+            rotationVelocityX;
+
+        rotationVelocityY *= 0.96;
+        rotationVelocityX *= 0.96;
+    }
+
+    /*
+     * Earth rotates.
+     */
+
+    earth.rotation.y += 0.0015;
+
+    /*
+     * Research points inherit the Earth rotation
+     * because they are children of the Earth.
+     */
+
+    updateLabels();
+
+    renderer.render(
+        scene,
+        camera
+    );
+}
+
+animate();
+
+
+/* =========================================================
+   RESIZE
+   ========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+    }
+);
+
+</script>
 
 </body>
 </html>
