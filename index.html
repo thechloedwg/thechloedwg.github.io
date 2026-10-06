@@ -11,7 +11,6 @@
 
   <title>Chloe DWG — Research Universe</title>
 
-
   <style>
 
     html,
@@ -108,6 +107,149 @@
 
     }
 
+
+    /* =========================================
+       PLANET LABEL
+       ========================================= */
+
+    .planet-label {
+
+      position: fixed;
+
+      z-index: 20;
+
+      transform:
+        translate(
+          -50%,
+          -50%
+        );
+
+      color: white;
+
+      font-size: 13px;
+
+      letter-spacing: 3px;
+
+      pointer-events: none;
+
+      opacity: 0;
+
+      transition:
+        opacity 0.3s ease;
+
+      text-shadow:
+        0 0 10px
+        rgba(
+          255,
+          255,
+          255,
+          0.8
+        );
+
+    }
+
+
+    /* =========================================
+       MAP VIEW
+       ========================================= */
+
+    #map-view {
+
+      position: fixed;
+
+      inset: 0;
+
+      z-index: 100;
+
+      background: white;
+
+      opacity: 0;
+
+      pointer-events: none;
+
+      transition:
+        opacity 0.8s ease;
+
+    }
+
+
+    #map-view.active {
+
+      opacity: 1;
+
+      pointer-events: auto;
+
+    }
+
+
+    #map-frame {
+
+      position: absolute;
+
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      border: none;
+
+    }
+
+
+    /* =========================================
+       BACK BUTTON
+       ========================================= */
+
+    #back-button {
+
+      position: fixed;
+
+      top: 25px;
+      left: 25px;
+
+      z-index: 200;
+
+      padding:
+        12px 18px;
+
+      border:
+        1px solid
+        rgba(
+          0,
+          0,
+          0,
+          0.25
+        );
+
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.92
+        );
+
+      color: #111;
+
+      font-size: 10px;
+
+      letter-spacing: 2px;
+
+      cursor: pointer;
+
+      display: none;
+
+    }
+
+
+    #back-button:hover {
+
+      background: white;
+
+    }
+
+
   </style>
 
 </head>
@@ -115,6 +257,10 @@
 
 <body>
 
+
+  <!-- =========================================
+       3D UNIVERSE
+       ========================================= -->
 
   <div id="canvas-container"></div>
 
@@ -129,9 +275,37 @@
   </div>
 
 
-  <!-- ==================================================
+  <div
+    id="planet-label"
+    class="planet-label"
+  >
+    UNGA 81
+  </div>
+
+
+  <!-- =========================================
+       MAP
+       ========================================= -->
+
+  <div id="map-view">
+
+    <iframe
+      id="map-frame"
+      src=""
+      title="UN General Assembly Research Map">
+    </iframe>
+
+  </div>
+
+
+  <button id="back-button">
+    ← RESEARCH UNIVERSE
+  </button>
+
+
+  <!-- =========================================
        THREE.JS
-       ================================================== -->
+       ========================================= -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -145,6 +319,7 @@
 
     const scene =
       new THREE.Scene();
+
 
     scene.background =
       new THREE.Color(
@@ -179,7 +354,9 @@
 
     const renderer =
       new THREE.WebGLRenderer({
+
         antialias: true
+
       });
 
 
@@ -303,7 +480,7 @@
 
 
     // ==================================================
-    // EARTH ATMOSPHERE
+    // ATMOSPHERE
     // ==================================================
 
     const atmosphereGeometry =
@@ -356,7 +533,6 @@
       radius,
       colour
     ) {
-
 
       const geometry =
         new THREE.SphereGeometry(
@@ -443,14 +619,13 @@
 
 
     // ==================================================
-    // PLANET GLOW
+    // GLOW
     // ==================================================
 
     function addGlow(
       planet,
       colour
     ) {
-
 
       const radius =
         planet.geometry
@@ -592,7 +767,7 @@
 
 
     // ==================================================
-    // NAVIGATION VARIABLES
+    // NAVIGATION
     // ==================================================
 
     let targetRotationX = 0;
@@ -618,7 +793,7 @@
 
 
     // ==================================================
-    // MOUSE NAVIGATION
+    // MOUSE DRAG
     // ==================================================
 
     renderer.domElement.addEventListener(
@@ -626,10 +801,20 @@
 
       function(event) {
 
+        if (
+          isFlying ||
+          mapOpen
+        ) {
+          return;
+        }
+
+
         dragging = true;
+
 
         previousX =
           event.clientX;
+
 
         previousY =
           event.clientY;
@@ -647,7 +832,6 @@
         dragging = false;
 
       }
-
     );
 
 
@@ -656,7 +840,11 @@
 
       function(event) {
 
-        if (!dragging) {
+        if (
+          !dragging ||
+          isFlying ||
+          mapOpen
+        ) {
           return;
         }
 
@@ -697,18 +885,25 @@
           event.clientY;
 
       }
-
     );
 
 
     // ==================================================
-    // MOUSE WHEEL ZOOM
+    // MOUSE ZOOM
     // ==================================================
 
     renderer.domElement.addEventListener(
       "wheel",
 
       function(event) {
+
+        if (
+          isFlying ||
+          mapOpen
+        ) {
+          return;
+        }
+
 
         event.preventDefault();
 
@@ -731,12 +926,11 @@
       {
         passive: false
       }
-
     );
 
 
     // ==================================================
-    // TOUCH NAVIGATION
+    // TOUCH
     // ==================================================
 
     let touches = {};
@@ -748,6 +942,14 @@
       "touchstart",
 
       function(event) {
+
+        if (
+          isFlying ||
+          mapOpen
+        ) {
+          return;
+        }
+
 
         event.preventDefault();
 
@@ -803,7 +1005,6 @@
       {
         passive: false
       }
-
     );
 
 
@@ -812,12 +1013,16 @@
 
       function(event) {
 
+        if (
+          isFlying ||
+          mapOpen
+        ) {
+          return;
+        }
+
+
         event.preventDefault();
 
-
-        // ------------------------------
-        // ONE FINGER
-        // ------------------------------
 
         if (
           event.touches.length === 1
@@ -880,10 +1085,6 @@
         }
 
 
-        // ------------------------------
-        // TWO FINGERS = PINCH
-        // ------------------------------
-
         if (
           event.touches.length === 2
         ) {
@@ -940,7 +1141,6 @@
       {
         passive: false
       }
-
     );
 
 
@@ -949,43 +1149,353 @@
 
       function(event) {
 
-        event.preventDefault();
-
-
         lastTouchDistance =
           null;
 
 
         touches = {};
 
-
-        for (
-          let i = 0;
-          i < event.touches.length;
-          i++
-        ) {
-
-          touches[
-            event.touches[i].identifier
-          ] = {
-
-            x:
-              event.touches[i].clientX,
-
-            y:
-              event.touches[i].clientY
-
-          };
-
-        }
-
       },
 
       {
         passive: false
       }
-
     );
+
+
+    // ==================================================
+    // CLICK DETECTION
+    // ==================================================
+
+    const raycaster =
+      new THREE.Raycaster();
+
+
+    const mouse =
+      new THREE.Vector2();
+
+
+    let clickStartX = 0;
+
+    let clickStartY = 0;
+
+
+    renderer.domElement.addEventListener(
+      "mousedown",
+
+      function(event) {
+
+        clickStartX =
+          event.clientX;
+
+
+        clickStartY =
+          event.clientY;
+
+      }
+    );
+
+
+    renderer.domElement.addEventListener(
+      "click",
+
+      function(event) {
+
+        if (
+          isFlying ||
+          mapOpen
+        ) {
+          return;
+        }
+
+
+        const distanceMoved =
+          Math.sqrt(
+
+            Math.pow(
+              event.clientX -
+              clickStartX,
+              2
+            )
+
+            +
+
+            Math.pow(
+              event.clientY -
+              clickStartY,
+              2
+            )
+
+          );
+
+
+        // Don't interpret a drag as a click
+
+        if (
+          distanceMoved > 8
+        ) {
+          return;
+        }
+
+
+        mouse.x =
+          (
+            event.clientX /
+            window.innerWidth
+          ) * 2 - 1;
+
+
+        mouse.y =
+          -(
+            event.clientY /
+            window.innerHeight
+          ) * 2 + 1;
+
+
+        raycaster.setFromCamera(
+          mouse,
+          camera
+        );
+
+
+        const hits =
+          raycaster.intersectObjects(
+            [
+              earth,
+              cop,
+              refugee,
+              future
+            ]
+          );
+
+
+        if (
+          hits.length > 0
+        ) {
+
+          const selected =
+            hits[0].object;
+
+
+          if (
+            selected.userData.project ===
+            "UNGA 81"
+          ) {
+
+            flyToEarth();
+
+          }
+
+        }
+
+      }
+    );
+
+
+    // ==================================================
+    // CAMERA FLIGHT
+    // ==================================================
+
+    let isFlying = false;
+
+    let mapOpen = false;
+
+
+    let flightStartTime = 0;
+
+    const flightDuration =
+      3000;
+
+
+    let startCameraPosition =
+      new THREE.Vector3();
+
+
+    let startTarget =
+      new THREE.Vector3();
+
+
+    function flyToEarth() {
+
+
+      isFlying = true;
+
+
+      flightStartTime =
+        performance.now();
+
+
+      startCameraPosition.copy(
+        camera.position
+      );
+
+
+      startTarget.set(
+        0,
+        0,
+        0
+      );
+
+
+      document
+        .getElementById(
+          "planet-label"
+        )
+        .style.opacity =
+        "1";
+
+    }
+
+
+    // ==================================================
+    // OPEN UNGA MAP
+    // ==================================================
+
+    function openMap() {
+
+
+      mapOpen = true;
+
+      isFlying = false;
+
+
+      document
+        .getElementById(
+          "map-frame"
+        )
+        .src =
+        "https://flo.uri.sh/visualisation/30476762/embed";
+
+
+      document
+        .getElementById(
+          "map-view"
+        )
+        .classList
+        .add(
+          "active"
+        );
+
+
+      document
+        .getElementById(
+          "back-button"
+        )
+        .style.display =
+        "block";
+
+
+      document
+        .querySelector(
+          ".title"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .querySelector(
+          ".instructions"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .getElementById(
+          "planet-label"
+        )
+        .style.display =
+        "none";
+
+    }
+
+
+    // ==================================================
+    // RETURN TO UNIVERSE
+    // ==================================================
+
+    document
+      .getElementById(
+        "back-button"
+      )
+      .addEventListener(
+        "click",
+
+        function() {
+
+
+          document
+            .getElementById(
+              "map-view"
+            )
+            .classList
+            .remove(
+              "active"
+            );
+
+
+          document
+            .getElementById(
+              "map-frame"
+            )
+            .src =
+            "";
+
+
+          document
+            .getElementById(
+              "back-button"
+            )
+            .style.display =
+            "none";
+
+
+          document
+            .querySelector(
+              ".title"
+            )
+            .style.display =
+            "block";
+
+
+          document
+            .querySelector(
+              ".instructions"
+            )
+            .style.display =
+            "block";
+
+
+          document
+            .getElementById(
+              "planet-label"
+            )
+            .style.display =
+            "block";
+
+
+          mapOpen = false;
+
+
+          // Reset camera
+
+          camera.position.set(
+            0,
+            2,
+            20
+          );
+
+
+          targetZoom = 20;
+
+          currentZoom = 20;
+
+
+          isFlying = false;
+
+        }
+      );
 
 
     // ==================================================
@@ -1001,48 +1511,121 @@
 
 
       // --------------------------------
-      // SMOOTH GALAXY ROTATION
+      // NORMAL NAVIGATION
       // --------------------------------
 
-      currentRotationX +=
-        (
-          targetRotationX -
-          currentRotationX
-        ) * 0.08;
+      if (
+        !isFlying &&
+        !mapOpen
+      ) {
+
+        currentRotationX +=
+          (
+            targetRotationX -
+            currentRotationX
+          ) * 0.08;
 
 
-      currentRotationY +=
-        (
-          targetRotationY -
-          currentRotationY
-        ) * 0.08;
+        currentRotationY +=
+          (
+            targetRotationY -
+            currentRotationY
+          ) * 0.08;
+
+
+        scene.rotation.x =
+          currentRotationX;
+
+
+        scene.rotation.y =
+          currentRotationY;
+
+
+        currentZoom +=
+          (
+            targetZoom -
+            currentZoom
+          ) * 0.08;
+
+
+        camera.position.z =
+          currentZoom;
+
+      }
 
 
       // --------------------------------
-      // APPLY ROTATION
+      // CAMERA FLIGHT
       // --------------------------------
 
-      scene.rotation.x =
-        currentRotationX;
+      if (
+        isFlying
+      ) {
+
+        const elapsed =
+          performance.now() -
+          flightStartTime;
 
 
-      scene.rotation.y =
-        currentRotationY;
+        let progress =
+          elapsed /
+          flightDuration;
 
 
-      // --------------------------------
-      // SMOOTH ZOOM
-      // --------------------------------
-
-      currentZoom +=
-        (
-          targetZoom -
-          currentZoom
-        ) * 0.08;
+        progress =
+          Math.min(
+            progress,
+            1
+          );
 
 
-      camera.position.z =
-        currentZoom;
+        // Smooth ease-in/ease-out
+
+        const eased =
+          progress < 0.5
+
+            ?
+
+            2 *
+            progress *
+            progress
+
+            :
+
+            1 -
+            Math.pow(
+              -2 *
+              progress +
+              2,
+              2
+            ) / 2;
+
+
+        camera.position.z =
+          THREE.MathUtils.lerp(
+            startCameraPosition.z,
+            5.8,
+            eased
+          );
+
+
+        camera.position.y =
+          THREE.MathUtils.lerp(
+            startCameraPosition.y,
+            0,
+            eased
+          );
+
+
+        if (
+          progress >= 1
+        ) {
+
+          openMap();
+
+        }
+
+      }
 
 
       // --------------------------------
@@ -1112,8 +1695,8 @@
         );
 
       }
-
     );
+
 
   </script>
 
