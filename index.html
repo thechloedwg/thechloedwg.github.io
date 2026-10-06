@@ -8,94 +8,79 @@
   <style>
     html, body {
       margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #020308;
-      color: white;
+      background: #050509;
       font-family: Arial, sans-serif;
     }
 
-    #galaxy {
+    #scene {
+      position: fixed;
+      inset: 0;
+    }
+
+    canvas {
+      display: block;
       width: 100%;
       height: 100%;
-      display: block;
     }
 
     .title {
-      position: absolute;
+      position: fixed;
       top: 30px;
       left: 35px;
       z-index: 10;
-      pointer-events: none;
-    }
-
-    .title h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 400;
-      letter-spacing: 0.18em;
-    }
-
-    .title p {
-      margin: 8px 0 0;
-      font-size: 10px;
-      letter-spacing: 0.22em;
-      opacity: 0.55;
+      color: white;
+      letter-spacing: 3px;
+      font-size: 14px;
     }
 
     .instructions {
-      position: absolute;
-      bottom: 30px;
+      position: fixed;
+      bottom: 25px;
       left: 35px;
       z-index: 10;
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      opacity: 0.45;
-      pointer-events: none;
+      color: #aaa;
+      font-size: 11px;
+      letter-spacing: 1px;
     }
   </style>
 </head>
 
 <body>
 
+  <div id="scene"></div>
+
   <div class="title">
-    <h1>CHLOE DWG</h1>
-    <p>RESEARCH UNIVERSE</p>
+    CHLOE DWG — RESEARCH UNIVERSE
   </div>
 
   <div class="instructions">
     DRAG TO EXPLORE · SCROLL TO ZOOM · CLICK A WORLD
   </div>
 
-  <div id="galaxy"></div>
-
   <script type="module">
 
     import * as THREE from
-      "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+      "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
     import { OrbitControls } from
-      "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
+      "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
 
-    // -----------------------------------
-    // BASIC 3D WORLD
-    // -----------------------------------
-
-    const container = document.getElementById("galaxy");
+    // SCENE
 
     const scene = new THREE.Scene();
 
-    scene.background = new THREE.Color(0x020308);
+    scene.background = new THREE.Color(0x050509);
 
 
-    // -----------------------------------
     // CAMERA
-    // -----------------------------------
 
     const camera = new THREE.PerspectiveCamera(
-      55,
+      60,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
@@ -104,29 +89,21 @@
     camera.position.set(0, 2, 18);
 
 
-    // -----------------------------------
     // RENDERER
-    // -----------------------------------
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true
     });
 
-    renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, 2)
-    );
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
-    renderer.setSize(
-      window.innerWidth,
-      window.innerHeight
-    );
-
-    container.appendChild(renderer.domElement);
+    document
+      .getElementById("scene")
+      .appendChild(renderer.domElement);
 
 
-    // -----------------------------------
-    // CAMERA CONTROLS
-    // -----------------------------------
+    // CONTROLS
 
     const controls = new OrbitControls(
       camera,
@@ -134,54 +111,42 @@
     );
 
     controls.enableDamping = true;
-
-    controls.dampingFactor = 0.04;
-
     controls.minDistance = 5;
-
     controls.maxDistance = 40;
 
-    controls.enablePan = true;
 
-
-    // -----------------------------------
-    // LIGHTING
-    // -----------------------------------
+    // LIGHTS
 
     const ambientLight = new THREE.AmbientLight(
       0xffffff,
-      0.7
+      1.5
     );
 
     scene.add(ambientLight);
 
 
-    const sun = new THREE.PointLight(
+    const pointLight = new THREE.PointLight(
       0xffffff,
       100
     );
 
-    sun.position.set(5, 8, 10);
+    pointLight.position.set(5, 5, 10);
 
-    scene.add(sun);
+    scene.add(pointLight);
 
 
-    // -----------------------------------
-    // CREATE A PLANET
-    // -----------------------------------
+    // PLANETS
 
     function createPlanet(
-      x,
-      y,
-      z,
-      size,
-      colour,
-      name
+      name,
+      position,
+      radius,
+      colour
     ) {
 
       const geometry =
         new THREE.SphereGeometry(
-          size,
+          radius,
           64,
           64
         );
@@ -189,8 +154,8 @@
       const material =
         new THREE.MeshStandardMaterial({
           color: colour,
-          roughness: 0.8,
-          metalness: 0.05
+          roughness: 0.7,
+          metalness: 0.1
         });
 
       const planet =
@@ -200,9 +165,9 @@
         );
 
       planet.position.set(
-        x,
-        y,
-        z
+        position.x,
+        position.y,
+        position.z
       );
 
       planet.userData.name = name;
@@ -213,69 +178,50 @@
     }
 
 
-    // -----------------------------------
-    // OUR RESEARCH WORLDS
-    // -----------------------------------
-
     const unga = createPlanet(
-      0,
-      0,
-      0,
+      "UNGA 81",
+      { x: 0, y: 0, z: 0 },
       3,
-      0x315b8c,
-      "UNGA 81"
+      0x3366ff
     );
 
 
     const cop = createPlanet(
-      -7,
-      3,
-      -4,
+      "COP",
+      { x: -7, y: 3, z: -4 },
       1.7,
-      0x527b5c,
-      "COP"
+      0x33aa66
     );
 
 
     const refugee = createPlanet(
-      7,
-      -2,
-      -5,
-      2.0,
-      0x79565b,
-      "REFUGEE CAMPS"
+      "REFUGEE CAMPS",
+      { x: 7, y: -2, z: -5 },
+      2,
+      0xcc5555
     );
 
 
     const future = createPlanet(
-      -4,
-      -5,
-      -7,
+      "FUTURE PROJECT",
+      { x: -4, y: -5, z: -7 },
       1.2,
-      0x806d42,
-      "FUTURE PROJECT"
+      0xddaa33
     );
 
 
-    // -----------------------------------
     // STARS
-    // -----------------------------------
 
     const starGeometry =
       new THREE.BufferGeometry();
 
-    const starCount = 2500;
+    const starCount = 3000;
 
-    const starPositions =
-      new Float32Array(
-        starCount * 3
-      );
+    const starPositions = new Float32Array(
+      starCount * 3
+    );
 
-    for (
-      let i = 0;
-      i < starCount * 3;
-      i++
-    ) {
+    for (let i = 0; i < starCount * 3; i++) {
 
       starPositions[i] =
         (Math.random() - 0.5) * 200;
@@ -293,7 +239,7 @@
     const starMaterial =
       new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 0.06
+        size: 0.08
       });
 
     const stars =
@@ -305,21 +251,16 @@
     scene.add(stars);
 
 
-    // -----------------------------------
-    // PLANET ROTATION
-    // -----------------------------------
+    // ANIMATION
 
     function animate() {
 
       requestAnimationFrame(animate);
 
       unga.rotation.y += 0.0015;
-
-      cop.rotation.y += 0.002;
-
-      refugee.rotation.y += 0.001;
-
-      future.rotation.y += 0.0025;
+      cop.rotation.y += 0.001;
+      refugee.rotation.y += 0.0012;
+      future.rotation.y += 0.001;
 
       controls.update();
 
@@ -327,14 +268,13 @@
         scene,
         camera
       );
+
     }
 
     animate();
 
 
-    // -----------------------------------
-    // RESPONSIVE
-    // -----------------------------------
+    // RESIZE
 
     window.addEventListener(
       "resize",
