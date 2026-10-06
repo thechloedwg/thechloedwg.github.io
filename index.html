@@ -1,84 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Chloe DWG — Research Universe</title>
 
+
   <style>
-    html, body {
+
+    html,
+    body {
+
       margin: 0;
       padding: 0;
+
       width: 100%;
       height: 100%;
+
       overflow: hidden;
+
       background: #020207;
-      font-family: Arial, Helvetica, sans-serif;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      touch-action: none;
+
     }
+
 
     #canvas-container {
+
       position: fixed;
+
       inset: 0;
+
+      width: 100%;
+      height: 100%;
+
     }
+
 
     canvas {
+
       display: block;
+
+      width: 100%;
+      height: 100%;
+
+      touch-action: none;
+
     }
 
+
     .title {
+
       position: fixed;
+
       top: 30px;
       left: 35px;
+
       z-index: 10;
 
       color: white;
+
       font-size: 14px;
+
       letter-spacing: 4px;
+
       font-weight: 400;
+
+      pointer-events: none;
+
     }
+
 
     .instructions {
+
       position: fixed;
+
       bottom: 28px;
       left: 35px;
+
       z-index: 10;
 
-      color: rgba(255,255,255,0.55);
+      color:
+        rgba(
+          255,
+          255,
+          255,
+          0.55
+        );
+
       font-size: 11px;
+
       letter-spacing: 2px;
+
+      pointer-events: none;
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
   <div id="canvas-container"></div>
+
 
   <div class="title">
     CHLOE DWG — RESEARCH UNIVERSE
   </div>
+
 
   <div class="instructions">
     DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD
   </div>
 
 
-  <!-- THREE.JS -->
+  <!-- ==================================================
+       THREE.JS
+       ================================================== -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 
   <script>
 
+
     // ==================================================
     // SCENE
     // ==================================================
 
-    const scene = new THREE.Scene();
+    const scene =
+      new THREE.Scene();
 
     scene.background =
-      new THREE.Color(0x020207);
+      new THREE.Color(
+        0x020207
+      );
 
 
     // ==================================================
@@ -88,10 +159,12 @@
     const camera =
       new THREE.PerspectiveCamera(
         55,
-        window.innerWidth / window.innerHeight,
+        window.innerWidth /
+          window.innerHeight,
         0.1,
         1000
       );
+
 
     camera.position.set(
       0,
@@ -109,10 +182,12 @@
         antialias: true
       });
 
+
     renderer.setSize(
       window.innerWidth,
       window.innerHeight
     );
+
 
     renderer.setPixelRatio(
       Math.min(
@@ -120,6 +195,7 @@
         2
       )
     );
+
 
     document
       .getElementById(
@@ -140,6 +216,7 @@
         0.45
       );
 
+
     scene.add(
       ambient
     );
@@ -151,11 +228,13 @@
         2
       );
 
+
     sun.position.set(
       8,
       5,
       10
     );
+
 
     scene.add(
       sun
@@ -171,7 +250,7 @@
 
 
     // ==================================================
-    // CREATE EARTH
+    // EARTH
     // ==================================================
 
     const earthGeometry =
@@ -182,10 +261,6 @@
       );
 
 
-    /*
-      NASA-style public Earth texture.
-    */
-
     const earthTexture =
       loader.load(
         "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
@@ -194,8 +269,13 @@
 
     const earthMaterial =
       new THREE.MeshPhongMaterial({
-        map: earthTexture,
-        shininess: 8
+
+        map:
+          earthTexture,
+
+        shininess:
+          8
+
       });
 
 
@@ -205,11 +285,17 @@
         earthMaterial
       );
 
+
     earth.position.set(
       0,
       0,
       0
     );
+
+
+    earth.userData.project =
+      "UNGA 81";
+
 
     scene.add(
       earth
@@ -230,10 +316,19 @@
 
     const atmosphereMaterial =
       new THREE.MeshBasicMaterial({
-        color: 0x4f8cff,
-        transparent: true,
-        opacity: 0.16,
-        side: THREE.BackSide
+
+        color:
+          0x4f8cff,
+
+        transparent:
+          true,
+
+        opacity:
+          0.16,
+
+        side:
+          THREE.BackSide
+
       });
 
 
@@ -243,22 +338,25 @@
         atmosphereMaterial
       );
 
+
     scene.add(
       atmosphere
     );
 
 
     // ==================================================
-    // PLANET CREATOR
+    // OTHER PLANETS
     // ==================================================
 
     function createPlanet(
+      name,
       x,
       y,
       z,
       radius,
       colour
     ) {
+
 
       const geometry =
         new THREE.SphereGeometry(
@@ -270,9 +368,16 @@
 
       const material =
         new THREE.MeshStandardMaterial({
-          color: colour,
-          roughness: 0.75,
-          metalness: 0.05
+
+          color:
+            colour,
+
+          roughness:
+            0.75,
+
+          metalness:
+            0.05
+
         });
 
 
@@ -290,6 +395,10 @@
       );
 
 
+      planet.userData.project =
+        name;
+
+
       scene.add(
         planet
       );
@@ -300,12 +409,9 @@
     }
 
 
-    // ==================================================
-    // OTHER RESEARCH WORLDS
-    // ==================================================
-
     const cop =
       createPlanet(
+        "COP",
         -7,
         3,
         -4,
@@ -316,6 +422,7 @@
 
     const refugee =
       createPlanet(
+        "REFUGEE CAMPS",
         7,
         -2,
         -5,
@@ -326,6 +433,7 @@
 
     const future =
       createPlanet(
+        "FUTURE PROJECT",
         -4,
         -5,
         -7,
@@ -335,7 +443,7 @@
 
 
     // ==================================================
-    // PLANET ATMOSPHERES
+    // PLANET GLOW
     // ==================================================
 
     function addGlow(
@@ -343,9 +451,16 @@
       colour
     ) {
 
+
+      const radius =
+        planet.geometry
+          .parameters
+          .radius;
+
+
       const geometry =
         new THREE.SphereGeometry(
-          planet.geometry.parameters.radius * 1.08,
+          radius * 1.08,
           32,
           32
         );
@@ -353,10 +468,19 @@
 
       const material =
         new THREE.MeshBasicMaterial({
-          color: colour,
-          transparent: true,
-          opacity: 0.10,
-          side: THREE.BackSide
+
+          color:
+            colour,
+
+          transparent:
+            true,
+
+          opacity:
+            0.10,
+
+          side:
+            THREE.BackSide
+
         });
 
 
@@ -417,27 +541,41 @@
     ) {
 
       positions[i] =
-        (Math.random() - 0.5) * 300;
+        (
+          Math.random() -
+          0.5
+        ) * 300;
 
     }
 
 
     starGeometry.setAttribute(
+
       "position",
 
       new THREE.BufferAttribute(
         positions,
         3
       )
+
     );
 
 
     const starMaterial =
       new THREE.PointsMaterial({
-        color: 0xffffff,
-        size: 0.07,
-        transparent: true,
-        opacity: 0.85
+
+        color:
+          0xffffff,
+
+        size:
+          0.07,
+
+        transparent:
+          true,
+
+        opacity:
+          0.85
+
       });
 
 
@@ -454,17 +592,462 @@
 
 
     // ==================================================
+    // NAVIGATION VARIABLES
+    // ==================================================
+
+    let targetRotationX = 0;
+
+    let targetRotationY = 0;
+
+    let currentRotationX = 0;
+
+    let currentRotationY = 0;
+
+
+    let targetZoom = 20;
+
+    let currentZoom = 20;
+
+
+    let dragging = false;
+
+
+    let previousX = 0;
+
+    let previousY = 0;
+
+
+    // ==================================================
+    // MOUSE NAVIGATION
+    // ==================================================
+
+    renderer.domElement.addEventListener(
+      "mousedown",
+
+      function(event) {
+
+        dragging = true;
+
+        previousX =
+          event.clientX;
+
+        previousY =
+          event.clientY;
+
+      }
+
+    );
+
+
+    window.addEventListener(
+      "mouseup",
+
+      function() {
+
+        dragging = false;
+
+      }
+
+    );
+
+
+    window.addEventListener(
+      "mousemove",
+
+      function(event) {
+
+        if (!dragging) {
+          return;
+        }
+
+
+        const movementX =
+          event.clientX -
+          previousX;
+
+
+        const movementY =
+          event.clientY -
+          previousY;
+
+
+        targetRotationY +=
+          movementX * 0.005;
+
+
+        targetRotationX +=
+          movementY * 0.005;
+
+
+        targetRotationX =
+          Math.max(
+            -1.2,
+            Math.min(
+              1.2,
+              targetRotationX
+            )
+          );
+
+
+        previousX =
+          event.clientX;
+
+
+        previousY =
+          event.clientY;
+
+      }
+
+    );
+
+
+    // ==================================================
+    // MOUSE WHEEL ZOOM
+    // ==================================================
+
+    renderer.domElement.addEventListener(
+      "wheel",
+
+      function(event) {
+
+        event.preventDefault();
+
+
+        targetZoom +=
+          event.deltaY * 0.01;
+
+
+        targetZoom =
+          Math.max(
+            7,
+            Math.min(
+              45,
+              targetZoom
+            )
+          );
+
+      },
+
+      {
+        passive: false
+      }
+
+    );
+
+
+    // ==================================================
+    // TOUCH NAVIGATION
+    // ==================================================
+
+    let touches = {};
+
+    let lastTouchDistance = null;
+
+
+    renderer.domElement.addEventListener(
+      "touchstart",
+
+      function(event) {
+
+        event.preventDefault();
+
+
+        touches = {};
+
+
+        for (
+          let i = 0;
+          i < event.touches.length;
+          i++
+        ) {
+
+          touches[
+            event.touches[i].identifier
+          ] = {
+
+            x:
+              event.touches[i].clientX,
+
+            y:
+              event.touches[i].clientY
+
+          };
+
+        }
+
+
+        if (
+          event.touches.length === 2
+        ) {
+
+          const dx =
+            event.touches[0].clientX -
+            event.touches[1].clientX;
+
+
+          const dy =
+            event.touches[0].clientY -
+            event.touches[1].clientY;
+
+
+          lastTouchDistance =
+            Math.sqrt(
+              dx * dx +
+              dy * dy
+            );
+
+        }
+
+      },
+
+      {
+        passive: false
+      }
+
+    );
+
+
+    renderer.domElement.addEventListener(
+      "touchmove",
+
+      function(event) {
+
+        event.preventDefault();
+
+
+        // ------------------------------
+        // ONE FINGER
+        // ------------------------------
+
+        if (
+          event.touches.length === 1
+        ) {
+
+          const touch =
+            event.touches[0];
+
+
+          const previous =
+            touches[
+              touch.identifier
+            ];
+
+
+          if (previous) {
+
+            const dx =
+              touch.clientX -
+              previous.x;
+
+
+            const dy =
+              touch.clientY -
+              previous.y;
+
+
+            targetRotationY +=
+              dx * 0.005;
+
+
+            targetRotationX +=
+              dy * 0.005;
+
+
+            targetRotationX =
+              Math.max(
+                -1.2,
+                Math.min(
+                  1.2,
+                  targetRotationX
+                )
+              );
+
+          }
+
+
+          touches[
+            touch.identifier
+          ] = {
+
+            x:
+              touch.clientX,
+
+            y:
+              touch.clientY
+
+          };
+
+        }
+
+
+        // ------------------------------
+        // TWO FINGERS = PINCH
+        // ------------------------------
+
+        if (
+          event.touches.length === 2
+        ) {
+
+          const dx =
+            event.touches[0].clientX -
+            event.touches[1].clientX;
+
+
+          const dy =
+            event.touches[0].clientY -
+            event.touches[1].clientY;
+
+
+          const distance =
+            Math.sqrt(
+              dx * dx +
+              dy * dy
+            );
+
+
+          if (
+            lastTouchDistance !== null
+          ) {
+
+            const difference =
+              distance -
+              lastTouchDistance;
+
+
+            targetZoom -=
+              difference * 0.03;
+
+
+            targetZoom =
+              Math.max(
+                7,
+                Math.min(
+                  45,
+                  targetZoom
+                )
+              );
+
+          }
+
+
+          lastTouchDistance =
+            distance;
+
+        }
+
+      },
+
+      {
+        passive: false
+      }
+
+    );
+
+
+    renderer.domElement.addEventListener(
+      "touchend",
+
+      function(event) {
+
+        event.preventDefault();
+
+
+        lastTouchDistance =
+          null;
+
+
+        touches = {};
+
+
+        for (
+          let i = 0;
+          i < event.touches.length;
+          i++
+        ) {
+
+          touches[
+            event.touches[i].identifier
+          ] = {
+
+            x:
+              event.touches[i].clientX,
+
+            y:
+              event.touches[i].clientY
+
+          };
+
+        }
+
+      },
+
+      {
+        passive: false
+      }
+
+    );
+
+
+    // ==================================================
     // ANIMATION
     // ==================================================
 
     function animate() {
+
 
       requestAnimationFrame(
         animate
       );
 
 
-      // Earth
+      // --------------------------------
+      // SMOOTH GALAXY ROTATION
+      // --------------------------------
+
+      currentRotationX +=
+        (
+          targetRotationX -
+          currentRotationX
+        ) * 0.08;
+
+
+      currentRotationY +=
+        (
+          targetRotationY -
+          currentRotationY
+        ) * 0.08;
+
+
+      // --------------------------------
+      // APPLY ROTATION
+      // --------------------------------
+
+      scene.rotation.x =
+        currentRotationX;
+
+
+      scene.rotation.y =
+        currentRotationY;
+
+
+      // --------------------------------
+      // SMOOTH ZOOM
+      // --------------------------------
+
+      currentZoom +=
+        (
+          targetZoom -
+          currentZoom
+        ) * 0.08;
+
+
+      camera.position.z =
+        currentZoom;
+
+
+      // --------------------------------
+      // PLANET ROTATION
+      // --------------------------------
 
       earth.rotation.y +=
         0.0015;
@@ -473,8 +1056,6 @@
       atmosphere.rotation.y +=
         0.0005;
 
-
-      // Other worlds
 
       cop.rotation.y +=
         0.001;
@@ -488,13 +1069,13 @@
         0.001;
 
 
-      // Stars
-
       stars.rotation.y +=
         0.00008;
 
 
-      // Render
+      // --------------------------------
+      // RENDER
+      // --------------------------------
 
       renderer.render(
         scene,
@@ -516,6 +1097,7 @@
 
       function() {
 
+
         camera.aspect =
           window.innerWidth /
           window.innerHeight;
@@ -530,6 +1112,7 @@
         );
 
       }
+
     );
 
   </script>
