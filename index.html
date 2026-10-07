@@ -313,7 +313,7 @@ canvas {
 
     overflow: visible;
     pointer-events: none;
-}
+    
 }
 
 /* =========================================================
@@ -4746,6 +4746,19 @@ const DRAG_THRESHOLD = 6;
 const DRAG_SENSITIVITY = 0.0035;
 
     /* =========================================================
+   TOUCH PINCH STATE
+   ========================================================= */
+
+const activePointers = new Map();
+
+let pinchActive = false;
+
+let previousPinchDistance = null;
+
+let didPinch = false;
+    
+
+    /* =========================================================
    MARKER ROTATION
    ========================================================= */
 
@@ -4874,14 +4887,45 @@ renderer.domElement.addEventListener(
 
     event => {
 
+        activePointers.set(
+            event.pointerId,
+            {
+                x: event.clientX,
+                y: event.clientY
+            }
+        );
+
+
         if (
-    cameraAnimating ||
-    markerRotationAnimating
-) {
+            activePointers.size >= 2
+        ) {
 
-    return;
+            pinchActive = true;
 
-}
+            didPinch = true;
+
+            isDragging = false;
+
+            previousPinchDistance =
+                getPinchDistance();
+
+            document.body.classList.add(
+                "dragging"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            cameraAnimating ||
+            markerRotationAnimating
+        ) {
+
+            return;
+
+        }
 
 
         event.preventDefault();
@@ -4963,6 +5007,39 @@ renderer.domElement.addEventListener(
 
 );
 
+    function getPinchDistance() {
+
+    const pointers =
+        Array.from(
+            activePointers.values()
+        );
+
+
+    if (
+        pointers.length < 2
+    ) {
+
+        return null;
+
+    }
+
+
+    const dx =
+        pointers[0].x -
+        pointers[1].x;
+
+
+    const dy =
+        pointers[0].y -
+        pointers[1].y;
+
+
+    return Math.sqrt(
+        dx * dx +
+        dy * dy
+    );
+
+}
 
 /* =========================================================
    POINTER MOVE
@@ -4973,6 +5050,99 @@ renderer.domElement.addEventListener(
     "pointermove",
 
     event => {
+
+        if (
+            activePointers.has(
+                event.pointerId
+            )
+        ) {
+
+            activePointers.set(
+                event.pointerId,
+                {
+                    x: event.clientX,
+                    y: event.clientY
+                }
+            );
+
+        }
+
+
+        if (
+            pinchActive &&
+            activePointers.size >= 2
+        ) {
+
+            const currentDistance =
+                getPinchDistance();
+
+
+            if (
+                previousPinchDistance !== null &&
+                currentDistance !== null
+            ) {
+
+                const delta =
+                    previousPinchDistance -
+                    currentDistance;
+
+
+                if (
+                    cameraAnimating
+                ) {
+
+                    return;
+
+                }
+
+
+                if (
+                    !planetMode
+                ) {
+
+                    galaxyDistance +=
+                        delta * 0.025;
+
+
+                    galaxyDistance =
+                        THREE.MathUtils.clamp(
+                            galaxyDistance,
+                            8,
+                            45
+                        );
+
+
+                    updateGalaxyCamera();
+
+                } else {
+
+                    planetDistance +=
+                        delta * 0.018;
+
+
+                    planetDistance =
+                        THREE.MathUtils.clamp(
+                            planetDistance,
+                            3.5,
+                            15
+                        );
+
+
+                    updatePlanetCamera();
+
+                }
+
+            }
+
+
+            previousPinchDistance =
+                currentDistance;
+
+
+            return;
+
+        }
+
 
         if (
             !isPointerDown
@@ -5236,6 +5406,67 @@ renderer.domElement.addEventListener(
 
     event => {
 
+        activePointers.delete(
+            event.pointerId
+        );
+
+
+        if (
+            pinchActive
+        ) {
+
+            if (
+                activePointers.size >= 2
+            ) {
+
+                previousPinchDistance =
+                    getPinchDistance();
+
+                return;
+
+            }
+
+
+            pinchActive = false;
+
+            previousPinchDistance = null;
+
+            isPointerDown = false;
+
+            isDragging = false;
+
+            didDrag = false;
+
+            document.body.classList.remove(
+                "dragging"
+            );
+
+
+            if (
+                activePointers.size === 0
+            ) {
+
+                didPinch = false;
+
+            }
+
+
+            return;
+
+        }
+
+
+        if (
+            didPinch
+        ) {
+
+            didPinch = false;
+
+            return;
+
+        }
+
+
         const wasDragging =
             didDrag;
 
@@ -5302,10 +5533,18 @@ renderer.domElement.addEventListener(
 
     "pointercancel",
 
-    event => {
+event => {
 
-        isPointerDown =
-            false;
+    activePointers.delete(
+        event.pointerId
+    );
+
+    pinchActive = false;
+
+    previousPinchDistance = null;
+
+    isPointerDown =
+        false;
 
         isDragging =
             false;
