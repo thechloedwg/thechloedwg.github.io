@@ -523,7 +523,7 @@
 
   <div id="planet-question">
 
-    <div id="hud-question-label">
+    <div id="planet-question-label">
       PRIMARY QUESTION
     </div>
 
@@ -576,8 +576,7 @@
     </div>
   </div>
 
-  <svg id="connector-layer">
-  </svg>
+  <svg id="connector-layer"></svg>
 
   <div id="marker-card">
 
@@ -611,7 +610,6 @@
 <script>
 /* ============================================================
    POP CULTURE AS PARABLE — MAPPED
-   ============================================================
 
    GOOGLE SHEETS → DATA NORMALISATION → THREE.JS
 
@@ -622,10 +620,6 @@
      GLOBAL
 
    LISTS is validation-only and is NOT fetched by the site.
-
-   IMPORTANT:
-   Each published tab needs its own gid.
-   Replace the four PASTE_GID values below.
    ============================================================ */
 
 
@@ -636,22 +630,24 @@
 const SHEETS_BASE =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub";
 
-
-const SHEETS_BASE =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub";
-
 const SHEETS = {
+
   PLANETS:
-    SHEETS_BASE + "?gid=603501729&single=true&output=csv",
+    SHEETS_BASE +
+    "?gid=603501729&single=true&output=csv",
 
   MARKERS:
-    SHEETS_BASE + "?gid=874912780&single=true&output=csv",
+    SHEETS_BASE +
+    "?gid=874912780&single=true&output=csv",
 
   INTERFACE:
-    SHEETS_BASE + "?gid=1767479856&single=true&output=csv",
+    SHEETS_BASE +
+    "?gid=1767479856&single=true&output=csv",
 
   GLOBAL:
-    SHEETS_BASE + "?gid=593656573&single=true&output=csv"
+    SHEETS_BASE +
+    "?gid=593656573&single=true&output=csv"
+
 };
 
 
@@ -694,8 +690,6 @@ let galaxyDistance = 20;
 let planetYaw = 0;
 let planetPitch = 0;
 let planetDistance = 7;
-
-let targetCameraPosition = new THREE.Vector3();
 
 let animationStart = 0;
 let animationDuration = 0;
@@ -881,50 +875,98 @@ const DEFAULT_INTERFACE = {
 ------------------------------------------------------------ */
 
 function clean(value) {
-  if (value === undefined || value === null) return "";
+
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return "";
+  }
+
   return String(value).trim();
+
 }
 
 
 function yes(value) {
-  return clean(value).toLowerCase() === "yes";
+
+  return (
+    clean(value).toLowerCase() ===
+    "yes"
+  );
+
 }
 
 
-function number(value, fallback = 0) {
-  const n = parseFloat(value);
-  return Number.isFinite(n) ? n : fallback;
+function number(
+  value,
+  fallback = 0
+) {
+
+  const n =
+    parseFloat(value);
+
+  return Number.isFinite(n)
+    ? n
+    : fallback;
+
 }
 
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
+function clamp(
+  value,
+  min,
+  max
+) {
+
+  return Math.max(
+    min,
+    Math.min(max, value)
+  );
+
 }
 
 
-function hexToNumber(hex, fallback = 0xffffff) {
+function hexToNumber(
+  hex,
+  fallback = 0xffffff
+) {
 
-  const value = clean(hex).replace("#", "");
+  const value =
+    clean(hex)
+      .replace("#", "");
 
-  if (!/^[0-9a-fA-F]{6}$/.test(value)) {
+  if (
+    !/^[0-9a-fA-F]{6}$/.test(value)
+  ) {
     return fallback;
   }
 
-  return parseInt(value, 16);
+  return parseInt(
+    value,
+    16
+  );
+
 }
 
 
 function sizeToRadius(size) {
 
   const values = {
+
     1: 1.15,
     2: 1.55,
     3: 2.0,
     4: 2.45,
     5: 3.0
+
   };
 
-  return values[number(size, 3)] || 2.0;
+  return (
+    values[number(size, 3)] ||
+    2.0
+  );
+
 }
 
 
@@ -935,77 +977,168 @@ function sizeToRadius(size) {
 function parseCSV(text) {
 
   const rows = [];
+
   let row = [];
   let cell = "";
   let quoted = false;
 
-  for (let i = 0; i < text.length; i++) {
 
-    const char = text[i];
-    const next = text[i + 1];
+  for (
+    let i = 0;
+    i < text.length;
+    i++
+  ) {
 
-    if (char === '"' && quoted && next === '"') {
+    const char =
+      text[i];
+
+    const next =
+      text[i + 1];
+
+
+    if (
+      char === '"' &&
+      quoted &&
+      next === '"'
+    ) {
+
       cell += '"';
+
       i++;
+
       continue;
+
     }
 
-    if (char === '"') {
-      quoted = !quoted;
+
+    if (
+      char === '"'
+    ) {
+
+      quoted =
+        !quoted;
+
       continue;
+
     }
 
-    if (char === "," && !quoted) {
+
+    if (
+      char === "," &&
+      !quoted
+    ) {
+
       row.push(cell);
+
       cell = "";
+
       continue;
+
     }
 
-    if ((char === "\n" || char === "\r") && !quoted) {
 
-      if (char === "\r" && next === "\n") {
+    if (
+      (
+        char === "\n" ||
+        char === "\r"
+      ) &&
+      !quoted
+    ) {
+
+      if (
+        char === "\r" &&
+        next === "\n"
+      ) {
         i++;
       }
 
       row.push(cell);
+
       cell = "";
 
-      if (row.some(value => clean(value) !== "")) {
+
+      if (
+        row.some(
+          value =>
+            clean(value) !== ""
+        )
+      ) {
+
         rows.push(row);
+
       }
 
+
       row = [];
+
       continue;
+
     }
+
 
     cell += char;
+
   }
 
-  if (cell !== "" || row.length) {
+
+  if (
+    cell !== "" ||
+    row.length
+  ) {
+
     row.push(cell);
 
-    if (row.some(value => clean(value) !== "")) {
+    if (
+      row.some(
+        value =>
+          clean(value) !== ""
+      )
+    ) {
+
       rows.push(row);
+
     }
+
   }
 
-  if (!rows.length) return [];
 
-  const headers = rows[0].map(header =>
-    clean(header).toLowerCase()
-  );
+  if (!rows.length) {
+    return [];
+  }
 
-  return rows.slice(1).map(values => {
 
-    const object = {};
+  const headers =
+    rows[0].map(
+      header =>
+        clean(header)
+          .toLowerCase()
+    );
 
-    headers.forEach((header, index) => {
-      object[header] = clean(values[index] ?? "");
+
+  return rows
+    .slice(1)
+    .map(values => {
+
+      const object = {};
+
+      headers.forEach(
+        (
+          header,
+          index
+        ) => {
+
+          object[header] =
+            clean(
+              values[index] ?? ""
+            );
+
+        }
+      );
+
+      return object;
+
     });
 
-    return object;
-
-  });
 }
 
 
@@ -1017,75 +1150,145 @@ function normalisePlanet(row) {
 
   return {
 
-    project: clean(row.project),
+    project:
+      clean(row.project),
 
-    name: clean(row.name),
+    name:
+      clean(row.name),
 
-    enabled: yes(row.enabled),
+    enabled:
+      yes(row.enabled),
 
-    order: number(row.order, 0),
+    order:
+      number(row.order, 0),
 
-    galaxy_x: number(row.galaxy_x, 0),
-    galaxy_y: number(row.galaxy_y, 0),
-    galaxy_z: number(row.galaxy_z, 0),
+    galaxy_x:
+      number(row.galaxy_x, 0),
 
-    colour: clean(row.colour) || "#FFFFFF",
+    galaxy_y:
+      number(row.galaxy_y, 0),
 
-    size: clamp(number(row.size, 3), 1, 5),
+    galaxy_z:
+      number(row.galaxy_z, 0),
+
+    colour:
+      clean(row.colour) ||
+      "#FFFFFF",
+
+    size:
+      clamp(
+        number(row.size, 3),
+        1,
+        5
+      ),
 
     surface_texture_url:
-      clean(row.surface_texture_url),
+      clean(
+        row.surface_texture_url
+      ),
 
     surface_opacity:
-      clamp(number(row.surface_opacity, .9), 0, 1),
+      clamp(
+        number(
+          row.surface_opacity,
+          .9
+        ),
+        0,
+        1
+      ),
 
     grid:
-      clean(row.grid).toLowerCase() || "normal",
+      clean(row.grid)
+        .toLowerCase() ||
+      "normal",
 
     grid_opacity:
-      clamp(number(row.grid_opacity, .35), 0, 1),
+      clamp(
+        number(
+          row.grid_opacity,
+          .35
+        ),
+        0,
+        1
+      ),
 
     glow:
-      clean(row.glow).toLowerCase() || "medium",
+      clean(row.glow)
+        .toLowerCase() ||
+      "medium",
 
     atmosphere:
-      clean(row.atmosphere).toLowerCase() || "medium",
+      clean(row.atmosphere)
+        .toLowerCase() ||
+      "medium",
 
     spin:
-      clean(row.spin).toLowerCase() || "slow",
+      clean(row.spin)
+        .toLowerCase() ||
+      "slow",
 
     point_style:
-      clean(row.point_style).toLowerCase() || "crosshair",
+      clean(row.point_style)
+        .toLowerCase() ||
+      "crosshair",
 
     rings:
-      clean(row.rings).toLowerCase() || "none",
+      clean(row.rings)
+        .toLowerCase() ||
+      "none",
 
     ring_colour:
-      clean(row.ring_colour) || clean(row.colour) || "#FFFFFF",
+      clean(row.ring_colour) ||
+      clean(row.colour) ||
+      "#FFFFFF",
 
     ring_density:
-      clamp(number(row.ring_density, 1), 1, 8),
+      clamp(
+        number(
+          row.ring_density,
+          1
+        ),
+        1,
+        8
+      ),
 
     scan_lines:
-      clean(row.scan_lines).toLowerCase() || "none",
+      clean(row.scan_lines)
+        .toLowerCase() ||
+      "none",
 
     particles:
-      clean(row.particles).toLowerCase() || "none",
+      clean(row.particles)
+        .toLowerCase() ||
+      "none",
 
     clouds:
       yes(row.clouds),
 
     cloud_texture_url:
-      clean(row.cloud_texture_url),
+      clean(
+        row.cloud_texture_url
+      ),
 
     cloud_colour:
-      clean(row.cloud_colour) || clean(row.colour) || "#FFFFFF",
+      clean(row.cloud_colour) ||
+      clean(row.colour) ||
+      "#FFFFFF",
 
     cloud_opacity:
-      clamp(number(row.cloud_opacity, .4), 0, 1),
+      clamp(
+        number(
+          row.cloud_opacity,
+          .4
+        ),
+        0,
+        1
+      ),
 
     cloud_density:
-      clean(row.cloud_density).toLowerCase() || "normal",
+      clean(row.cloud_density)
+        .toLowerCase() ||
+      "normal",
 
     status:
       clean(row.status),
@@ -1100,6 +1303,7 @@ function normalisePlanet(row) {
       clean(row.mode_label)
 
   };
+
 }
 
 
@@ -1107,21 +1311,29 @@ function normaliseMarker(row) {
 
   return {
 
-    project: clean(row.project),
+    project:
+      clean(row.project),
 
-    country: clean(row.country),
+    country:
+      clean(row.country),
 
-    title: clean(row.title),
+    title:
+      clean(row.title),
 
-    url: clean(row.url),
+    url:
+      clean(row.url),
 
-    lat: number(row.lat, 0),
+    lat:
+      number(row.lat, 0),
 
-    long: number(row.long, 0),
+    long:
+      number(row.long, 0),
 
-    enabled: yes(row.enabled)
+    enabled:
+      yes(row.enabled)
 
   };
+
 }
 
 
@@ -1129,27 +1341,50 @@ function normaliseGlobal(rows) {
 
   const output = {};
 
-  rows.forEach(row => {
 
-    const key = clean(row.setting);
+  rows.forEach(
+    row => {
 
-    if (!key) return;
+      const key =
+        clean(row.setting);
 
-    const type = clean(row.type).toLowerCase();
-    let value = clean(row.value);
+      if (!key) {
+        return;
+      }
 
-    if (type === "number") {
-      value = number(value);
+
+      const type =
+        clean(row.type)
+          .toLowerCase();
+
+      let value =
+        clean(row.value);
+
+
+      if (
+        type === "number"
+      ) {
+
+        value =
+          number(value);
+
+      }
+
+
+      output[key] =
+        value;
+
     }
+  );
 
-    output[key] = value;
-
-  });
 
   return {
+
     ...DEFAULT_GLOBAL,
     ...output
+
   };
+
 }
 
 
@@ -1157,45 +1392,90 @@ function normaliseInterface(rows) {
 
   const output = {};
 
-  rows.forEach(row => {
 
-    const key = clean(row.key);
+  rows.forEach(
+    row => {
 
-    if (!key) return;
+      const key =
+        clean(row.key);
 
-    const enabled =
-      clean(row.enabled).toLowerCase() !== "no";
+      if (!key) {
+        return;
+      }
 
-    if (!enabled) return;
 
-    output[key] = {
+      const enabled =
+        clean(row.enabled)
+          .toLowerCase() !==
+        "no";
 
-      desktop: clean(row.desktop_value),
-      mobile: clean(row.mobile_value),
-      type: clean(row.type),
-      section: clean(row.section)
 
-    };
+      if (!enabled) {
+        return;
+      }
 
-  });
+
+      output[key] = {
+
+        desktop:
+          clean(
+            row.desktop_value
+          ),
+
+        mobile:
+          clean(
+            row.mobile_value
+          ),
+
+        type:
+          clean(row.type),
+
+        section:
+          clean(row.section)
+
+      };
+
+    }
+  );
+
 
   return output;
+
 }
 
 
 function interfaceValue(key) {
 
-  const row = interfaceData[key];
+  const row =
+    interfaceData[key];
+
 
   if (!row) {
-    return DEFAULT_INTERFACE[key] ?? "";
+
+    return (
+      DEFAULT_INTERFACE[key] ??
+      ""
+    );
+
   }
 
-  const mobile = window.innerWidth <= 700;
+
+  const mobile =
+    window.innerWidth <= 700;
+
 
   return mobile
-    ? (row.mobile || row.desktop)
-    : (row.desktop || row.mobile);
+
+    ? (
+        row.mobile ||
+        row.desktop
+      )
+
+    : (
+        row.desktop ||
+        row.mobile
+      );
+
 }
 
 
@@ -1207,117 +1487,232 @@ function applyInterface() {
 
   const textMap = {
 
-    site_title: "site-title",
-    galaxy_instruction: "instruction",
-    back_button: "back-button",
+    site_title:
+      "site-title",
 
-    loading: "loading-text",
+    galaxy_instruction:
+      "instruction",
 
-    hud_project_label: "planet-project",
-    hud_status_label: "hud-status-label",
-    hud_points_label: "hud-points-label",
-    hud_focus_label: "hud-focus-label",
-    hud_mode_label: "hud-mode-label",
-    hud_question_label: "hud-question-label",
+    back_button:
+      "back-button",
 
-    technical_surface: "technical-surface",
-    technical_atmosphere: "technical-atmosphere",
-    technical_grid: "technical-grid",
+    loading:
+      "loading-text",
 
-    coordinate_prefix: "coordinate-prefix",
-    coordinate_separator: "coordinate-separator",
+    hud_project_label:
+      "planet-project",
 
-    marker_card_default_country: "marker-card-country",
-    marker_card_default_title: "marker-card-title",
-    marker_card_default_description: "marker-card-description",
-    marker_card_link: "marker-card-link"
+    hud_status_label:
+      "hud-status-label",
+
+    hud_points_label:
+      "hud-points-label",
+
+    hud_focus_label:
+      "hud-focus-label",
+
+    hud_mode_label:
+      "hud-mode-label",
+
+    hud_question_label:
+      "planet-question-label",
+
+    technical_surface:
+      "technical-surface",
+
+    technical_atmosphere:
+      "technical-atmosphere",
+
+    technical_grid:
+      "technical-grid",
+
+    coordinate_prefix:
+      "coordinate-prefix",
+
+    coordinate_separator:
+      "coordinate-separator",
+
+    marker_card_default_country:
+      "marker-card-country",
+
+    marker_card_default_title:
+      "marker-card-title",
+
+    marker_card_default_description:
+      "marker-card-description",
+
+    marker_card_link:
+      "marker-card-link"
 
   };
 
-  Object.entries(textMap).forEach(([key, id]) => {
 
-    const element = document.getElementById(id);
+  Object.entries(
+    textMap
+  ).forEach(
+    ([key, id]) => {
 
-    if (element) {
-      element.textContent = interfaceValue(key);
+      const element =
+        document.getElementById(id);
+
+      if (element) {
+
+        element.textContent =
+          interfaceValue(key);
+
+      }
+
     }
-
-  });
+  );
 
 
   const instruction =
-    document.getElementById("instruction");
+    document.getElementById(
+      "instruction"
+    );
+
 
   if (instruction) {
+
     instruction.textContent =
       mode === "planet"
-        ? interfaceValue("planet_instruction")
-        : interfaceValue("galaxy_instruction");
+
+        ? interfaceValue(
+            "planet_instruction"
+          )
+
+        : interfaceValue(
+            "galaxy_instruction"
+          );
+
   }
 
 
   const styleMap = {
 
     planet_info_top:
-      ["planet-info", "top"],
+      [
+        "planet-info",
+        "top"
+      ],
 
     planet_info_left:
-      ["planet-info", "left"],
+      [
+        "planet-info",
+        "left"
+      ],
 
     planet_info_width:
-      ["planet-info", "width"],
+      [
+        "planet-info",
+        "width"
+      ],
 
     planet_name_size:
-      ["planet-name", "fontSize"],
+      [
+        "planet-name",
+        "fontSize"
+      ],
 
     planet_rule_width:
-      ["planet-rule", "width"],
+      [
+        "planet-rule",
+        "width"
+      ],
 
     planet_rule_margin_bottom:
-      ["planet-rule", "marginBottom"],
+      [
+        "planet-rule",
+        "marginBottom"
+      ],
 
     planet_question_left:
-      ["planet-question", "left"],
+      [
+        "planet-question",
+        "left"
+      ],
 
     planet_question_bottom:
-      ["planet-question", "bottom"],
+      [
+        "planet-question",
+        "bottom"
+      ],
 
     planet_question_width:
-      ["planet-question", "width"],
+      [
+        "planet-question",
+        "width"
+      ],
 
     measurement_right:
-      ["measurement", "right"],
+      [
+        "measurement",
+        "right"
+      ],
 
     measurement_top:
-      ["measurement", "top"],
+      [
+        "measurement",
+        "top"
+      ],
 
     measurement_bottom:
-      ["measurement", "bottom"],
+      [
+        "measurement",
+        "bottom"
+      ],
 
     marker_card_right:
-      ["marker-card", "right"],
+      [
+        "marker-card",
+        "right"
+      ],
 
     marker_card_width:
-      ["marker-card", "width"]
+      [
+        "marker-card",
+        "width"
+      ]
 
   };
 
 
-  Object.entries(styleMap).forEach(([key, [id, property]]) => {
+  Object.entries(
+    styleMap
+  ).forEach(
+    (
+      [
+        key,
+        [
+          id,
+          property
+        ]
+      ]
+    ) => {
 
-    const element =
-      document.getElementById(id);
+      const element =
+        document.getElementById(
+          id
+        );
 
-    if (!element) return;
+      if (!element) {
+        return;
+      }
 
-    const value =
-      interfaceValue(key);
 
-    if (value) {
-      element.style[property] = value;
+      const value =
+        interfaceValue(key);
+
+
+      if (value) {
+
+        element.style[property] =
+          value;
+
+      }
+
     }
-
-  });
+  );
 
 }
 
@@ -1328,78 +1723,122 @@ function applyInterface() {
 
 function initThree() {
 
-  scene = new THREE.Scene();
+  scene =
+    new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(
-    45,
-    window.innerWidth / window.innerHeight,
-    .1,
-    1000
-  );
 
-  renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById("canvas"),
-    antialias: true,
-    alpha: false
-  });
+  camera =
+    new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth /
+        window.innerHeight,
+      .1,
+      1000
+    );
+
+
+  renderer =
+    new THREE.WebGLRenderer({
+
+      canvas:
+        document.getElementById(
+          "canvas"
+        ),
+
+      antialias:
+        true,
+
+      alpha:
+        false
+
+    });
+
 
   renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, 2)
+    Math.min(
+      window.devicePixelRatio,
+      2
+    )
   );
+
 
   renderer.setSize(
     window.innerWidth,
     window.innerHeight
   );
 
+
   renderer.setClearColor(
-    hexToNumber(globalData.background_colour),
+    hexToNumber(
+      globalData.background_colour
+    ),
     1
   );
 
 
-  galaxyGroup = new THREE.Group();
+  galaxyGroup =
+    new THREE.Group();
 
-  scene.add(galaxyGroup);
+
+  scene.add(
+    galaxyGroup
+  );
 
 
-  raycaster = new THREE.Raycaster();
+  raycaster =
+    new THREE.Raycaster();
 
-  mouse = new THREE.Vector2();
+
+  mouse =
+    new THREE.Vector2();
 
 
   createStars();
 
   setGalaxyCamera();
 
+
   window.addEventListener(
     "resize",
     onResize
   );
+
 
   renderer.domElement.addEventListener(
     "pointerdown",
     onPointerDown
   );
 
+
   renderer.domElement.addEventListener(
     "pointermove",
     onPointerMove
   );
+
 
   renderer.domElement.addEventListener(
     "pointerup",
     onPointerUp
   );
 
+
   renderer.domElement.addEventListener(
     "wheel",
     onWheel,
-    { passive: false }
+    {
+      passive: false
+    }
   );
 
-  document.getElementById("back-button")
-    .addEventListener("click", exitPlanet);
+
+  document
+    .getElementById(
+      "back-button"
+    )
+    .addEventListener(
+      "click",
+      exitPlanet
+    );
 
 }
 
@@ -1414,30 +1853,58 @@ function createStars() {
     Math.max(
       100,
       Math.floor(
-        number(globalData.star_count, 5000)
+        number(
+          globalData.star_count,
+          5000
+        )
       )
     );
+
 
   const geometry =
     new THREE.BufferGeometry();
 
+
   const positions =
-    new Float32Array(count * 3);
+    new Float32Array(
+      count * 3
+    );
+
 
   const spread = 180;
 
-  for (let i = 0; i < count; i++) {
+
+  for (
+    let i = 0;
+    i < count;
+    i++
+  ) {
 
     positions[i * 3] =
-      (Math.random() - .5) * spread;
+      (
+        Math.random() -
+        .5
+      ) *
+      spread;
+
 
     positions[i * 3 + 1] =
-      (Math.random() - .5) * spread;
+      (
+        Math.random() -
+        .5
+      ) *
+      spread;
+
 
     positions[i * 3 + 2] =
-      (Math.random() - .5) * spread;
+      (
+        Math.random() -
+        .5
+      ) *
+      spread;
 
   }
+
 
   geometry.setAttribute(
     "position",
@@ -1451,7 +1918,8 @@ function createStars() {
   const material =
     new THREE.PointsMaterial({
 
-      color: 0xffffff,
+      color:
+        0xffffff,
 
       size:
         number(
@@ -1459,7 +1927,8 @@ function createStars() {
           .055
         ),
 
-      transparent: true,
+      transparent:
+        true,
 
       opacity:
         number(
@@ -1467,7 +1936,8 @@ function createStars() {
           .65
         ),
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
@@ -1478,7 +1948,10 @@ function createStars() {
       material
     );
 
-  scene.add(starField);
+
+  scene.add(
+    starField
+  );
 
 }
 
@@ -1487,25 +1960,38 @@ function createStars() {
    PLANET CREATION
 ------------------------------------------------------------ */
 
-function createProjectPlanet(planet, position) {
+function createProjectPlanet(
+  planet,
+  position
+) {
 
   const group =
     new THREE.Group();
 
-  group.position.copy(position);
+
+  group.position.copy(
+    position
+  );
+
 
   group.userData.project =
     planet.project;
+
 
   group.userData.planet =
     planet;
 
 
   const radius =
-    sizeToRadius(planet.size);
+    sizeToRadius(
+      planet.size
+    );
+
 
   const colour =
-    hexToNumber(planet.colour);
+    hexToNumber(
+      planet.colour
+    );
 
 
   /* ----------------------------------------------------------
@@ -1522,49 +2008,22 @@ function createProjectPlanet(planet, position) {
 
   const materialOptions = {
 
-    color: colour,
+    color:
+      colour,
 
-    transparent: true,
+    transparent:
+      true,
 
     opacity:
       planet.surface_opacity,
 
-    roughness: .82,
+    roughness:
+      .82,
 
-    metalness: .05
+    metalness:
+      .05
 
   };
-
-
-  if (planet.surface_texture_url) {
-
-    const textureLoader =
-      new THREE.TextureLoader();
-
-    textureLoader.crossOrigin = "anonymous";
-
-    textureLoader.load(
-      planet.surface_texture_url,
-      texture => {
-
-        texture.colorSpace =
-          THREE.SRGBColorSpace;
-
-        materialOptions.map =
-          texture;
-
-        materialOptions.needsUpdate =
-          true;
-
-        material.map =
-          texture;
-
-      },
-      undefined,
-      () => {}
-    );
-
-  }
 
 
   const material =
@@ -1573,19 +2032,84 @@ function createProjectPlanet(planet, position) {
     );
 
 
+  if (
+    planet.surface_texture_url
+  ) {
+
+    const textureLoader =
+      new THREE.TextureLoader();
+
+
+    textureLoader.crossOrigin =
+      "anonymous";
+
+
+    textureLoader.load(
+
+      planet.surface_texture_url,
+
+      texture => {
+
+        if (
+          "colorSpace" in texture
+        ) {
+
+          texture.colorSpace =
+            THREE.SRGBColorSpace;
+
+        }
+
+        else {
+
+          texture.encoding =
+            THREE.sRGBEncoding;
+
+        }
+
+
+        material.map =
+          texture;
+
+        material.needsUpdate =
+          true;
+
+      },
+
+      undefined,
+
+      error => {
+
+        console.warn(
+          "Could not load planet surface texture:",
+          planet.surface_texture_url,
+          error
+        );
+
+      }
+
+    );
+
+  }
+
+
   const sphere =
     new THREE.Mesh(
       geometry,
       material
     );
 
+
   sphere.userData.project =
     planet.project;
+
 
   sphere.userData.type =
     "planet";
 
-  group.add(sphere);
+
+  group.add(
+    sphere
+  );
 
 
   /* ----------------------------------------------------------
@@ -1599,13 +2123,17 @@ function createProjectPlanet(planet, position) {
       100
     );
 
+
   light.position.set(
     8,
     5,
     10
   );
 
-  group.add(light);
+
+  group.add(
+    light
+  );
 
 
   const ambient =
@@ -1614,7 +2142,10 @@ function createProjectPlanet(planet, position) {
       .28
     );
 
-  group.add(ambient);
+
+  group.add(
+    ambient
+  );
 
 
   /* ----------------------------------------------------------
@@ -1701,6 +2232,7 @@ function createProjectPlanet(planet, position) {
   group.userData.sphere =
     sphere;
 
+
   group.userData.radius =
     radius;
 
@@ -1720,19 +2252,31 @@ function createPlanetGrid(
   planet
 ) {
 
-  if (planet.grid === "none") {
+  if (
+    planet.grid === "none"
+  ) {
     return;
   }
 
 
   let divisions = 12;
 
-  if (planet.grid === "light") {
+
+  if (
+    planet.grid === "light"
+  ) {
+
     divisions = 8;
+
   }
 
-  if (planet.grid === "dense") {
+
+  if (
+    planet.grid === "dense"
+  ) {
+
     divisions = 22;
+
   }
 
 
@@ -1744,51 +2288,87 @@ function createPlanetGrid(
           planet.colour
         ),
 
-      transparent: true,
+      transparent:
+        true,
 
       opacity:
         planet.grid_opacity,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
 
-  for (let i = 1; i < divisions; i++) {
+  for (
+    let i = 1;
+    i < divisions;
+    i++
+  ) {
 
     const phi =
-      Math.PI * i / divisions;
+      Math.PI *
+      i /
+      divisions;
+
 
     const y =
-      Math.cos(phi) * radius;
+      Math.cos(phi) *
+      radius;
+
 
     const r =
-      Math.sin(phi) * radius;
+      Math.sin(phi) *
+      radius;
 
 
     const geometry =
       new THREE.BufferGeometry();
 
+
     const points = [];
 
     const segments = 96;
 
-    for (let j = 0; j <= segments; j++) {
+
+    for (
+      let j = 0;
+      j <= segments;
+      j++
+    ) {
 
       const theta =
-        (j / segments) * Math.PI * 2;
+        (
+          j /
+          segments
+        ) *
+        Math.PI *
+        2;
+
 
       points.push(
+
         new THREE.Vector3(
-          Math.cos(theta) * r,
+
+          Math.cos(theta) *
+            r,
+
           y,
-          Math.sin(theta) * r
+
+          Math.sin(theta) *
+            r
+
         )
+
       );
 
     }
 
-    geometry.setFromPoints(points);
+
+    geometry.setFromPoints(
+      points
+    );
+
 
     const line =
       new THREE.LineLoop(
@@ -1796,30 +2376,56 @@ function createPlanetGrid(
         material
       );
 
+
     line.renderOrder = 3;
 
-    group.add(line);
+
+    group.add(
+      line
+    );
 
   }
 
 
-  for (let i = 0; i < divisions; i++) {
+  for (
+    let i = 0;
+    i < divisions;
+    i++
+  ) {
 
     const theta =
-      (i / divisions) * Math.PI * 2;
+      (
+        i /
+        divisions
+      ) *
+      Math.PI *
+      2;
+
 
     const points = [];
 
     const segments = 96;
 
-    for (let j = 0; j <= segments; j++) {
+
+    for (
+      let j = 0;
+      j <= segments;
+      j++
+    ) {
 
       const phi =
         -Math.PI / 2 +
-        (j / segments) * Math.PI;
+        (
+          j /
+          segments
+        ) *
+        Math.PI;
+
 
       points.push(
+
         new THREE.Vector3(
+
           Math.cos(phi) *
             Math.cos(theta) *
             radius,
@@ -1830,7 +2436,9 @@ function createPlanetGrid(
           Math.cos(phi) *
             Math.sin(theta) *
             radius
+
         )
+
       );
 
     }
@@ -1839,7 +2447,11 @@ function createPlanetGrid(
     const geometry =
       new THREE.BufferGeometry();
 
-    geometry.setFromPoints(points);
+
+    geometry.setFromPoints(
+      points
+    );
+
 
     const line =
       new THREE.Line(
@@ -1847,9 +2459,13 @@ function createPlanetGrid(
         material
       );
 
+
     line.renderOrder = 3;
 
-    group.add(line);
+
+    group.add(
+      line
+    );
 
   }
 
@@ -1866,16 +2482,24 @@ function createAtmosphere(
   planet
 ) {
 
-  if (planet.atmosphere === "none") {
+  if (
+    planet.atmosphere ===
+    "none"
+  ) {
     return;
   }
 
 
   const opacityMap = {
 
-    weak: .08,
-    medium: .16,
-    strong: .27
+    weak:
+      .08,
+
+    medium:
+      .16,
+
+    strong:
+      .27
 
   };
 
@@ -1896,15 +2520,19 @@ function createAtmosphere(
           planet.colour
         ),
 
-      transparent: true,
+      transparent:
+        true,
 
       opacity:
-        opacityMap[planet.atmosphere] || .16,
+        opacityMap[
+          planet.atmosphere
+        ] || .16,
 
       side:
         THREE.BackSide,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
@@ -1915,9 +2543,14 @@ function createAtmosphere(
       material
     );
 
-  atmosphere.renderOrder = 4;
 
-  group.add(atmosphere);
+  atmosphere.renderOrder =
+    4;
+
+
+  group.add(
+    atmosphere
+  );
 
 }
 
@@ -1932,16 +2565,23 @@ function createGlow(
   planet
 ) {
 
-  if (planet.glow === "none") {
+  if (
+    planet.glow === "none"
+  ) {
     return;
   }
 
 
   const opacityMap = {
 
-    weak: .08,
-    medium: .15,
-    strong: .24
+    weak:
+      .08,
+
+    medium:
+      .15,
+
+    strong:
+      .24
 
   };
 
@@ -1962,15 +2602,19 @@ function createGlow(
           planet.colour
         ),
 
-      transparent: true,
+      transparent:
+        true,
 
       opacity:
-        opacityMap[planet.glow] || .1,
+        opacityMap[
+          planet.glow
+        ] || .1,
 
       side:
         THREE.BackSide,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
@@ -1981,9 +2625,14 @@ function createGlow(
       material
     );
 
-  glow.renderOrder = 2;
 
-  group.add(glow);
+  glow.renderOrder =
+    2;
+
+
+  group.add(
+    glow
+  );
 
 }
 
@@ -1998,23 +2647,35 @@ function createRings(
   planet
 ) {
 
-  if (planet.rings === "none") {
+  if (
+    planet.rings === "none"
+  ) {
     return;
   }
 
 
   let ringCount = 1;
 
-  if (planet.rings === "double") {
+
+  if (
+    planet.rings === "double"
+  ) {
+
     ringCount = 2;
+
   }
 
-  if (planet.rings === "complex") {
+
+  if (
+    planet.rings === "complex"
+  ) {
+
     ringCount =
       Math.max(
         3,
         planet.ring_density
       );
+
   }
 
 
@@ -2024,17 +2685,28 @@ function createRings(
     );
 
 
-  for (let i = 0; i < ringCount; i++) {
+  for (
+    let i = 0;
+    i < ringCount;
+    i++
+  ) {
 
     const scale =
       1 +
-      (i * .14);
+      (
+        i *
+        .14
+      );
 
 
     const geometry =
       new THREE.RingGeometry(
-        radius * (1.48 * scale),
-        radius * (1.49 * scale),
+        radius *
+          (1.48 * scale),
+
+        radius *
+          (1.49 * scale),
+
         128
       );
 
@@ -2042,18 +2714,25 @@ function createRings(
     const material =
       new THREE.MeshBasicMaterial({
 
-        color,
+        color:
 
-        transparent: true,
+          colour,
+
+        transparent:
+          true,
 
         opacity:
           .22 -
-          (i * .025),
+          (
+            i *
+            .025
+          ),
 
         side:
           THREE.DoubleSide,
 
-        depthWrite: false
+        depthWrite:
+          false
 
       });
 
@@ -2068,13 +2747,22 @@ function createRings(
     ring.rotation.x =
       Math.PI / 2.5;
 
+
     ring.rotation.z =
       .18 +
-      (i * .08);
+      (
+        i *
+        .08
+      );
 
-    ring.renderOrder = 1;
 
-    group.add(ring);
+    ring.renderOrder =
+      1;
+
+
+    group.add(
+      ring
+    );
 
   }
 
@@ -2107,12 +2795,14 @@ function createCloudLayer(
           planet.cloud_colour
         ),
 
-      transparent: true,
+      transparent:
+        true,
 
       opacity:
         planet.cloud_opacity,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
@@ -2128,38 +2818,74 @@ function createCloudLayer(
     true;
 
 
-  if (planet.cloud_texture_url) {
+  if (
+    planet.cloud_texture_url
+  ) {
 
     const loader =
       new THREE.TextureLoader();
 
+
     loader.crossOrigin =
       "anonymous";
 
+
     loader.load(
+
       planet.cloud_texture_url,
+
       texture => {
 
-        texture.colorSpace =
-          THREE.SRGBColorSpace;
+        if (
+          "colorSpace" in texture
+        ) {
+
+          texture.colorSpace =
+            THREE.SRGBColorSpace;
+
+        }
+
+        else {
+
+          texture.encoding =
+            THREE.sRGBEncoding;
+
+        }
+
 
         clouds.material.map =
           texture;
+
 
         clouds.material.needsUpdate =
           true;
 
       },
+
       undefined,
-      () => {}
+
+      error => {
+
+        console.warn(
+          "Could not load cloud texture:",
+          planet.cloud_texture_url,
+          error
+        );
+
+      }
+
     );
 
   }
 
 
-  clouds.renderOrder = 5;
+  clouds.renderOrder =
+    5;
 
-  group.add(clouds);
+
+  group.add(
+    clouds
+  );
 
 }
 
@@ -2174,13 +2900,18 @@ function createScanLines(
   planet
 ) {
 
-  if (planet.scan_lines === "none") {
+  if (
+    planet.scan_lines ===
+    "none"
+  ) {
     return;
   }
 
 
   const count =
-    planet.scan_lines === "high"
+    planet.scan_lines ===
+    "high"
+
       ? 34
       : 16;
 
@@ -2193,29 +2924,51 @@ function createScanLines(
           planet.colour
         ),
 
-      transparent: true,
+      transparent:
+        true,
 
-      opacity: .08,
+      opacity:
+        .08,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
 
-  for (let i = 0; i < count; i++) {
+  for (
+    let i = 0;
+    i < count;
+    i++
+  ) {
 
     const y =
       -radius +
-      (2 * radius * i / (count - 1));
+      (
+        2 *
+        radius *
+        i /
+        (
+          count -
+          1
+        )
+      );
 
 
     const r =
       Math.sqrt(
+
         Math.max(
+
           0,
-          radius * radius -
-          y * y
+
+          radius *
+            radius -
+          y *
+            y
+
         )
+
       );
 
 
@@ -2223,17 +2976,34 @@ function createScanLines(
 
     const segments = 48;
 
-    for (let j = 0; j <= segments; j++) {
+
+    for (
+      let j = 0;
+      j <= segments;
+      j++
+    ) {
 
       const theta =
-        Math.PI * 2 * j / segments;
+        Math.PI *
+        2 *
+        j /
+        segments;
+
 
       points.push(
+
         new THREE.Vector3(
-          Math.cos(theta) * r,
+
+          Math.cos(theta) *
+            r,
+
           y,
-          Math.sin(theta) * r
+
+          Math.sin(theta) *
+            r
+
         )
+
       );
 
     }
@@ -2242,7 +3012,11 @@ function createScanLines(
     const geometry =
       new THREE.BufferGeometry();
 
-    geometry.setFromPoints(points);
+
+    geometry.setFromPoints(
+      points
+    );
+
 
     const line =
       new THREE.LineLoop(
@@ -2250,9 +3024,14 @@ function createScanLines(
         material
       );
 
-    line.renderOrder = 6;
 
-    group.add(line);
+    line.renderOrder =
+      6;
+
+
+    group.add(
+      line
+    );
 
   }
 
@@ -2269,26 +3048,37 @@ function createPlanetParticles(
   planet
 ) {
 
-  if (planet.particles === "none") {
+  if (
+    planet.particles ===
+    "none"
+  ) {
     return;
   }
 
 
   const countMap = {
 
-    low: 25,
-    medium: 60,
-    high: 110
+    low:
+      25,
+
+    medium:
+      60,
+
+    high:
+      110
 
   };
 
 
   const count =
-    countMap[planet.particles] || 25;
+    countMap[
+      planet.particles
+    ] || 25;
 
 
   const geometry =
     new THREE.BufferGeometry();
+
 
   const positions =
     new Float32Array(
@@ -2296,20 +3086,33 @@ function createPlanetParticles(
     );
 
 
-  for (let i = 0; i < count; i++) {
+  for (
+    let i = 0;
+    i < count;
+    i++
+  ) {
 
     const theta =
       Math.random() *
-      Math.PI * 2;
+      Math.PI *
+      2;
+
 
     const phi =
       Math.acos(
-        2 * Math.random() - 1
+        2 *
+        Math.random() -
+        1
       );
+
 
     const r =
       radius *
-      (1.02 + Math.random() * .18);
+      (
+        1.02 +
+        Math.random() *
+        .18
+      );
 
 
     positions[i * 3] =
@@ -2317,9 +3120,11 @@ function createPlanetParticles(
       Math.sin(phi) *
       Math.cos(theta);
 
+
     positions[i * 3 + 1] =
       r *
       Math.cos(phi);
+
 
     positions[i * 3 + 2] =
       r *
@@ -2346,13 +3151,17 @@ function createPlanetParticles(
           planet.colour
         ),
 
-      size: .025,
+      size:
+        .025,
 
-      transparent: true,
+      transparent:
+        true,
 
-      opacity: .55,
+      opacity:
+        .55,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
@@ -2364,11 +3173,14 @@ function createPlanetParticles(
     );
 
 
-  particles.userData.planetParticles =
-    true;
+  particles.userData
+    .planetParticles =
+      true;
 
 
-  group.add(particles);
+  group.add(
+    particles
+  );
 
 }
 
@@ -2384,12 +3196,21 @@ function latLonToVector3(
 ) {
 
   const phi =
-    (90 - lat) *
-    Math.PI / 180;
+    (
+      90 -
+      lat
+    ) *
+    Math.PI /
+    180;
+
 
   const theta =
-    (lon + 180) *
-    Math.PI / 180;
+    (
+      lon +
+      180
+    ) *
+    Math.PI /
+    180;
 
 
   return new THREE.Vector3(
@@ -2425,14 +3246,20 @@ function createResearchPin(
     latLonToVector3(
       row.lat,
       row.long,
-      radius * 1.025
+      radius *
+        1.025
     );
 
 
-  group.position.copy(position);
+  group.position.copy(
+    position
+  );
+
 
   group.lookAt(
-    position.clone().multiplyScalar(2)
+    position
+      .clone()
+      .multiplyScalar(2)
   );
 
 
@@ -2444,7 +3271,10 @@ function createResearchPin(
     "marker";
 
 
-  if (pointStyle === "pulse") {
+  if (
+    pointStyle ===
+    "pulse"
+  ) {
 
     const geometry =
       new THREE.SphereGeometry(
@@ -2459,9 +3289,11 @@ function createResearchPin(
 
         color,
 
-        transparent: true,
+        transparent:
+          true,
 
-        opacity: .95
+        opacity:
+          .95
 
       });
 
@@ -2473,7 +3305,9 @@ function createResearchPin(
       );
 
 
-    group.add(point);
+    group.add(
+      point
+    );
 
 
     const pulseGeometry =
@@ -2489,9 +3323,11 @@ function createResearchPin(
 
         color,
 
-        transparent: true,
+        transparent:
+          true,
 
-        opacity: .45,
+        opacity:
+          .45,
 
         side:
           THREE.DoubleSide
@@ -2506,12 +3342,16 @@ function createResearchPin(
       );
 
 
-    group.add(pulse);
+    group.add(
+      pulse
+    );
+
 
     group.userData.pulse =
       pulse;
 
   }
+
 
   else {
 
@@ -2520,34 +3360,46 @@ function createResearchPin(
 
         color,
 
-        transparent: true,
+        transparent:
+          true,
 
-        opacity: .95,
+        opacity:
+          .95,
 
-        depthWrite: false
+        depthWrite:
+          false
 
       });
 
 
-    const size = .13;
+    const size =
+      .13;
 
 
     const points = [
 
       new THREE.Vector3(
-        -size, 0, 0
+        -size,
+        0,
+        0
       ),
 
       new THREE.Vector3(
-        size, 0, 0
+        size,
+        0,
+        0
       ),
 
       new THREE.Vector3(
-        0, -size, 0
+        0,
+        -size,
+        0
       ),
 
       new THREE.Vector3(
-        0, size, 0
+        0,
+        size,
+        0
       )
 
     ];
@@ -2556,7 +3408,10 @@ function createResearchPin(
     const geometry =
       new THREE.BufferGeometry();
 
-    geometry.setFromPoints(points);
+
+    geometry.setFromPoints(
+      points
+    );
 
 
     const lines =
@@ -2566,7 +3421,9 @@ function createResearchPin(
       );
 
 
-    group.add(lines);
+    group.add(
+      lines
+    );
 
   }
 
@@ -2588,11 +3445,14 @@ function createResearchPin(
   const hitMaterial =
     new THREE.MeshBasicMaterial({
 
-      transparent: true,
+      transparent:
+        true,
 
-      opacity: 0,
+      opacity:
+        0,
 
-      depthWrite: false
+      depthWrite:
+        false
 
     });
 
@@ -2607,11 +3467,14 @@ function createResearchPin(
   hit.userData.marker =
     row;
 
+
   hit.userData.type =
     "marker";
 
 
-  group.add(hit);
+  group.add(
+    hit
+  );
 
 
   return group;
@@ -2627,50 +3490,70 @@ function buildGalaxy() {
 
   planets.length = 0;
 
-  Object.keys(projectObjects).forEach(
-    key => delete projectObjects[key]
+
+  Object.keys(
+    projectObjects
+  ).forEach(
+    key =>
+      delete projectObjects[key]
   );
 
 
   const enabled =
     planetData
+
       .filter(
         planet =>
           planet.enabled &&
           planet.project
       )
+
       .sort(
         (a, b) =>
-          a.order - b.order
+          a.order -
+          b.order
       );
 
 
-  enabled.forEach(planet => {
+  enabled.forEach(
+    planet => {
 
-    const position =
-      new THREE.Vector3(
-        planet.galaxy_x,
-        planet.galaxy_y,
-        planet.galaxy_z
+      const position =
+        new THREE.Vector3(
+
+          planet.galaxy_x,
+
+          planet.galaxy_y,
+
+          planet.galaxy_z
+
+        );
+
+
+      const object =
+        createProjectPlanet(
+          planet,
+          position
+        );
+
+
+      galaxyGroup.add(
+        object
       );
 
 
-    const object =
-      createProjectPlanet(
-        planet,
-        position
+      planets.push(
+        object
       );
 
 
-    galaxyGroup.add(object);
+      projectObjects[
+        planet.project
+      ] =
+        object;
 
-    planets.push(object);
-
-    projectObjects[
-      planet.project
-    ] = object;
-
-  });
+    }
+  );
 
 
   attachResearchPoints();
@@ -2685,42 +3568,59 @@ function buildGalaxy() {
 function attachResearchPoints() {
 
   markerData
-    .filter(marker => marker.enabled)
-    .forEach(marker => {
 
-      const planetObject =
-        projectObjects[
-          marker.project
-        ];
+    .filter(
+      marker =>
+        marker.enabled
+    )
+
+    .forEach(
+      marker => {
+
+        const planetObject =
+          projectObjects[
+            marker.project
+          ];
 
 
-      if (!planetObject) {
-        return;
+        if (!planetObject) {
+          return;
+        }
+
+
+        const planet =
+          planetObject.userData
+            .planet;
+
+
+        const markerColour =
+          hexToNumber(
+            planet.colour
+          );
+
+
+        const pin =
+          createResearchPin(
+
+            marker,
+
+            planetObject
+              .userData
+              .radius,
+
+            markerColour,
+
+            planet.point_style
+
+          );
+
+
+        planetObject.add(
+          pin
+        );
+
       }
-
-
-      const planet =
-        planetObject.userData.planet;
-
-
-      const markerColour =
-        hexToNumber(
-          planet.colour
-        );
-
-
-      const pin =
-        createResearchPin(
-          marker,
-          planetObject.userData.radius,
-          markerColour,
-          planet.point_style
-        );
-
-
-      planetObject.add(pin);
-
-    });
+    );
 
 }
 
@@ -2733,15 +3633,29 @@ function setGalaxyCamera() {
 
   galaxyDistance =
     number(
-      globalData.galaxy_start_distance,
+      globalData
+        .galaxy_start_distance,
       20
     );
 
+
   galaxyDistance =
     clamp(
+
       galaxyDistance,
-      number(globalData.galaxy_min_distance, 8),
-      number(globalData.galaxy_max_distance, 45)
+
+      number(
+        globalData
+          .galaxy_min_distance,
+        8
+      ),
+
+      number(
+        globalData
+          .galaxy_max_distance,
+        45
+      )
+
     );
 
 
@@ -2753,17 +3667,29 @@ function setGalaxyCamera() {
 function updateGalaxyCamera() {
 
   const x =
-    Math.sin(galaxyYaw) *
-    Math.cos(galaxyPitch) *
+    Math.sin(
+      galaxyYaw
+    ) *
+    Math.cos(
+      galaxyPitch
+    ) *
     galaxyDistance;
+
 
   const y =
-    Math.sin(galaxyPitch) *
+    Math.sin(
+      galaxyPitch
+    ) *
     galaxyDistance;
 
+
   const z =
-    Math.cos(galaxyYaw) *
-    Math.cos(galaxyPitch) *
+    Math.cos(
+      galaxyYaw
+    ) *
+    Math.cos(
+      galaxyPitch
+    ) *
     galaxyDistance;
 
 
@@ -2772,6 +3698,7 @@ function updateGalaxyCamera() {
     y,
     z
   );
+
 
   camera.lookAt(
     0,
@@ -2786,9 +3713,14 @@ function updateGalaxyCamera() {
    ENTER PLANET
 ------------------------------------------------------------ */
 
-function enterPlanet(planetObject) {
+function enterPlanet(
+  planetObject
+) {
 
-  if (!planetObject) return;
+  if (!planetObject) {
+    return;
+  }
+
 
   activePlanet =
     planetObject;
@@ -2799,24 +3731,31 @@ function enterPlanet(planetObject) {
 
 
   document
-    .getElementById("galaxy-ui")
+    .getElementById(
+      "galaxy-ui"
+    )
     .style.display =
       "none";
 
 
   document
-    .getElementById("planet-ui")
+    .getElementById(
+      "planet-ui"
+    )
     .classList
     .add("active");
 
 
   updatePlanetHUD(
-    planetObject.userData.planet
+    planetObject
+      .userData
+      .planet
   );
 
 
   const worldPosition =
     new THREE.Vector3();
+
 
   planetObject.getWorldPosition(
     worldPosition
@@ -2832,44 +3771,48 @@ function enterPlanet(planetObject) {
   );
 
 
-  /*
-    Fixed planet-view camera.
-    This keeps the globe itself in front of the
-    navigation system and prevents marker/UI positioning
-    from breaking during zoom.
-  */
-
   animationTo =
-    worldPosition.clone()
+    worldPosition
+      .clone()
       .add(
+
         new THREE.Vector3(
           0,
           0,
           planetDistance
         )
+
       );
 
 
   animationStart =
     performance.now();
 
+
   animationDuration =
     number(
-      globalData.enter_animation_ms,
+      globalData
+        .enter_animation_ms,
       1500
     );
 
 
-  planetYaw = 0;
-  planetPitch = 0;
+  planetYaw =
+    0;
 
 
-  document.getElementById(
-    "instruction"
-  ).textContent =
-    interfaceValue(
-      "planet_instruction"
-    );
+  planetPitch =
+    0;
+
+
+  document
+    .getElementById(
+      "instruction"
+    )
+    .textContent =
+      interfaceValue(
+        "planet_instruction"
+      );
 
 }
 
@@ -2880,7 +3823,18 @@ function enterPlanet(planetObject) {
 
 function exitPlanet() {
 
-  if (!activePlanet) return;
+  if (!activePlanet) {
+    return;
+  }
+
+
+  const worldPosition =
+    new THREE.Vector3();
+
+
+  activePlanet.getWorldPosition(
+    worldPosition
+  );
 
 
   mode =
@@ -2902,9 +3856,11 @@ function exitPlanet() {
   animationStart =
     performance.now();
 
+
   animationDuration =
     number(
-      globalData.exit_animation_ms,
+      globalData
+        .exit_animation_ms,
       1200
     );
 
@@ -2914,13 +3870,17 @@ function exitPlanet() {
 
 
   document
-    .getElementById("planet-ui")
+    .getElementById(
+      "planet-ui"
+    )
     .classList
     .remove("active");
 
 
   document
-    .getElementById("marker-card")
+    .getElementById(
+      "marker-card"
+    )
     .classList
     .remove("visible");
 
@@ -2929,16 +3889,21 @@ function exitPlanet() {
 
 
   document
-    .getElementById("galaxy-ui")
+    .getElementById(
+      "galaxy-ui"
+    )
     .style.display =
       "block";
 
 
-  mode =
-    "galaxy";
-
-
-  updateGalaxyCamera();
+  document
+    .getElementById(
+      "instruction"
+    )
+    .textContent =
+      interfaceValue(
+        "galaxy_instruction"
+      );
 
 }
 
@@ -2949,11 +3914,14 @@ function exitPlanet() {
 
 function updatePlanetCamera() {
 
-  if (!activePlanet) return;
+  if (!activePlanet) {
+    return;
+  }
 
 
   const worldPosition =
     new THREE.Vector3();
+
 
   activePlanet.getWorldPosition(
     worldPosition
@@ -2961,30 +3929,46 @@ function updatePlanetCamera() {
 
 
   const x =
-    Math.sin(planetYaw) *
-    Math.cos(planetPitch) *
+    Math.sin(
+      planetYaw
+    ) *
+    Math.cos(
+      planetPitch
+    ) *
     planetDistance;
+
 
   const y =
-    Math.sin(planetPitch) *
+    Math.sin(
+      planetPitch
+    ) *
     planetDistance;
 
+
   const z =
-    Math.cos(planetYaw) *
-    Math.cos(planetPitch) *
+    Math.cos(
+      planetYaw
+    ) *
+    Math.cos(
+      planetPitch
+    ) *
     planetDistance;
 
 
   camera.position.copy(
+
     worldPosition
       .clone()
       .add(
+
         new THREE.Vector3(
           x,
           y,
           z
         )
+
       )
+
   );
 
 
@@ -3002,67 +3986,91 @@ function updatePlanetCamera() {
    PLANET HUD
 ------------------------------------------------------------ */
 
-function updatePlanetHUD(planet) {
+function updatePlanetHUD(
+  planet
+) {
 
-  document.getElementById(
-    "planet-project"
-  ).textContent =
-    planet.project || "PROJECT";
+  document
+    .getElementById(
+      "planet-project"
+    )
+    .textContent =
+      planet.project ||
+      "PROJECT";
 
 
-  document.getElementById(
-    "planet-name"
-  ).textContent =
-    planet.name || "RESEARCH WORLD";
+  document
+    .getElementById(
+      "planet-name"
+    )
+    .textContent =
+      planet.name ||
+      "RESEARCH WORLD";
 
 
-  document.getElementById(
-    "hud-status"
-  ).textContent =
-    planet.status || "—";
+  document
+    .getElementById(
+      "hud-status"
+    )
+    .textContent =
+      planet.status ||
+      "—";
 
 
   const points =
     markerData.filter(
       marker =>
         marker.enabled &&
-        marker.project === planet.project
+        marker.project ===
+          planet.project
     ).length;
 
 
-  document.getElementById(
-    "hud-points"
-  ).textContent =
-    points;
+  document
+    .getElementById(
+      "hud-points"
+    )
+    .textContent =
+      points;
 
 
-  document.getElementById(
-    "hud-focus"
-  ).textContent =
-    planet.focus || "—";
+  document
+    .getElementById(
+      "hud-focus"
+    )
+    .textContent =
+      planet.focus ||
+      "—";
 
 
-  document.getElementById(
-    "hud-mode"
-  ).textContent =
-    planet.mode_label ||
-    interfaceValue(
-      "planet_info_mode_default"
-    );
+  document
+    .getElementById(
+      "hud-mode"
+    )
+    .textContent =
+      planet.mode_label ||
+      interfaceValue(
+        "planet_info_mode_default"
+      );
 
 
-  document.getElementById(
-    "planet-question-text"
-  ).textContent =
-    planet.question || "—";
+  document
+    .getElementById(
+      "planet-question-text"
+    )
+    .textContent =
+      planet.question ||
+      "—";
 
 
-  document.getElementById(
-    "instruction"
-  ).textContent =
-    interfaceValue(
-      "planet_instruction"
-    );
+  document
+    .getElementById(
+      "instruction"
+    )
+    .textContent =
+      interfaceValue(
+        "planet_instruction"
+      );
 
 }
 
@@ -3071,7 +4079,9 @@ function updatePlanetHUD(planet) {
    MARKER CARD
 ------------------------------------------------------------ */
 
-function showMarkerCard(marker) {
+function showMarkerCard(
+  marker
+) {
 
   const card =
     document.getElementById(
@@ -3079,32 +4089,40 @@ function showMarkerCard(marker) {
     );
 
 
-  document.getElementById(
-    "marker-card-country"
-  ).textContent =
-    marker.country ||
-    interfaceValue(
-      "marker_card_default_country"
-    );
+  document
+    .getElementById(
+      "marker-card-country"
+    )
+    .textContent =
+      marker.country ||
+      interfaceValue(
+        "marker_card_default_country"
+      );
 
 
-  document.getElementById(
-    "marker-card-title"
-  ).textContent =
-    marker.title ||
-    interfaceValue(
-      "marker_card_default_title"
-    );
+  document
+    .getElementById(
+      "marker-card-title"
+    )
+    .textContent =
+      marker.title ||
+      interfaceValue(
+        "marker_card_default_title"
+      );
 
 
-  document.getElementById(
-    "marker-card-description"
-  ).textContent =
-    marker.country
-      ? marker.country.toUpperCase()
-      : interfaceValue(
-          "marker_card_default_description"
-        );
+  document
+    .getElementById(
+      "marker-card-description"
+    )
+    .textContent =
+      marker.country
+
+        ? marker.country.toUpperCase()
+
+        : interfaceValue(
+            "marker_card_default_description"
+          );
 
 
   const link =
@@ -3120,13 +4138,18 @@ function showMarkerCard(marker) {
 
 
   if (
+
     marker.url &&
+
     marker.url !== "na" &&
+
     marker.url !== "#"
+
   ) {
 
     link.href =
       marker.url;
+
 
     link.style.display =
       "inline-block";
@@ -3139,6 +4162,7 @@ function showMarkerCard(marker) {
       "href"
     );
 
+
     link.style.display =
       "none";
 
@@ -3150,20 +4174,27 @@ function showMarkerCard(marker) {
   );
 
 
-  document.getElementById(
-    "coordinate-lat"
-  ).textContent =
-    formatCoordinate(
-      marker.lat
-    );
+  document
+    .getElementById(
+      "coordinate-lat"
+    )
+    .textContent =
+      formatCoordinate(
+        marker.lat
+      );
 
 
-  document.getElementById(
-    "coordinate-long"
-  ).textContent =
-    formatCoordinate(
-      marker.long
-    );
+  document
+    .getElementById(
+      "coordinate-long"
+    )
+    .textContent =
+      formatCoordinate(
+        marker.long
+      );
+
+
+  updateMarkerConnectors();
 
 }
 
@@ -3175,7 +4206,19 @@ function hideMarkerCard() {
       "marker-card"
     )
     .classList
-    .remove("visible");
+    .remove(
+      "visible"
+    );
+
+
+  const svg =
+    document.getElementById(
+      "connector-layer"
+    );
+
+
+  svg.innerHTML =
+    "";
 
 }
 
@@ -3184,14 +4227,23 @@ function hideMarkerCard() {
    COORDINATES
 ------------------------------------------------------------ */
 
-function formatCoordinate(value) {
+function formatCoordinate(
+  value
+) {
 
   const n =
-    number(value, 0);
+    number(
+      value,
+      0
+    );
+
 
   return n
     .toFixed(4)
-    .replace("-", "−");
+    .replace(
+      "-",
+      "−"
+    );
 
 }
 
@@ -3208,65 +4260,90 @@ function getIntersects() {
   );
 
 
-  return raycaster.intersectObjects(
-    scene.children,
-    true
-  );
+  return raycaster
+    .intersectObjects(
+      scene.children,
+      true
+    );
 
 }
 
 
-function findPlanetFromObject(object) {
+function findPlanetFromObject(
+  object
+) {
 
   let current =
     object;
 
+
   while (
+
     current &&
     current !== scene
+
   ) {
 
     if (
+
       current.userData &&
+
       current.userData.type ===
         "planet"
+
     ) {
+
       return current;
+
     }
+
 
     current =
       current.parent;
 
   }
+
 
   return null;
 
 }
 
 
-function findMarkerFromObject(object) {
+function findMarkerFromObject(
+  object
+) {
 
   let current =
     object;
 
+
   while (
+
     current &&
     current !== scene
+
   ) {
 
     if (
+
       current.userData &&
+
       current.userData.marker
+
     ) {
 
-      return current.userData.marker;
+      return current
+        .userData
+        .marker;
 
     }
+
 
     current =
       current.parent;
 
   }
+
 
   return null;
 
@@ -3277,14 +4354,21 @@ function findMarkerFromObject(object) {
    POINTER
 ------------------------------------------------------------ */
 
-function onPointerDown(event) {
+function onPointerDown(
+  event
+) {
 
-  pointerDown = true;
+  pointerDown =
+    true;
 
-  dragged = false;
+
+  dragged =
+    false;
+
 
   pointerStartX =
     event.clientX;
+
 
   pointerStartY =
     event.clientY;
@@ -3292,14 +4376,19 @@ function onPointerDown(event) {
 }
 
 
-function onPointerMove(event) {
+function onPointerMove(
+  event
+) {
 
-  if (!pointerDown) return;
+  if (!pointerDown) {
+    return;
+  }
 
 
   const dx =
     event.clientX -
     pointerStartX;
+
 
   const dy =
     event.clientY -
@@ -3314,46 +4403,65 @@ function onPointerMove(event) {
 
 
   if (
-    Math.abs(dx) > threshold ||
-    Math.abs(dy) > threshold
+
+    Math.abs(dx) >
+      threshold ||
+
+    Math.abs(dy) >
+      threshold
+
   ) {
 
-    dragged = true;
+    dragged =
+      true;
 
   }
 
 
-  if (!dragged) return;
+  if (!dragged) {
+    return;
+  }
 
 
-  if (mode === "galaxy") {
+  if (
+    mode === "galaxy"
+  ) {
 
     galaxyYaw -=
       dx *
       number(
-        globalData.galaxy_drag_sensitivity,
+        globalData
+          .galaxy_drag_sensitivity,
         .0035
       );
+
 
     galaxyPitch -=
       dy *
       number(
-        globalData.galaxy_drag_sensitivity,
+        globalData
+          .galaxy_drag_sensitivity,
         .0035
       );
 
 
     galaxyPitch =
       clamp(
+
         galaxyPitch,
+
         number(
-          globalData.galaxy_pitch_min,
+          globalData
+            .galaxy_pitch_min,
           -1.35
         ),
+
         number(
-          globalData.galaxy_pitch_max,
+          globalData
+            .galaxy_pitch_max,
           1.35
         )
+
       );
 
 
@@ -3369,29 +4477,38 @@ function onPointerMove(event) {
     planetYaw -=
       dx *
       number(
-        globalData.planet_drag_sensitivity,
+        globalData
+          .planet_drag_sensitivity,
         .0045
       );
+
 
     planetPitch -=
       dy *
       number(
-        globalData.planet_drag_sensitivity,
+        globalData
+          .planet_drag_sensitivity,
         .0045
       );
 
 
     planetPitch =
       clamp(
+
         planetPitch,
+
         -number(
-          globalData.planet_max_tilt,
+          globalData
+            .planet_max_tilt,
           1.25
         ),
+
         number(
-          globalData.planet_max_tilt,
+          globalData
+            .planet_max_tilt,
           1.25
         )
+
       );
 
 
@@ -3403,17 +4520,24 @@ function onPointerMove(event) {
   pointerStartX =
     event.clientX;
 
+
   pointerStartY =
     event.clientY;
 
 }
 
 
-function onPointerUp(event) {
+function onPointerUp(
+  event
+) {
 
-  if (!pointerDown) return;
+  if (!pointerDown) {
+    return;
+  }
 
-  pointerDown = false;
+
+  pointerDown =
+    false;
 
 
   if (dragged) {
@@ -3422,14 +4546,21 @@ function onPointerUp(event) {
 
 
   mouse.x =
-    (event.clientX /
-      window.innerWidth) *
-      2 - 1;
+    (
+      event.clientX /
+      window.innerWidth
+    ) *
+    2 -
+    1;
+
 
   mouse.y =
-    -(event.clientY /
-      window.innerHeight) *
-      2 + 1;
+    -(
+      event.clientY /
+      window.innerHeight
+    ) *
+    2 +
+    1;
 
 
   const intersects =
@@ -3438,8 +4569,12 @@ function onPointerUp(event) {
 
   if (!intersects.length) {
 
-    if (mode === "planet") {
+    if (
+      mode === "planet"
+    ) {
+
       hideMarkerCard();
+
     }
 
     return;
@@ -3447,7 +4582,9 @@ function onPointerUp(event) {
   }
 
 
-  if (mode === "galaxy") {
+  if (
+    mode === "galaxy"
+  ) {
 
     const planet =
       findPlanetFromObject(
@@ -3456,13 +4593,19 @@ function onPointerUp(event) {
 
 
     if (planet) {
-      enterPlanet(planet);
+
+      enterPlanet(
+        planet
+      );
+
     }
 
   }
 
 
-  else if (mode === "planet") {
+  else if (
+    mode === "planet"
+  ) {
 
     const marker =
       findMarkerFromObject(
@@ -3471,7 +4614,11 @@ function onPointerUp(event) {
 
 
     if (marker) {
-      showMarkerCard(marker);
+
+      showMarkerCard(
+        marker
+      );
+
     }
 
   }
@@ -3483,12 +4630,16 @@ function onPointerUp(event) {
    WHEEL
 ------------------------------------------------------------ */
 
-function onWheel(event) {
+function onWheel(
+  event
+) {
 
   event.preventDefault();
 
 
-  if (mode === "galaxy") {
+  if (
+    mode === "galaxy"
+  ) {
 
     galaxyDistance +=
       event.deltaY *
@@ -3497,15 +4648,21 @@ function onWheel(event) {
 
     galaxyDistance =
       clamp(
+
         galaxyDistance,
+
         number(
-          globalData.galaxy_min_distance,
+          globalData
+            .galaxy_min_distance,
           8
         ),
+
         number(
-          globalData.galaxy_max_distance,
+          globalData
+            .galaxy_max_distance,
           45
         )
+
       );
 
 
@@ -3514,27 +4671,36 @@ function onWheel(event) {
   }
 
 
-  else if (mode === "planet") {
+  else if (
+    mode === "planet"
+  ) {
 
     planetDistance +=
       event.deltaY *
       number(
-        globalData.planet_zoom_speed,
+        globalData
+          .planet_zoom_speed,
         .008
       );
 
 
     planetDistance =
       clamp(
+
         planetDistance,
+
         number(
-          globalData.planet_zoom_min,
+          globalData
+            .planet_zoom_min,
           3.5
         ),
+
         number(
-          globalData.planet_zoom_max,
+          globalData
+            .planet_zoom_max,
           15
         )
+
       );
 
 
@@ -3552,10 +4718,15 @@ function onWheel(event) {
 function updateMarkerConnectors() {
 
   if (
+
     mode !== "planet" ||
+
     !activePlanet
+
   ) {
+
     return;
+
   }
 
 
@@ -3565,7 +4736,8 @@ function updateMarkerConnectors() {
     );
 
 
-  svg.innerHTML = "";
+  svg.innerHTML =
+    "";
 
 
   const card =
@@ -3575,30 +4747,27 @@ function updateMarkerConnectors() {
 
 
   if (
+
     !card.classList.contains(
       "visible"
     )
+
   ) {
+
     return;
+
   }
 
 
-  const markerCountry =
-    document.getElementById(
-      "marker-card-country"
-    ).textContent;
-
+  /*
+    Store the currently displayed marker
+    directly on the card rather than trying
+    to identify it from its visible country
+    text.
+  */
 
   const marker =
-    markerData.find(
-      item =>
-        item.project ===
-          activePlanet.userData.planet.project &&
-        (
-          item.country || ""
-        ).toUpperCase() ===
-          markerCountry
-    );
+    card.userDataMarker;
 
 
   if (!marker) {
@@ -3625,24 +4794,35 @@ function updateMarkerConnectors() {
   const worldPosition =
     new THREE.Vector3();
 
+
   markerObject.getWorldPosition(
     worldPosition
   );
 
 
   const projected =
-    worldPosition.clone().project(
-      camera
-    );
+    worldPosition
+      .clone()
+      .project(
+        camera
+      );
 
 
   const x =
-    (projected.x * .5 + .5) *
+    (
+      projected.x *
+      .5 +
+      .5
+    ) *
     window.innerWidth;
 
 
   const y =
-    (-projected.y * .5 + .5) *
+    (
+      -projected.y *
+      .5 +
+      .5
+    ) *
     window.innerHeight;
 
 
@@ -3653,29 +4833,39 @@ function updateMarkerConnectors() {
   const cardX =
     cardRect.left;
 
+
   const cardY =
     cardRect.top +
-    cardRect.height / 2;
+    cardRect.height /
+      2;
 
 
   const offset =
     number(
-      globalData.marker_connector_point_offset,
+      globalData
+        .marker_connector_point_offset,
       4
     );
 
 
   const startY =
     clamp(
-      y + offset,
+
+      y +
+      offset,
+
       number(
-        globalData.marker_connector_min_y,
+        globalData
+          .marker_connector_min_y,
         100
       ),
+
       number(
-        globalData.marker_connector_max_y,
+        globalData
+          .marker_connector_max_y,
         500
       )
+
     );
 
 
@@ -3684,42 +4874,73 @@ function updateMarkerConnectors() {
 
 
   if (
+
     x <
     number(
-      globalData.marker_connector_left_limit,
+      globalData
+        .marker_connector_left_limit,
       570
     )
+
   ) {
 
     targetX =
       number(
-        globalData.marker_connector_left_x,
+        globalData
+          .marker_connector_left_x,
         270
       );
 
+
     elbowX =
       number(
-        globalData.marker_connector_left_elbow,
+        globalData
+          .marker_connector_left_elbow,
         350
       );
 
   }
 
+
   else {
 
     targetX =
       number(
-        globalData.marker_connector_right_x,
+        globalData
+          .marker_connector_right_x,
         730
       );
 
+
     elbowX =
       number(
-        globalData.marker_connector_right_elbow,
+        globalData
+          .marker_connector_right_elbow,
         650
       );
 
   }
+
+
+  /*
+    Connect to the actual edge of the card.
+    This keeps the line visually attached when
+    the card moves responsively.
+  */
+
+  const cardEdge =
+    x <
+    cardRect.left
+
+      ? cardRect.left
+
+      : cardRect.right;
+
+
+  const finalX =
+    Number.isFinite(cardEdge)
+      ? cardEdge
+      : targetX;
 
 
   const path =
@@ -3730,22 +4951,31 @@ function updateMarkerConnectors() {
 
 
   /*
-    Two/three-point connector with a gentle arc.
-    The right-hand side is deliberately kept to a
-    small number of lines rather than the previous
-    aggressive multi-line curve.
+    One gentle curved connector.
+    The right-hand curve uses a larger,
+    softer radius rather than multiple
+    aggressive bends.
   */
 
   const midY =
     startY +
-    (cardY - startY) * .35;
+    (
+      cardY -
+      startY
+    ) *
+    .35;
 
 
   const d = [
+
     `M ${x} ${startY}`,
+
     `C ${elbowX} ${startY}`,
+
     `${elbowX} ${midY}`,
-    `${targetX} ${cardY}`
+
+    `${finalX} ${cardY}`
+
   ].join(" ");
 
 
@@ -3762,7 +4992,10 @@ function updateMarkerConnectors() {
 
 
   path.style.stroke =
-    activePlanet.userData.planet.colour;
+    activePlanet
+      .userData
+      .planet
+      .colour;
 
 
   svg.appendChild(
@@ -3782,18 +5015,24 @@ function updateMarkerConnectors() {
     x
   );
 
+
   circle.setAttribute(
     "cy",
     startY
   );
+
 
   circle.setAttribute(
     "class",
     "marker-connector-dot"
   );
 
+
   circle.style.fill =
-    activePlanet.userData.planet.colour;
+    activePlanet
+      .userData
+      .planet
+      .colour;
 
 
   svg.appendChild(
@@ -3816,9 +5055,12 @@ function findMarkerObject(
     object => {
 
       if (
+
         object.userData &&
+
         object.userData.marker ===
           marker
+
       ) {
 
         found =
@@ -3842,10 +5084,16 @@ function findMarkerObject(
 function animateCameraTransition() {
 
   if (
-    mode !== "transition-out" &&
+
+    mode !==
+      "transition-out" &&
+
     !animationTarget
+
   ) {
+
     return;
+
   }
 
 
@@ -3860,23 +5108,34 @@ function animateCameraTransition() {
 
   const t =
     clamp(
+
       elapsed /
-        animationDuration,
+      animationDuration,
+
       0,
       1
+
     );
 
 
   const eased =
     t *
     t *
-    (3 - 2 * t);
+    (
+      3 -
+      2 *
+      t
+    );
 
 
   camera.position.lerpVectors(
+
     animationFrom,
+
     animationTo,
+
     eased
+
   );
 
 
@@ -3890,6 +5149,7 @@ function animateCameraTransition() {
 
   }
 
+
   else {
 
     camera.lookAt(
@@ -3901,23 +5161,33 @@ function animateCameraTransition() {
   }
 
 
-  if (t >= 1) {
+  if (
+    t >= 1
+  ) {
 
     if (
-      mode === "transition-out"
+      mode ===
+      "transition-out"
     ) {
+
+      mode =
+        "galaxy";
+
 
       animationTarget =
         null;
+
 
       updateGalaxyCamera();
 
     }
 
+
     else {
 
       animationTarget =
         null;
+
 
       updatePlanetCamera();
 
@@ -3932,16 +5202,20 @@ function animateCameraTransition() {
    SPIN / ANIMATION
 ------------------------------------------------------------ */
 
-function updatePlanets(delta) {
+function updatePlanets(
+  delta
+) {
 
   planets.forEach(
     object => {
 
       const planet =
-        object.userData.planet;
+        object.userData
+          .planet;
 
 
-      let speed = 0;
+      let speed =
+        0;
 
 
       switch (
@@ -3949,32 +5223,54 @@ function updatePlanets(delta) {
       ) {
 
         case "stopped":
-          speed = 0;
+
+          speed =
+            0;
+
           break;
+
 
         case "slow":
-          speed = .025;
+
+          speed =
+            .025;
+
           break;
+
 
         case "normal":
-          speed = .055;
+
+          speed =
+            .055;
+
           break;
 
+
         case "fast":
-          speed = .1;
+
+          speed =
+            .1;
+
           break;
 
       }
 
 
       if (
-        mode === "galaxy" ||
-        object === activePlanet
+
+        mode ===
+          "galaxy" ||
+
+        object ===
+          activePlanet
+
       ) {
 
-        object.userData.sphere.rotation.y +=
-          delta *
-          speed;
+        object.userData
+          .sphere
+          .rotation.y +=
+            delta *
+            speed;
 
       }
 
@@ -3983,11 +5279,16 @@ function updatePlanets(delta) {
         child => {
 
           if (
+
             child.userData &&
-            child.userData.cloudLayer
+
+            child.userData
+              .cloudLayer
+
           ) {
 
             child.rotation.y +=
+
               delta *
               speed *
               1.35;
@@ -3996,11 +5297,16 @@ function updatePlanets(delta) {
 
 
           if (
+
             child.userData &&
-            child.userData.planetParticles
+
+            child.userData
+              .planetParticles
+
           ) {
 
             child.rotation.y +=
+
               delta *
               speed *
               .7;
@@ -4009,19 +5315,27 @@ function updatePlanets(delta) {
 
 
           if (
+
             child.userData &&
-            child.userData.pulse
+
+            child.userData
+              .pulse
+
           ) {
 
             const pulse =
-              child.userData.pulse;
+              child.userData
+                .pulse;
+
 
             const scale =
               1 +
               Math.sin(
-                performance.now() * .003
+                performance.now() *
+                .003
               ) *
               .18;
+
 
             pulse.scale.set(
               scale,
@@ -4061,8 +5375,12 @@ function animate() {
 
 
   if (
-    mode === "transition-out" ||
+
+    mode ===
+      "transition-out" ||
+
     animationTarget
+
   ) {
 
     animateCameraTransition();
@@ -4071,9 +5389,14 @@ function animate() {
 
 
   if (
-    mode === "planet" &&
+
+    mode ===
+      "planet" &&
+
     activePlanet &&
+
     !animationTarget
+
   ) {
 
     updatePlanetCamera();
@@ -4098,6 +5421,7 @@ function onResize() {
   camera.aspect =
     window.innerWidth /
     window.innerHeight;
+
 
   camera.updateProjectionMatrix();
 
@@ -4126,27 +5450,48 @@ function onResize() {
    LOAD CSV
 ------------------------------------------------------------ */
 
-async function fetchCSV(url) {
+async function fetchCSV(
+  url,
+  label
+) {
 
-  const response =
-    await fetch(
-      url,
-      {
-        cache: "no-store"
-      }
-    );
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          cache:
+            "no-store"
+        }
+      );
 
 
-  if (!response.ok) {
+    if (!response.ok) {
 
-    throw new Error(
-      `Could not load ${url}`
-    );
+      throw new Error(
+        `${label} returned HTTP ${response.status}`
+      );
+
+    }
+
+
+    return await response.text();
 
   }
 
+  catch (error) {
 
-  return response.text();
+    console.error(
+      `Failed to load ${label}:`,
+      url,
+      error
+    );
+
+
+    throw error;
+
+  }
 
 }
 
@@ -4159,28 +5504,50 @@ async function loadData() {
 
   try {
 
+    /*
+      Make sure the loading message itself
+      comes from the spreadsheet if available.
+    */
+
+    document
+      .getElementById(
+        "loading-text"
+      )
+      .textContent =
+        "LOADING RESEARCH UNIVERSE";
+
+
     const [
+
       planetsCSV,
+
       markersCSV,
+
       interfaceCSV,
+
       globalCSV
+
     ] =
       await Promise.all([
 
         fetchCSV(
-          SHEETS.PLANETS
+          SHEETS.PLANETS,
+          "PLANETS"
         ),
 
         fetchCSV(
-          SHEETS.MARKERS
+          SHEETS.MARKERS,
+          "MARKERS"
         ),
 
         fetchCSV(
-          SHEETS.INTERFACE
+          SHEETS.INTERFACE,
+          "INTERFACE"
         ),
 
         fetchCSV(
-          SHEETS.GLOBAL
+          SHEETS.GLOBAL,
+          "GLOBAL"
         )
 
       ]);
@@ -4223,15 +5590,18 @@ async function loadData() {
       planetData
     );
 
+
     console.log(
       "MARKERS:",
       markerData
     );
 
+
     console.log(
       "INTERFACE:",
       interfaceData
     );
+
 
     console.log(
       "GLOBAL:",
@@ -4239,13 +5609,28 @@ async function loadData() {
     );
 
 
+    if (
+      !planetData.length
+    ) {
+
+      throw new Error(
+        "PLANETS loaded but contains no data rows."
+      );
+
+    }
+
+
     applyInterface();
+
 
     initThree();
 
+
     buildGalaxy();
 
+
     hideLoading();
+
 
     animate();
 
@@ -4266,13 +5651,75 @@ async function loadData() {
 
 
     loading.textContent =
-      interfaceValue(
-        "loading_error"
-      );
+      "COULD NOT LOAD RESEARCH UNIVERSE";
 
   }
 
 }
+
+
+/* ------------------------------------------------------------
+   MARKER CARD STATE
+------------------------------------------------------------ */
+
+/*
+  Store the selected marker directly on the card.
+  This avoids relying on the country name to identify
+  the marker, which matters if two locations share
+  the same country/name.
+*/
+
+const markerCardElement =
+  document.getElementById(
+    "marker-card"
+  );
+
+
+Object.defineProperty(
+  markerCardElement,
+  "userDataMarker",
+  {
+    writable: true,
+    value: null
+  }
+);
+
+
+/*
+  Wrap the original marker-card behaviour so
+  the connector always knows which marker is selected.
+*/
+
+const originalShowMarkerCard =
+  showMarkerCard;
+
+
+showMarkerCard =
+  function(marker) {
+
+    markerCardElement.userDataMarker =
+      marker;
+
+    originalShowMarkerCard(
+      marker
+    );
+
+  };
+
+
+const originalHideMarkerCard =
+  hideMarkerCard;
+
+
+hideMarkerCard =
+  function() {
+
+    markerCardElement.userDataMarker =
+      null;
+
+    originalHideMarkerCard();
+
+  };
 
 
 /* ------------------------------------------------------------
