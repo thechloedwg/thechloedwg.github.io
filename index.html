@@ -1,352 +1,1184 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Chloe DWG — Research Universe</title>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Pop Culture as Parable — Mapped</title>
 
 <style>
+
+/* =========================================================
+   BASE
+   ========================================================= */
 
 * {
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
     background: #02040a;
-    font-family: Arial, Helvetica, sans-serif;
     color: white;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-#universe {
-    position: fixed;
-    inset: 0;
+body {
+    cursor: grab;
+}
+
+body.dragging {
+    cursor: grabbing;
 }
 
 canvas {
     display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
 }
 
 
-/* ---------- TOP UI ---------- */
+/* =========================================================
+   GENERAL UI
+   ========================================================= */
 
-#header {
+.ui {
     position: fixed;
-    top: 25px;
-    left: 30px;
+    inset: 0;
     z-index: 20;
     pointer-events: none;
-    letter-spacing: 0.08em;
 }
 
-#name {
-    font-size: 13px;
-    opacity: 0.65;
-    margin-bottom: 5px;
-}
-
-#title {
-    font-size: 20px;
-    font-weight: 500;
-}
-
-
-/* ---------- INSTRUCTIONS ---------- */
-
-#instructions {
-    position: fixed;
-    bottom: 25px;
-    left: 30px;
-    z-index: 20;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-
-/* ---------- PLANET LABEL ---------- */
-
-.planet-label {
-    position: fixed;
-    z-index: 15;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.planet-label .planet-name {
+.title {
+    position: absolute;
+    top: 24px;
+    left: 28px;
     font-size: 12px;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
+    opacity: 0.75;
     text-transform: uppercase;
-}
-
-.planet-label .planet-subtitle {
-    font-size: 10px;
-    opacity: 0.5;
-    margin-top: 5px;
-}
-
-
-/* ---------- PLANET MODE ---------- */
-
-#planetMode {
-    display: none;
-    position: fixed;
-    top: 25px;
-    right: 30px;
     z-index: 30;
 }
 
-#backButton {
-    border: 1px solid rgba(255,255,255,0.35);
-    background: rgba(0,0,0,0.35);
-    color: white;
-    padding: 10px 15px;
+.instructions {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    opacity: 0.45;
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 30;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+   ========================================================= */
+
+.back-button {
+    position: absolute;
+    top: 22px;
+    right: 26px;
+    pointer-events: auto;
     cursor: pointer;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(2,4,10,0.55);
+    color: white;
+    padding: 9px 13px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition:
+        opacity 0.3s ease,
+        border-color 0.2s ease;
+    z-index: 40;
 }
 
-#backButton:hover {
-    background: rgba(255,255,255,0.12);
+.back-button.visible {
+    opacity: 0.8;
+}
+
+.back-button:hover {
+    border-color: rgba(255,255,255,0.8);
+    opacity: 1;
 }
 
 
-/* ---------- RESEARCH PIN ---------- */
+/* =========================================================
+   GALAXY HOVER LABEL
+   ========================================================= */
 
-#researchPin {
-    display: none;
-    position: fixed;
-    z-index: 50;
-    width: 300px;
-    padding: 18px;
-    background: rgba(5, 8, 15, 0.82);
+.planet-label {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    padding: 7px 10px;
     border: 1px solid rgba(255,255,255,0.25);
-    backdrop-filter: blur(14px);
-    box-shadow: 0 10px 50px rgba(0,0,0,0.5);
-}
-
-#pinCountry {
-    font-size: 12px;
+    background: rgba(2,4,10,0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    opacity: 0.65;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 35;
+}
+
+.planet-label.visible {
+    opacity: 1;
+}
+
+
+/* =========================================================
+   PLANET HUD
+   ========================================================= */
+
+.planet-hud {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+}
+
+.planet-hud.visible {
+    opacity: 1;
+}
+
+
+/*
+   The HUD SVG sits BEHIND the rendered planet.
+
+   Text/cards sit above it separately.
+
+   This prevents the large technical circles and lines
+   from visually cutting through the planet.
+*/
+
+.hud-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 2;
+}
+
+
+/* =========================================================
+   HUD TYPOGRAPHY
+   ========================================================= */
+
+.hud-text {
+    fill: rgba(255,255,255,0.75);
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    text-transform: uppercase;
+}
+
+.hud-small {
+    font-size: 8px;
+    letter-spacing: 2px;
+}
+
+.hud-tiny {
+    font-size: 6px;
+    letter-spacing: 1.5px;
+}
+
+.hud-large {
+    font-size: 17px;
+    letter-spacing: 2px;
+}
+
+.hud-faint {
+    fill: rgba(255,255,255,0.35);
+}
+
+.hud-bright {
+    fill: rgba(255,255,255,0.88);
+}
+
+
+/* =========================================================
+   HUD LINES
+   ========================================================= */
+
+.hud-line {
+    stroke: rgba(255,255,255,0.55);
+    stroke-width: 1;
+    fill: none;
+}
+
+.hud-fine {
+    stroke: rgba(255,255,255,0.28);
+    stroke-width: 0.7;
+    fill: none;
+}
+
+.hud-faint-line {
+    stroke: rgba(255,255,255,0.13);
+    stroke-width: 0.7;
+    fill: none;
+}
+
+.hud-dashed {
+    stroke-dasharray: 3 5;
+}
+
+
+/* =========================================================
+   PLANET INFORMATION
+   ========================================================= */
+
+.planet-info {
+    position: absolute;
+    left: 5.5%;
+    top: 16%;
+    width: 300px;
+    z-index: 25;
+}
+
+.planet-info-project {
+    font-size: 8px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    opacity: 0.48;
     margin-bottom: 10px;
 }
 
-#pinTitle {
-    font-size: 18px;
-    line-height: 1.3;
-    margin-bottom: 18px;
+.planet-info-name {
+    font-size: 19px;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    max-width: 270px;
 }
 
-#pinLink {
+.planet-info-rule {
+    width: 235px;
+    height: 1px;
+    background: rgba(255,255,255,0.5);
+    margin-bottom: 20px;
+}
+
+.planet-info-row {
+    font-size: 7px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 8px;
+}
+
+.planet-info-row strong {
+    opacity: 0.9;
+    font-weight: normal;
+}
+
+
+/* =========================================================
+   PRIMARY QUESTION
+   ========================================================= */
+
+.planet-question {
+    position: absolute;
+    left: 5.5%;
+    bottom: 17%;
+    width: 290px;
+    z-index: 25;
+}
+
+.question-label {
+    font-size: 7px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 8px;
+}
+
+.question-text {
+    font-size: 12px;
+    line-height: 1.45;
+    opacity: 0.75;
+}
+
+
+/* =========================================================
+   RIGHT MEASUREMENT SCALE
+   ========================================================= */
+
+.measurement-scale {
+    position: absolute;
+    right: 7.2%;
+    top: 10%;
+    bottom: 27%;
+    width: 50px;
+    z-index: 25;
+}
+
+.scale-line {
+    position: absolute;
+    right: 22px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255,255,255,0.28);
+}
+
+.scale-tick {
+    position: absolute;
+    right: 22px;
+    width: 18px;
+    height: 1px;
+    background: rgba(255,255,255,0.5);
+}
+
+.scale-tick.major {
+    width: 30px;
+    background: rgba(255,255,255,0.7);
+}
+
+.scale-number {
+    position: absolute;
+    right: 0;
+    transform: translateY(-50%);
+    font-size: 6px;
+    letter-spacing: 0.1em;
+    opacity: 0.42;
+}
+
+
+/* =========================================================
+   TECHNICAL READOUT
+   ========================================================= */
+
+.technical-readout {
+    position: absolute;
+    right: 6%;
+    bottom: 12%;
+    text-align: right;
+    z-index: 25;
+}
+
+.technical-readout div {
+    font-size: 6px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.38;
+    margin-top: 6px;
+}
+
+
+/* =========================================================
+   CORNER TECHNICAL DETAILS
+   ========================================================= */
+
+.corner-detail {
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    opacity: 0.45;
+    z-index: 25;
+}
+
+.corner-detail::before,
+.corner-detail::after {
+    content: "";
+    position: absolute;
+}
+
+.corner-detail.top-left {
+    left: 3.5%;
+    top: 8%;
+    border-left: 1px solid rgba(255,255,255,0.4);
+    border-top: 1px solid rgba(255,255,255,0.4);
+}
+
+.corner-detail.top-right {
+    right: 3.5%;
+    top: 8%;
+    border-right: 1px solid rgba(255,255,255,0.4);
+    border-top: 1px solid rgba(255,255,255,0.4);
+}
+
+.corner-detail.bottom-left {
+    left: 3.5%;
+    bottom: 8%;
+    border-left: 1px solid rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+}
+
+.corner-detail.bottom-right {
+    right: 3.5%;
+    bottom: 8%;
+    border-right: 1px solid rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+}
+
+
+/* =========================================================
+   ARTICLE MARKER CARD
+   ========================================================= */
+
+.marker-card {
+    position: absolute;
+    right: 5.5%;
+    top: 50%;
+    width: 300px;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-50%) translateX(15px);
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+    z-index: 35;
+}
+
+.marker-card.visible {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+.marker-card-country {
+    font-size: 8px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 8px;
+}
+
+.marker-card-title {
+    font-size: 17px;
+    line-height: 1.35;
+    margin-bottom: 13px;
+}
+
+.marker-card-description {
+    font-size: 9px;
+    line-height: 1.5;
+    opacity: 0.5;
+    margin-bottom: 13px;
+}
+
+.marker-card-link {
     color: white;
     text-decoration: none;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    border-bottom: 1px solid rgba(255,255,255,0.5);
-    padding-bottom: 3px;
-}
-
-#pinLink:hover {
-    border-bottom-color: white;
-}
-
-#closePin {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    border: none;
-    background: none;
-    color: white;
-    opacity: 0.5;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-
-/* ---------- LOADING ---------- */
-
-#loading {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: #02040a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
+    font-size: 8px;
     letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.marker-card-link:hover {
     opacity: 1;
-    transition: opacity 0.8s ease;
-}
-
-#loading.hidden {
-    opacity: 0;
-    pointer-events: none;
 }
 
 
-/* ---------- PLANET MODE TITLE ---------- */
+/* =========================================================
+   LOADING
+   ========================================================= */
 
-#planetTitle {
-    display: none;
-    position: fixed;
-    top: 25px;
-    left: 30px;
-    z-index: 30;
-    pointer-events: none;
-}
-
-#planetTitleMain {
-    font-size: 18px;
-    letter-spacing: 0.08em;
-}
-
-#planetTitleSub {
+.loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     font-size: 10px;
-    letter-spacing: 0.12em;
-    opacity: 0.45;
-    margin-top: 5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    transition: opacity 0.4s ease;
+    z-index: 50;
+}
+
+.loading.hidden {
+    opacity: 0;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .planet-info {
+        left: 7%;
+        top: 10.5%;
+        width: 220px;
+    }
+
+    .planet-info-name {
+        font-size: 14px;
+    }
+
+    .planet-question {
+        left: 7%;
+        bottom: 13%;
+        width: 220px;
+    }
+
+    .marker-card {
+        right: 7%;
+        width: 220px;
+    }
+
+    .technical-readout {
+        display: none;
+    }
+
+    .instructions {
+        font-size: 8px;
+    }
+
+    .measurement-scale {
+        right: 5%;
+        top: 12%;
+        bottom: 25%;
+    }
 }
 
 </style>
 </head>
 
+
 <body>
 
-<div id="universe"></div>
 
-<div id="loading">
-    ENTERING RESEARCH UNIVERSE
-</div>
+<div class="ui">
 
-<div id="header">
-    <div id="name">CHLOE DWG</div>
-    <div id="title">RESEARCH UNIVERSE</div>
-</div>
+    <div class="title">
+        POP CULTURE AS PARABLE — MAPPED
+    </div>
 
-<div id="instructions">
-    DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD
-</div>
 
-<div id="planetMode">
-    <button id="backButton">← RETURN TO GALAXY</button>
-</div>
-
-<div id="planetTitle">
-    <div id="planetTitleMain"></div>
-    <div id="planetTitleSub">RESEARCH LOCATIONS</div>
-</div>
-
-<div id="researchPin">
-    <button id="closePin">×</button>
-
-    <div id="pinCountry"></div>
-
-    <div id="pinTitle"></div>
-
-    <a
-        id="pinLink"
-        href="#"
-        target="_blank"
-        rel="noopener"
+    <button
+        class="back-button"
+        id="backButton"
     >
-        READ THE FULL ANALYSIS →
-    </a>
+        ← Change research
+    </button>
+
+
+    <div
+        class="planet-label"
+        id="planetLabel"
+    ></div>
+
+
+    <!-- =====================================================
+         PLANET HUD
+         ===================================================== -->
+
+    <div
+        class="planet-hud"
+        id="planetHud"
+    >
+
+        <svg
+            class="hud-svg"
+            id="hudSvg"
+            viewBox="0 0 1000 600"
+            preserveAspectRatio="none"
+        >
+
+            <defs>
+
+                <filter id="hudGlow">
+
+                    <feGaussianBlur
+                        stdDeviation="1.5"
+                        result="blur"
+                    />
+
+                    <feMerge>
+
+                        <feMergeNode
+                            in="blur"
+                        />
+
+                        <feMergeNode
+                            in="SourceGraphic"
+                        />
+
+                    </feMerge>
+
+                </filter>
+
+            </defs>
+
+
+            <!-- =================================================
+                 LEFT PLANET CONNECTOR
+                 ================================================= -->
+
+            <path
+                class="hud-line"
+                d="M 52 156 L 260 156 L 345 205"
+            />
+
+
+            <path
+                class="hud-fine"
+                d="M 52 166 L 245 166"
+            />
+
+
+            <path
+                class="hud-fine"
+                d="M 52 176 L 205 176"
+            />
+
+
+            <!-- =================================================
+                 LEFT LOWER TECHNICAL BRACKET
+                 ================================================= -->
+
+            <path
+                class="hud-line"
+                d="
+                    M 52 420
+                    L 245 420
+                    L 300 375
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 52 431
+                    L 205 431
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 52 441
+                    L 175 441
+                "
+            />
+
+
+            <!-- =================================================
+                 UPPER ORBITAL BRACKETS
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 285 42
+                    L 300 42
+                    L 316 65
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 350 38
+                    L 360 54
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 400 20
+                    L 401 48
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 710 45
+                    L 695 62
+                    L 680 62
+                "
+            />
+
+
+            <!-- =================================================
+                 RIGHT ORBITAL ARC
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 795 155
+                    A 170 170 0 0 1 795 445
+                "
+            />
+
+
+            <!-- =================================================
+                 BOTTOM TECHNICAL MARKS
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 345 540
+                    L 355 520
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 375 555
+                    L 384 535
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 650 535
+                    L 662 550
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 680 515
+                    L 696 535
+                "
+            />
+
+
+            <!-- =================================================
+                 CENTRAL RETICLE
+                 ================================================= -->
+
+            <circle
+                cx="500"
+                cy="300"
+                r="205"
+                class="hud-faint-line"
+            />
+
+
+            <circle
+                cx="500"
+                cy="300"
+                r="218"
+                class="hud-faint-line"
+                stroke-dasharray="2 12"
+            />
+
+
+            <!-- =================================================
+                 SMALL CALIBRATION MARKS
+                 ================================================= -->
+
+            <path
+                class="hud-line"
+                d="M 500 65 L 500 85"
+            />
+
+
+            <path
+                class="hud-line"
+                d="M 500 515 L 500 535"
+            />
+
+
+            <path
+                class="hud-line"
+                d="M 265 300 L 285 300"
+            />
+
+
+            <path
+                class="hud-line"
+                d="M 715 300 L 735 300"
+            />
+
+
+            <!-- =================================================
+                 DYNAMIC MARKER CONNECTOR
+                 ================================================= -->
+
+            <g
+                id="markerConnector"
+                opacity="0"
+            >
+
+                <circle
+                    id="markerConnectorPoint"
+                    cx="0"
+                    cy="0"
+                    r="3"
+                    fill="white"
+                />
+
+
+                <polyline
+                    id="markerConnectorLine"
+                    points=""
+                    class="hud-line"
+                    filter="url(#hudGlow)"
+                />
+
+
+                <line
+                    id="markerConnectorTick"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="0"
+                    class="hud-line"
+                />
+
+            </g>
+
+        </svg>
+
+
+        <!-- =====================================================
+             PLANET INFORMATION
+             ===================================================== -->
+
+        <div class="planet-info">
+
+            <div
+                class="planet-info-project"
+                id="hudProject"
+            >
+                PROJECT
+            </div>
+
+
+            <div
+                class="planet-info-name"
+                id="hudName"
+            >
+                PLANET / PROJECT
+            </div>
+
+
+            <div class="planet-info-rule"></div>
+
+
+            <div class="planet-info-row">
+                STATUS //
+                <strong id="hudStatus">
+                    ACTIVE
+                </strong>
+            </div>
+
+
+            <div class="planet-info-row">
+                POINTS //
+                <strong id="hudPoints">
+                    000
+                </strong>
+            </div>
+
+
+            <div class="planet-info-row">
+                FOCUS //
+                <strong id="hudFocus">
+                    —
+                </strong>
+            </div>
+
+
+            <div class="planet-info-row">
+                MODE //
+                <strong>
+                    PLANETARY RESEARCH
+                </strong>
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             QUESTION
+             ===================================================== -->
+
+        <div class="planet-question">
+
+            <div class="question-label">
+                PRIMARY QUESTION
+            </div>
+
+
+            <div
+                class="question-text"
+                id="hudQuestion"
+            >
+                —
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             MEASUREMENT SCALE
+             ===================================================== -->
+
+        <div
+            class="measurement-scale"
+            id="measurementScale"
+        >
+
+            <div class="scale-line"></div>
+
+        </div>
+
+
+        <!-- =====================================================
+             TECHNICAL READOUT
+             ===================================================== -->
+
+        <div class="technical-readout">
+
+            <div>
+                SURFACE // MAPPED
+            </div>
+
+
+            <div>
+                ATMOSPHERE // DETECTED
+            </div>
+
+
+            <div>
+                RESEARCH GRID // ACTIVE
+            </div>
+
+
+            <div id="hudCoordinates">
+                LAT 00.000 // LON 00.000
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CORNER DETAILS
+             ===================================================== -->
+
+        <div class="corner-detail top-left"></div>
+
+        <div class="corner-detail top-right"></div>
+
+        <div class="corner-detail bottom-left"></div>
+
+        <div class="corner-detail bottom-right"></div>
+
+
+        <!-- =====================================================
+             SELECTED MARKER CARD
+             ===================================================== -->
+
+        <div
+            class="marker-card"
+            id="markerCard"
+        >
+
+            <div
+                class="marker-card-country"
+                id="markerCountry"
+            >
+                LOCATION
+            </div>
+
+
+            <div
+                class="marker-card-title"
+                id="markerTitle"
+            >
+                Research article
+            </div>
+
+
+            <div
+                class="marker-card-description"
+                id="markerDescription"
+            >
+                Selected research location.
+            </div>
+
+
+            <a
+                class="marker-card-link"
+                id="markerLink"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Read the full analysis →
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="instructions"
+        id="instructions"
+    >
+        DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD
+    </div>
+
+
+    <div
+        class="loading"
+        id="loading"
+    >
+        Loading research universe
+    </div>
+
 </div>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
+
 <script>
 
 /* =========================================================
-   DATA
+   GOOGLE SHEETS
    ========================================================= */
 
-/*
- * IMPORTANT:
- * This is the published CSV version of the MARKERS tab.
- *
- * The spreadsheet tab is:
- * gid=874912780
- */
+const POINTS_CSV =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub?gid=0&single=true&output=csv";
 
-const DATA_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub?gid=874912780&single=true&output=csv";
+
+const APPEARANCE_CSV =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQcC28Cc8ZZYN9c7QRlzZWTPYIGmMHUoaYlJ_hJKY_qlcrUeHf2hGVzji-DgeQrvAnUf9UOPO_EeY23/pub?gid=0&single=true&output=csv";
+
 
 /* =========================================================
-   BASIC THREE.JS SETUP
+   THREE.JS
    ========================================================= */
 
-const container = document.getElementById("universe");
+const scene =
+    new THREE.Scene();
 
-const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(
-    55,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    2000
+scene.background =
+    new THREE.Color(
+        0x02040a
+    );
+
+
+const camera =
+    new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth /
+        window.innerHeight,
+        0.1,
+        1000
+    );
+
+
+camera.position.set(
+    0,
+    2,
+    20
 );
 
-camera.position.set(0, 2, 20);
 
-const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: false
-});
+const cameraLookTarget =
+    new THREE.Vector3(
+        0,
+        0,
+        0
+    );
+
+
+const renderer =
+    new THREE.WebGLRenderer({
+
+        antialias: true,
+
+        alpha: false
+    });
+
 
 renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, 2)
+    Math.min(
+        window.devicePixelRatio,
+        2
+    )
 );
+
 
 renderer.setSize(
     window.innerWidth,
     window.innerHeight
 );
 
-container.appendChild(renderer.domElement);
+
+document.body.appendChild(
+    renderer.domElement
+);
 
 
 /* =========================================================
    LIGHTING
    ========================================================= */
 
-const ambientLight = new THREE.AmbientLight(
-    0xffffff,
-    0.45
+scene.add(
+    new THREE.AmbientLight(
+        0xffffff,
+        1.1
+    )
 );
 
-scene.add(ambientLight);
 
-const sunLight = new THREE.DirectionalLight(
-    0xffffff,
-    1.2
+const directionalLight =
+    new THREE.DirectionalLight(
+        0xffffff,
+        1.8
+    );
+
+
+directionalLight.position.set(
+    5,
+    4,
+    8
 );
 
-sunLight.position.set(5, 3, 8);
 
-scene.add(sunLight);
-
-
-/* =========================================================
-   GALAXY GROUP
-   ========================================================= */
-
-const galaxy = new THREE.Group();
-
-scene.add(galaxy);
+scene.add(
+    directionalLight
+);
 
 
 /* =========================================================
@@ -356,479 +1188,181 @@ scene.add(galaxy);
 const starGeometry =
     new THREE.BufferGeometry();
 
-const starCount = 5000;
 
-const starPositions = [];
+const starCount =
+    5000;
 
-for (let i = 0; i < starCount; i++) {
+
+const starPositions =
+    new Float32Array(
+        starCount * 3
+    );
+
+
+for (
+    let i = 0;
+    i < starCount;
+    i++
+) {
 
     const radius =
-        120 + Math.random() * 500;
+        70 +
+        Math.random() * 100;
+
 
     const theta =
-        Math.random() * Math.PI * 2;
+        Math.random() *
+        Math.PI *
+        2;
+
 
     const phi =
         Math.acos(
-            2 * Math.random() - 1
+            2 *
+            Math.random() -
+            1
         );
 
-    starPositions.push(
-        radius *
-            Math.sin(phi) *
-            Math.cos(theta),
 
+    starPositions[i * 3] =
         radius *
-            Math.sin(phi) *
-            Math.sin(theta),
+        Math.sin(phi) *
+        Math.cos(theta);
 
+
+    starPositions[i * 3 + 1] =
         radius *
-            Math.cos(phi)
-    );
+        Math.sin(phi) *
+        Math.sin(theta);
+
+
+    starPositions[i * 3 + 2] =
+        radius *
+        Math.cos(phi);
 }
+
 
 starGeometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(
+    new THREE.BufferAttribute(
         starPositions,
         3
     )
 );
+
 
 const starMaterial =
     new THREE.PointsMaterial({
 
         color: 0xffffff,
 
-        size: 0.7,
+        size: 0.055,
 
         transparent: true,
 
-        opacity: 0.7
-
+        opacity: 0.65
     });
 
-const stars =
+
+scene.add(
     new THREE.Points(
         starGeometry,
         starMaterial
-    );
-
-galaxy.add(stars);
+    )
+);
 
 
 /* =========================================================
-   EARTH / UNGA PLANET
+   TEXTURES
    ========================================================= */
 
 const textureLoader =
     new THREE.TextureLoader();
+
 
 const earthTexture =
     textureLoader.load(
         "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
     );
 
-const earthGeometry =
-    new THREE.SphereGeometry(
-        3,
-        64,
-        64
+
+const cloudTexture =
+    textureLoader.load(
+        "https://threejs.org/examples/textures/planets/earth_clouds_1024.png"
     );
-
-const earthMaterial =
-    new THREE.MeshPhongMaterial({
-
-        map: earthTexture,
-
-        transparent: true,
-
-        opacity: 0.92
-
-    });
-
-const earth =
-    new THREE.Mesh(
-        earthGeometry,
-        earthMaterial
-    );
-
-earth.position.set(
-    0,
-    0,
-    0
-);
-
-earth.userData = {
-
-    type: "planet",
-
-    project: "UNGA81"
-
-};
-
-galaxy.add(earth);
 
 
 /* =========================================================
-   EARTH ATMOSPHERE
+   DATA
    ========================================================= */
 
-const atmosphereGeometry =
-    new THREE.SphereGeometry(
-        3.12,
-        64,
-        64
-    );
+let pointData = [];
 
-const atmosphereMaterial =
-    new THREE.MeshBasicMaterial({
-
-        color: 0x4aa8ff,
-
-        transparent: true,
-
-        opacity: 0.09,
-
-        side: THREE.BackSide
-
-    });
-
-const atmosphere =
-    new THREE.Mesh(
-        atmosphereGeometry,
-        atmosphereMaterial
-    );
-
-earth.add(atmosphere);
-
-
-/* =========================================================
-   SUBTLE EARTH GRID
-   ========================================================= */
-
-const gridMaterial =
-    new THREE.LineBasicMaterial({
-
-        color: 0x6bbcff,
-
-        transparent: true,
-
-        opacity: 0.08
-
-    });
-
-const gridGroup =
-    new THREE.Group();
-
-earth.add(gridGroup);
-
-
-/* latitude lines */
-
-for (
-    let lat = -60;
-    lat <= 60;
-    lat += 30
-) {
-
-    const points = [];
-
-    for (
-        let lon = -180;
-        lon <= 180;
-        lon += 4
-    ) {
-
-        points.push(
-            latLonToVector3(
-                lat,
-                lon,
-                3.025
-            )
-        );
-
-    }
-
-    const geometry =
-        new THREE.BufferGeometry()
-            .setFromPoints(points);
-
-    gridGroup.add(
-        new THREE.Line(
-            geometry,
-            gridMaterial
-        )
-    );
-
-}
-
-
-/* longitude lines */
-
-for (
-    let lon = -180;
-    lon < 180;
-    lon += 30
-) {
-
-    const points = [];
-
-    for (
-        let lat = -90;
-        lat <= 90;
-        lat += 4
-    ) {
-
-        points.push(
-            latLonToVector3(
-                lat,
-                lon,
-                3.025
-            )
-        );
-
-    }
-
-    const geometry =
-        new THREE.BufferGeometry()
-            .setFromPoints(points);
-
-    gridGroup.add(
-        new THREE.Line(
-            geometry,
-            gridMaterial
-        )
-    );
-
-}
-
-
-/* =========================================================
-   OTHER RESEARCH WORLDS
-   ========================================================= */
+let appearanceData = [];
 
 const planets = [];
 
+const projectObjects = {};
 
-function createPlanet(
-    name,
-    project,
-    position,
-    radius,
-    colour
-) {
+const raycaster =
+    new THREE.Raycaster();
 
-    const geometry =
-        new THREE.SphereGeometry(
-            radius,
-            48,
-            48
-        );
+const mouse =
+    new THREE.Vector2();
 
-    const material =
-        new THREE.MeshPhongMaterial({
+let selectedPlanet = null;
 
-            color: colour,
+let selectedProject = null;
 
-            transparent: true,
+let hoveredPlanet = null;
 
-            opacity: 0.75
+let planetMode = false;
 
-        });
+let cameraAnimating = false;
 
-    const planet =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
+let cameraAnimationStart = 0;
 
-    planet.position.set(
-        position.x,
-        position.y,
-        position.z
-    );
+let cameraStartPosition =
+    new THREE.Vector3();
 
-    planet.userData = {
+let cameraTargetPosition =
+    new THREE.Vector3();
 
-        type: "planet",
+let cameraStartLookTarget =
+    new THREE.Vector3();
 
-        project: project,
+let cameraEndLookTarget =
+    new THREE.Vector3();
 
-        name: name
+let cameraAnimationDuration =
+    1600;
 
-    };
-
-    galaxy.add(planet);
-
-    planets.push(planet);
-
-
-    /* subtle glow */
-
-    const glowGeometry =
-        new THREE.SphereGeometry(
-            radius * 1.12,
-            32,
-            32
-        );
-
-    const glowMaterial =
-        new THREE.MeshBasicMaterial({
-
-            color: colour,
-
-            transparent: true,
-
-            opacity: 0.08,
-
-            side: THREE.BackSide
-
-        });
-
-    const glow =
-        new THREE.Mesh(
-            glowGeometry,
-            glowMaterial
-        );
-
-    planet.add(glow);
-
-    return planet;
-}
+let activeMarker = null;
 
 
 /* =========================================================
-   FIXED RESEARCH WORLDS
+   CAMERA ORBIT STATE
    ========================================================= */
 
-const copPlanet =
-    createPlanet(
-        "COP",
-        "COP",
-        {
-            x: -7,
-            y: 3,
-            z: -4
-        },
-        1.7,
-        0x4fa878
-    );
+let galaxyYaw = 0;
+
+let galaxyPitch = 0.10;
+
+let galaxyDistance = 20;
 
 
-const refugeePlanet =
-    createPlanet(
-        "REFUGEE CAMPS",
-        "REFUGEE",
-        {
-            x: 7,
-            y: -2,
-            z: -5
-        },
-        2,
-        0xc66b70
-    );
+/*
+   Planet camera remains fixed relative to the selected
+   planet's world position.
 
+   Zoom changes distance only.
+*/
 
-const futurePlanet =
-    createPlanet(
-        "FUTURE RESEARCH",
-        "FUTURE",
-        {
-            x: -4,
-            y: -5,
-            z: -7
-        },
-        1.2,
-        0xd2a94f
-    );
+let planetDistance = 8;
 
 
 /* =========================================================
-   PLANET LABELS
-   ========================================================= */
-
-const labels = [];
-
-
-function createLabel(
-    text,
-    subtitle,
-    planet
-) {
-
-    const label =
-        document.createElement("div");
-
-    label.className =
-        "planet-label";
-
-    label.innerHTML = `
-        <div class="planet-name">
-            ${text}
-        </div>
-
-        <div class="planet-subtitle">
-            ${subtitle}
-        </div>
-    `;
-
-    document.body.appendChild(label);
-
-    labels.push({
-
-        element: label,
-
-        planet: planet
-
-    });
-
-}
-
-
-createLabel(
-    "UNGA 81",
-    "201 GENERAL ASSEMBLY SPEECHES",
-    earth
-);
-
-
-createLabel(
-    "COP",
-    "CLIMATE RESEARCH",
-    copPlanet
-);
-
-
-createLabel(
-    "REFUGEE CAMPS",
-    "PLACE / DISPLACEMENT",
-    refugeePlanet
-);
-
-
-createLabel(
-    "FUTURE",
-    "RESEARCH PROJECT",
-    futurePlanet
-);
-
-
-/* =========================================================
-   RESEARCH DATA
-   ========================================================= */
-
-let researchData = [];
-
-
-const researchPoints =
-    new THREE.Group();
-
-earth.add(researchPoints);
-
-
-/* =========================================================
-   CSV PARSER
+   CSV
    ========================================================= */
 
 function parseCSV(text) {
@@ -863,18 +1397,14 @@ function parseCSV(text) {
 
             i++;
 
-        }
-
-        else if (
+        } else if (
             char === '"'
         ) {
 
             insideQuotes =
                 !insideQuotes;
 
-        }
-
-        else if (
+        } else if (
             char === "," &&
             !insideQuotes
         ) {
@@ -885,9 +1415,7 @@ function parseCSV(text) {
 
             value = "";
 
-        }
-
-        else if (
+        } else if (
             (
                 char === "\n" ||
                 char === "\r"
@@ -899,16 +1427,17 @@ function parseCSV(text) {
                 char === "\r" &&
                 next === "\n"
             ) {
-
                 i++;
-
             }
+
 
             row.push(
                 value.trim()
             );
 
+
             value = "";
+
 
             if (
                 row.some(
@@ -918,30 +1447,27 @@ function parseCSV(text) {
             ) {
 
                 rows.push(row);
-
             }
+
 
             row = [];
 
-        }
-
-        else {
+        } else {
 
             value += char;
-
         }
-
     }
 
 
     if (
-        value !== "" ||
-        row.length > 0
+        value.length ||
+        row.length
     ) {
 
         row.push(
             value.trim()
         );
+
 
         if (
             row.some(
@@ -951,18 +1477,13 @@ function parseCSV(text) {
         ) {
 
             rows.push(row);
-
         }
-
     }
 
 
-    if (
-        rows.length === 0
-    ) {
+    if (!rows.length) {
 
         return [];
-
     }
 
 
@@ -970,8 +1491,8 @@ function parseCSV(text) {
         rows[0].map(
             h =>
                 h
-                    .toLowerCase()
                     .trim()
+                    .toLowerCase()
         );
 
 
@@ -981,6 +1502,7 @@ function parseCSV(text) {
 
             const object = {};
 
+
             headers.forEach(
                 (
                     header,
@@ -988,23 +1510,104 @@ function parseCSV(text) {
                 ) => {
 
                     object[header] =
-                        (
-                            row[index] ||
-                            ""
-                        ).trim();
-
+                        row[index] ||
+                        "";
                 }
             );
 
+
             return object;
-
         });
-
 }
 
 
 /* =========================================================
-   LAT / LONG → 3D POSITION
+   HELPERS
+   ========================================================= */
+
+function clean(value) {
+
+    return String(
+        value || ""
+    ).trim();
+}
+
+
+function hexToNumber(
+    hex,
+    fallback = 0xffffff
+) {
+
+    if (!hex) {
+
+        return fallback;
+    }
+
+
+    let cleaned =
+        String(hex)
+            .trim()
+            .replace(
+                "#",
+                ""
+            );
+
+
+    if (
+        cleaned.length === 3
+    ) {
+
+        cleaned =
+            cleaned[0] +
+            cleaned[0] +
+            cleaned[1] +
+            cleaned[1] +
+            cleaned[2] +
+            cleaned[2];
+    }
+
+
+    const number =
+        parseInt(
+            cleaned,
+            16
+        );
+
+
+    return Number.isNaN(number)
+        ? fallback
+        : number;
+}
+
+
+function sizeToRadius(size) {
+
+    const n =
+        Number(size) ||
+        3;
+
+
+    const sizes = {
+
+        1: 0.9,
+
+        2: 1.25,
+
+        3: 1.7,
+
+        4: 2.25,
+
+        5: 3.0
+    };
+
+
+    return sizes[n] ||
+        sizes[3];
+}
+
+
+/* =========================================================
+   LAT / LONG
    ========================================================= */
 
 function latLonToVector3(
@@ -1014,526 +1617,2214 @@ function latLonToVector3(
 ) {
 
     const phi =
-        (
+        THREE.MathUtils.degToRad(
             90 - lat
-        ) *
-        Math.PI /
-        180;
+        );
+
 
     const theta =
-        (
+        THREE.MathUtils.degToRad(
             lon + 180
-        ) *
-        Math.PI /
-        180;
+        );
+
+
+    const x =
+        -radius *
+        Math.sin(phi) *
+        Math.cos(theta);
+
+
+    const y =
+        radius *
+        Math.cos(phi);
+
+
+    const z =
+        radius *
+        Math.sin(phi) *
+        Math.sin(theta);
 
 
     return new THREE.Vector3(
-
-        -radius *
-            Math.sin(phi) *
-            Math.cos(theta),
-
-        radius *
-            Math.cos(phi),
-
-        radius *
-            Math.sin(phi) *
-            Math.sin(theta)
-
+        x,
+        y,
+        z
     );
-
 }
 
 
 /* =========================================================
-   CREATE RESEARCH POINTS
+   PLANET GRID
    ========================================================= */
 
-function createResearchPoints(
-    data
+function createLatitudeLongitudeGrid(
+    radius,
+    colour,
+    opacity,
+    density
 ) {
 
-    researchPoints.clear();
+    const group =
+        new THREE.Group();
 
 
-    researchData =
-        data.filter(row => {
+    let latitudeLines = 9;
 
-            return (
+    let longitudeLines = 18;
 
-                row.project &&
 
-                row.project
-                    .toUpperCase() ===
-                    "UNGA81" &&
+    if (
+        density === "light"
+    ) {
 
-                row.country &&
+        latitudeLines = 5;
 
-                row.lat &&
+        longitudeLines = 10;
 
-                row.long
+    } else if (
+        density === "dense"
+    ) {
 
-            );
+        latitudeLines = 17;
 
+        longitudeLines = 36;
+    }
+
+
+    const material =
+        new THREE.LineBasicMaterial({
+
+            color: colour,
+
+            transparent: true,
+
+            opacity: opacity * 0.72,
+
+            depthWrite: false,
+
+            depthTest: true
         });
 
 
-    researchData.forEach(
-        (
-            item,
-            index
-        ) => {
+    /*
+       LATITUDE LINES
+    */
 
-            const lat =
-                parseFloat(
-                    item.lat
-                );
+    for (
+        let i = 1;
+        i < latitudeLines;
+        i++
+    ) {
 
-            const lon =
-                parseFloat(
-                    item.long
-                );
+        const lat =
+            -90 +
+            (
+                180 /
+                latitudeLines
+            ) *
+            i;
 
 
-            if (
-                !Number.isFinite(lat) ||
-                !Number.isFinite(lon)
-            ) {
+        const phi =
+            THREE.MathUtils.degToRad(
+                90 - lat
+            );
 
-                return;
 
-            }
+        const y =
+            radius *
+            Math.cos(phi);
 
+
+        const circleRadius =
+            radius *
+            Math.sin(phi);
+
+
+        const points = [];
+
+
+        for (
+            let j = 0;
+            j <= 64;
+            j++
+        ) {
+
+            const theta =
+                (
+                    j / 64
+                ) *
+                Math.PI *
+                2;
+
+
+            points.push(
+                new THREE.Vector3(
+                    circleRadius *
+                    Math.cos(theta),
+
+                    y,
+
+                    circleRadius *
+                    Math.sin(theta)
+                )
+            );
+        }
+
+
+        const line =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
+            );
+
+
+        line.renderOrder = 1;
+
+
+        group.add(
+            line
+        );
+    }
+
+
+    /*
+       LONGITUDE LINES
+    */
+
+    for (
+        let i = 0;
+        i < longitudeLines;
+        i++
+    ) {
+
+        const theta =
+            (
+                i /
+                longitudeLines
+            ) *
+            Math.PI *
+            2;
+
+
+        const points = [];
+
+
+        for (
+            let j = 0;
+            j <= 64;
+            j++
+        ) {
+
+            const phi =
+                (
+                    j / 64
+                ) *
+                Math.PI;
+
+
+            points.push(
+                new THREE.Vector3(
+
+                    radius *
+                    Math.sin(phi) *
+                    Math.cos(theta),
+
+                    radius *
+                    Math.cos(phi),
+
+                    radius *
+                    Math.sin(phi) *
+                    Math.sin(theta)
+                )
+            );
+        }
+
+
+        const line =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
+            );
+
+
+        line.renderOrder = 1;
+
+
+        group.add(
+            line
+        );
+    }
+
+
+    return group;
+}
+
+
+/* =========================================================
+   3D CARTOGRAPHIC RESEARCH GRID
+   ========================================================= */
+
+function createResearchMapGrid(
+    radius,
+    colour,
+    intensity = 1
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const lineOpacity =
+        0.12 *
+        intensity;
+
+
+    const material =
+        new THREE.LineBasicMaterial({
+
+            color: colour,
+
+            transparent: true,
+
+            opacity: lineOpacity,
+
+            depthWrite: false,
+
+            depthTest: true
+        });
+
+
+    /*
+       EQUATORIAL NAVIGATION RINGS
+    */
+
+    const ringScales = [
+        1.018,
+        1.045,
+        1.075
+    ];
+
+
+    ringScales.forEach(
+        scale => {
 
             const geometry =
-                new THREE.SphereGeometry(
-                    0.045,
-                    12,
-                    12
+                new THREE.RingGeometry(
+                    radius * scale,
+                    radius * scale +
+                    radius * 0.004,
+                    128
                 );
 
 
-            const material =
-                new THREE.MeshBasicMaterial({
-
-                    color: 0xffffff,
-
-                    transparent: true,
-
-                    opacity: 0.25
-
-                });
-
-
-            const point =
+            const ring =
                 new THREE.Mesh(
                     geometry,
                     material
                 );
 
 
-            point.position.copy(
+            ring.rotation.x =
+                Math.PI / 2;
 
-                latLonToVector3(
-                    lat,
-                    lon,
-                    3.075
-                )
 
+            ring.renderOrder = 2;
+
+
+            group.add(
+                ring
             );
-
-
-            point.userData = {
-
-                type: "research",
-
-                country:
-                    item.country,
-
-                title:
-                    item.title,
-
-                url:
-                    item.url ||
-                    item.URL,
-
-                lat: lat,
-
-                lon: lon
-
-            };
-
-
-            /*
-             * Points are deliberately NOT
-             * independently clickable in
-             * galaxy mode.
-             */
-
-            researchPoints.add(point);
-
         }
     );
 
 
-    console.log(
-        "Loaded research points:",
-        researchData.length
-    );
+    /*
+       LARGE-LATITUDE GUIDE RINGS
+    */
 
-}
+    const latitudes = [
+        35,
+        -35
+    ];
 
 
-/* =========================================================
-   LOAD GOOGLE SHEET
-   ========================================================= */
+    latitudes.forEach(
+        lat => {
 
-fetch(DATA_URL)
-
-    .then(response => {
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Could not load spreadsheet"
-            );
-
-        }
-
-        return response.text();
-
-    })
-
-    .then(csv => {
-
-        const data =
-            parseCSV(csv);
-
-        createResearchPoints(data);
-
-        setTimeout(() => {
-
-            document
-                .getElementById(
-                    "loading"
-                )
-                .classList.add(
-                    "hidden"
+            const phi =
+                THREE.MathUtils.degToRad(
+                    90 - lat
                 );
 
-        }, 700);
 
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-        document
-            .getElementById(
-                "loading"
-            )
-            .textContent =
-            "COULD NOT LOAD RESEARCH DATA";
-
-    });
+            const y =
+                radius *
+                Math.cos(phi) *
+                1.022;
 
 
-/* =========================================================
-   INTERACTION STATE
-   ========================================================= */
+            const circleRadius =
+                radius *
+                Math.sin(phi) *
+                1.022;
 
-let mode = "galaxy";
 
-let selectedPlanet = null;
+            const points = [];
 
-let cameraAnimating = false;
 
-let targetCameraPosition =
-    new THREE.Vector3(
+            for (
+                let i = 0;
+                i <= 96;
+                i++
+            ) {
+
+                const theta =
+                    (
+                        i / 96
+                    ) *
+                    Math.PI *
+                    2;
+
+
+                points.push(
+
+                    new THREE.Vector3(
+
+                        circleRadius *
+                        Math.cos(theta),
+
+                        y,
+
+                        circleRadius *
+                        Math.sin(theta)
+
+                    )
+                );
+            }
+
+
+            const line =
+                new THREE.Line(
+
+                    new THREE.BufferGeometry()
+                        .setFromPoints(
+                            points
+                        ),
+
+                    material
+                );
+
+
+            line.renderOrder = 2;
+
+
+            group.add(
+                line
+            );
+        }
+    );
+
+
+    /*
+       LONGITUDINAL GREAT-CIRCLE GUIDES
+    */
+
+    const longitudes = [
         0,
-        2,
-        20
+        Math.PI / 2,
+        Math.PI,
+        Math.PI * 1.5
+    ];
+
+
+    longitudes.forEach(
+        theta => {
+
+            const points = [];
+
+
+            for (
+                let i = 0;
+                i <= 96;
+                i++
+            ) {
+
+                const phi =
+                    (
+                        i / 96
+                    ) *
+                    Math.PI;
+
+
+                points.push(
+
+                    new THREE.Vector3(
+
+                        radius *
+                        1.022 *
+                        Math.sin(phi) *
+                        Math.cos(theta),
+
+                        radius *
+                        1.022 *
+                        Math.cos(phi),
+
+                        radius *
+                        1.022 *
+                        Math.sin(phi) *
+                        Math.sin(theta)
+
+                    )
+                );
+            }
+
+
+            const line =
+                new THREE.Line(
+
+                    new THREE.BufferGeometry()
+                        .setFromPoints(
+                            points
+                        ),
+
+                    material
+                );
+
+
+            line.renderOrder = 2;
+
+
+            group.add(
+                line
+            );
+        }
     );
 
 
-/* =========================================================
-   MOUSE ROTATION
-   ========================================================= */
+    /*
+       RESEARCH AXIS MARKS
+    */
 
-let dragging = false;
+    for (
+        let i = 0;
+        i < 12;
+        i++
+    ) {
 
-let previousMouseX = 0;
+        const theta =
+            (
+                i / 12
+            ) *
+            Math.PI *
+            2;
 
-let previousMouseY = 0;
 
-let rotationVelocityX = 0;
+        const innerRadius =
+            radius *
+            1.055;
 
-let rotationVelocityY = 0;
+
+        const outerRadius =
+            radius *
+            1.095;
 
 
-renderer.domElement.addEventListener(
-    "pointerdown",
-    event => {
+        const y =
+            0;
 
-        dragging = true;
 
-        previousMouseX =
-            event.clientX;
+        const points = [
 
-        previousMouseY =
-            event.clientY;
+            new THREE.Vector3(
+                innerRadius *
+                Math.cos(theta),
+                y,
+                innerRadius *
+                Math.sin(theta)
+            ),
 
+            new THREE.Vector3(
+                outerRadius *
+                Math.cos(theta),
+                y,
+                outerRadius *
+                Math.sin(theta)
+            )
+        ];
+
+
+        const tick =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
+            );
+
+
+        tick.renderOrder = 3;
+
+
+        group.add(
+            tick
+        );
     }
-);
 
 
-window.addEventListener(
-    "pointerup",
-    () => {
-
-        dragging = false;
-
-    }
-);
-
-
-window.addEventListener(
-    "pointermove",
-    event => {
-
-        if (!dragging) {
-
-            return;
-
-        }
-
-
-        const dx =
-            event.clientX -
-            previousMouseX;
-
-        const dy =
-            event.clientY -
-            previousMouseY;
-
-
-        previousMouseX =
-            event.clientX;
-
-        previousMouseY =
-            event.clientY;
-
-
-        rotationVelocityY =
-            dx * 0.0008;
-
-        rotationVelocityX =
-            dy * 0.0008;
-
-
-        galaxy.rotation.y +=
-            rotationVelocityY;
-
-        galaxy.rotation.x +=
-            rotationVelocityX;
-
-    }
-);
-
-
-/* =========================================================
-   ZOOM
-   ========================================================= */
-
-window.addEventListener(
-    "wheel",
-    event => {
-
-        if (cameraAnimating) {
-
-            return;
-
-        }
-
-
-        const amount =
-            event.deltaY * 0.008;
-
-
-        if (
-            mode === "galaxy"
-        ) {
-
-            camera.position.z +=
-                amount;
-
-            camera.position.z =
-                Math.max(
-                    9,
-                    Math.min(
-                        40,
-                        camera.position.z
-                    )
-                );
-
-        }
-
-
-        else if (
-            mode === "planet"
-        ) {
-
-            camera.position.z +=
-                amount;
-
-            camera.position.z =
-                Math.max(
-                    3.8,
-                    Math.min(
-                        10,
-                        camera.position.z
-                    )
-                );
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   RAYCASTING
-   ========================================================= */
-
-const raycaster =
-    new THREE.Raycaster();
-
-const mouse =
-    new THREE.Vector2();
-
-
-function getMouse(event) {
-
-    mouse.x =
-        (
-            event.clientX /
-            window.innerWidth
-        ) * 2 - 1;
-
-    mouse.y =
-        -(
-            event.clientY /
-            window.innerHeight
-        ) * 2 + 1;
-
+    return group;
 }
 
 
 /* =========================================================
-   CLICK
+   ATMOSPHERE
    ========================================================= */
 
-renderer.domElement.addEventListener(
-    "click",
-    event => {
+function createAtmosphere(
+    radius,
+    colour,
+    strength
+) {
+
+    let opacity = 0.08;
 
 
-        /*
-         * GALAXY MODE
-         *
-         * Only planets are checked.
-         *
-         * Research points are ignored.
-         */
+    if (
+        strength === "medium"
+    ) {
 
-        if (
-            mode === "galaxy"
-        ) {
+        opacity = 0.12;
 
-            getMouse(event);
+    } else if (
+        strength === "strong"
+    ) {
 
-            raycaster.setFromCamera(
-                mouse,
-                camera
-            );
-
-
-            const objects = [
-
-                earth,
-
-                ...planets
-
-            ];
-
-
-            const hits =
-                raycaster.intersectObjects(
-                    objects,
-                    false
-                );
-
-
-            if (
-                hits.length > 0 &&
-                !cameraAnimating
-            ) {
-
-                const planet =
-                    hits[0].object;
-
-                enterPlanet(
-                    planet
-                );
-
-            }
-
-            return;
-
-        }
-
-
-        /*
-         * PLANET MODE
-         *
-         * Research points are active.
-         */
-
-        if (
-            mode === "planet"
-        ) {
-
-            getMouse(event);
-
-            raycaster.setFromCamera(
-                mouse,
-                camera
-            );
-
-
-            const hits =
-                raycaster.intersectObjects(
-                    researchPoints.children,
-                    false
-                );
-
-
-            if (
-                hits.length > 0
-            ) {
-
-                showResearchPin(
-                    hits[0].object
-                );
-
-            }
-
-        }
-
+        opacity = 0.18;
     }
-);
+
+
+    const atmosphere =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * 1.06,
+                64,
+                64
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity: opacity,
+
+                side: THREE.BackSide,
+
+                depthWrite: false
+            })
+        );
+
+
+    atmosphere.renderOrder = 4;
+
+
+    return atmosphere;
+}
+
+
+/* =========================================================
+   GLOW
+   ========================================================= */
+
+function createGlow(
+    radius,
+    colour,
+    strength
+) {
+
+    let scale = 1.10;
+
+    let opacity = 0.08;
+
+
+    if (
+        strength === "medium"
+    ) {
+
+        scale = 1.14;
+
+        opacity = 0.11;
+
+    } else if (
+        strength === "strong"
+    ) {
+
+        scale = 1.19;
+
+        opacity = 0.15;
+    }
+
+
+    const glow =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * scale,
+                48,
+                48
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity: opacity,
+
+                side: THREE.BackSide,
+
+                depthWrite: false
+            })
+        );
+
+
+    glow.renderOrder = 0;
+
+
+    return glow;
+}
+
+
+/* =========================================================
+   RINGS
+   ========================================================= */
+
+function createPlanetRings(
+    radius,
+    colour,
+    type,
+    density
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    if (
+        !type ||
+        type === "none"
+    ) {
+
+        return group;
+    }
+
+
+    let ringCount = 1;
+
+
+    if (
+        type === "double"
+    ) {
+
+        ringCount = 2;
+    }
+
+
+    if (
+        type === "complex"
+    ) {
+
+        ringCount = 4;
+    }
+
+
+    if (
+        density &&
+        Number(density) > 0
+    ) {
+
+        ringCount =
+            Math.max(
+                ringCount,
+                Number(density)
+            );
+    }
+
+
+    for (
+        let i = 0;
+        i < ringCount;
+        i++
+    ) {
+
+        const scale =
+            1.35 +
+            i * 0.12;
+
+
+        const geometry =
+            new THREE.RingGeometry(
+                radius * scale,
+                radius * scale +
+                radius * 0.012,
+                96
+            );
+
+
+        const material =
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity:
+                    type === "complex"
+                        ? 0.25
+                        : 0.18,
+
+                side:
+                    THREE.DoubleSide,
+
+                depthWrite: false
+            });
+
+
+        const ring =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+
+        ring.rotation.x =
+            THREE.MathUtils.degToRad(
+                65 +
+                i * 7
+            );
+
+
+        ring.rotation.z =
+            i * 0.25;
+
+
+        ring.renderOrder = 2;
+
+
+        group.add(
+            ring
+        );
+    }
+
+
+    return group;
+}
+
+
+/* =========================================================
+   SCAN LINES
+   ========================================================= */
+
+function createScanLines(
+    radius,
+    colour,
+    intensity
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    if (
+        !intensity ||
+        intensity === "none"
+    ) {
+
+        return group;
+    }
+
+
+    const count =
+        intensity === "high"
+            ? 5
+            : 3;
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const line =
+            new THREE.Mesh(
+
+                new THREE.RingGeometry(
+                    radius * 1.025,
+                    radius * 1.032,
+                    96
+                ),
+
+                new THREE.MeshBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity: 0.08,
+
+                    side:
+                        THREE.DoubleSide,
+
+                    depthWrite: false
+                })
+            );
+
+
+        line.rotation.x =
+            Math.PI / 2;
+
+
+        line.userData.offset =
+            i / count;
+
+
+        line.renderOrder = 2;
+
+
+        group.add(
+            line
+        );
+    }
+
+
+    return group;
+}
+
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+
+function createParticles(
+    radius,
+    colour,
+    density
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    if (
+        !density ||
+        density === "none"
+    ) {
+
+        return group;
+    }
+
+
+    let count = 20;
+
+
+    if (
+        density === "medium"
+    ) {
+
+        count = 40;
+
+    } else if (
+        density === "high"
+    ) {
+
+        count = 75;
+    }
+
+
+    const geometry =
+        new THREE.BufferGeometry();
+
+
+    const positions =
+        new Float32Array(
+            count * 3
+        );
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const r =
+            radius *
+            (
+                1.18 +
+                Math.random() *
+                0.25
+            );
+
+
+        const theta =
+            Math.random() *
+            Math.PI *
+            2;
+
+
+        const phi =
+            Math.acos(
+                2 *
+                Math.random() -
+                1
+            );
+
+
+        positions[i * 3] =
+            r *
+            Math.sin(phi) *
+            Math.cos(theta);
+
+
+        positions[i * 3 + 1] =
+            r *
+            Math.cos(phi);
+
+
+        positions[i * 3 + 2] =
+            r *
+            Math.sin(phi) *
+            Math.sin(theta);
+    }
+
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
+    );
+
+
+    group.add(
+
+        new THREE.Points(
+
+            geometry,
+
+            new THREE.PointsMaterial({
+
+                color: colour,
+
+                size:
+                    radius *
+                    0.018,
+
+                transparent: true,
+
+                opacity: 0.65,
+
+                depthWrite: false
+            })
+        )
+    );
+
+
+    return group;
+}
+
+
+/* =========================================================
+   CLOUDS
+   ========================================================= */
+
+function createCloudLayer(
+    radius,
+    enabled,
+    cloudColour,
+    cloudOpacity,
+    cloudDensity
+) {
+
+    if (
+        enabled !== "yes" &&
+        enabled !== "true" &&
+        enabled !== "1"
+    ) {
+
+        return null;
+    }
+
+
+    let opacity =
+        Number(
+            cloudOpacity
+        );
+
+
+    if (
+        Number.isNaN(opacity)
+    ) {
+
+        opacity = 0.4;
+    }
+
+
+    const density =
+        clean(
+            cloudDensity
+        ).toLowerCase();
+
+
+    if (
+        density === "light"
+    ) {
+
+        opacity *= 0.65;
+
+    } else if (
+        density === "dense"
+    ) {
+
+        opacity *= 1.35;
+    }
+
+
+    opacity =
+        THREE.MathUtils.clamp(
+            opacity,
+            0,
+            1
+        );
+
+
+    const clouds =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * 1.014,
+                64,
+                64
+            ),
+
+            new THREE.MeshPhongMaterial({
+
+                map: cloudTexture,
+
+                color:
+                    hexToNumber(
+                        cloudColour,
+                        0xffffff
+                    ),
+
+                transparent: true,
+
+                opacity: opacity,
+
+                depthWrite: false,
+
+                shininess: 0
+            })
+        );
+
+
+    clouds.userData.isCloudLayer =
+        true;
+
+
+    clouds.renderOrder = 5;
+
+
+    return clouds;
+}
+
+
+/* =========================================================
+   RESEARCH PIN
+   ========================================================= */
+
+function createResearchPin(
+    row,
+    radius,
+    colour,
+    pointStyle
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    group.userData = {
+
+        type: "research",
+
+        country:
+            clean(
+                row.country
+            ),
+
+        title:
+            clean(
+                row.title
+            ),
+
+        url:
+            clean(
+                row.url
+            ),
+
+        lat:
+            Number(row.lat),
+
+        lon:
+            Number(row.long),
+
+        pulse:
+            pointStyle === "pulse"
+                ? Math.random() *
+                  Math.PI *
+                  2
+                : undefined
+    };
+
+
+    const normal =
+        latLonToVector3(
+            Number(row.lat),
+            Number(row.long),
+            1
+        ).normalize();
+
+
+    /*
+       Push the marker slightly farther from
+       the surface so it remains visible.
+    */
+
+    group.position.copy(
+
+        normal
+            .clone()
+            .multiplyScalar(
+                radius * 1.055
+            )
+    );
+
+
+    /*
+       Keep the marker oriented relative to the
+       planet surface.
+    */
+
+    group.quaternion.setFromUnitVectors(
+
+        new THREE.Vector3(
+            0,
+            0,
+            1
+        ),
+
+        normal
+    );
+
+
+    /*
+       VISIBLE HOLOGRAPHIC MARKER
+    */
+
+    const ring =
+        new THREE.Mesh(
+
+            new THREE.RingGeometry(
+                radius * 0.055,
+                radius * 0.075,
+                48
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity: 0.78,
+
+                side:
+                    THREE.DoubleSide,
+
+                depthWrite: false,
+
+                depthTest: true
+            })
+        );
+
+
+    ring.userData.isResearchMarker =
+        true;
+
+
+    ring.renderOrder = 10;
+
+
+    group.add(
+        ring
+    );
+
+
+    /*
+       LARGE INVISIBLE CLICK AREA
+    */
+
+    const hit =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * 0.19,
+                16,
+                16
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                transparent: true,
+
+                opacity: 0,
+
+                depthWrite: false,
+
+                depthTest: false
+            })
+        );
+
+
+    hit.userData.isResearchHit =
+        true;
+
+
+    hit.renderOrder = 20;
+
+
+    group.add(
+        hit
+    );
+
+
+    /*
+       CROSSHAIR POINT STYLE
+    */
+
+    if (
+        pointStyle ===
+        "crosshair"
+    ) {
+
+        const size =
+            radius * 0.11;
+
+
+        const geometry =
+            new THREE.BufferGeometry()
+                .setFromPoints([
+
+                    new THREE.Vector3(
+                        -size,
+                        0,
+                        0
+                    ),
+
+                    new THREE.Vector3(
+                        size,
+                        0,
+                        0
+                    ),
+
+                    new THREE.Vector3(
+                        0,
+                        -size,
+                        0
+                    ),
+
+                    new THREE.Vector3(
+                        0,
+                        size,
+                        0
+                    )
+                ]);
+
+
+        const crosshair =
+            new THREE.LineSegments(
+
+                geometry,
+
+                new THREE.LineBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity: 0.8,
+
+                    depthWrite: false,
+
+                    depthTest: true
+                })
+            );
+
+
+        crosshair.userData.isResearchMarker =
+            true;
+
+
+        crosshair.renderOrder = 11;
+
+
+        group.add(
+            crosshair
+        );
+    }
+
+
+    return group;
+}
+
+
+/* =========================================================
+   CREATE PLANET
+   ========================================================= */
+
+function createProjectPlanet(
+    appearance,
+    position
+) {
+
+    const project =
+        clean(
+            appearance.project
+        );
+
+
+    const name =
+        clean(
+            appearance.name
+        ) ||
+        project;
+
+
+    const colour =
+        hexToNumber(
+            appearance.colour,
+            0x35d07f
+        );
+
+
+    const radius =
+        sizeToRadius(
+            appearance.size
+        );
+
+
+    const planet =
+        new THREE.Group();
+
+
+    planet.position.copy(
+        position
+    );
+
+
+    planet.userData = {
+
+        type: "planet",
+
+        project: project,
+
+        name: name,
+
+        radius: radius,
+
+        colour: colour,
+
+        spin:
+            clean(
+                appearance.spin
+            ).toLowerCase(),
+
+        pointStyle:
+            clean(
+                appearance[
+                    "point style"
+                ]
+            ).toLowerCase(),
+
+        appearance:
+            appearance
+    };
+
+
+    /*
+       GLOW FIRST
+    */
+
+    const glow =
+        clean(
+            appearance.glow
+        ).toLowerCase();
+
+
+    if (
+        glow &&
+        glow !== "none"
+    ) {
+
+        planet.add(
+
+            createGlow(
+
+                radius,
+
+                colour,
+
+                glow
+            )
+        );
+    }
+
+
+    /*
+       SURFACE
+    */
+
+    const surface =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius,
+                64,
+                64
+            ),
+
+            new THREE.MeshPhongMaterial({
+
+                map: earthTexture,
+
+                color: colour,
+
+                transparent: true,
+
+                opacity:
+                    Number(
+                        appearance[
+                            "surface opacity"
+                        ]
+                    ) || 0.9,
+
+                shininess: 8,
+
+                depthWrite: true,
+
+                depthTest: true
+            })
+        );
+
+
+    surface.userData.isPlanetSurface =
+        true;
+
+
+    surface.renderOrder = 6;
+
+
+    planet.add(
+        surface
+    );
+
+
+    /*
+       COLOUR WASH
+    */
+
+    const colourWash =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * 1.003,
+                64,
+                64
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity:
+                    appearance.surface ===
+                    "Earth"
+                        ? 0.18
+                        : 0.28,
+
+                depthWrite: false,
+
+                depthTest: true
+            })
+        );
+
+
+    colourWash.renderOrder = 7;
+
+
+    planet.add(
+        colourWash
+    );
+
+
+    /*
+       STANDARD LAT/LON GRID
+    */
+
+    const standardGrid =
+        createLatitudeLongitudeGrid(
+
+            radius * 1.005,
+
+            colour,
+
+            Number(
+                appearance[
+                    "grid opacity"
+                ]
+            ) || 0.35,
+
+            clean(
+                appearance.grid
+            ).toLowerCase()
+        );
+
+
+    standardGrid.renderOrder = 3;
+
+
+    planet.add(
+        standardGrid
+    );
+
+
+    /*
+       3D RESEARCH / NAVIGATION GRID
+       (remains ON THE PLANETS themselves)
+    */
+
+    const researchGrid =
+        createResearchMapGrid(
+
+            radius,
+
+            colour,
+
+            clean(
+                appearance.grid
+            ).toLowerCase() === "dense"
+                ? 1.25
+                : 1
+        );
+
+
+    researchGrid.name =
+        "3D Research Grid";
+
+
+    planet.add(
+        researchGrid
+    );
+
+
+    /*
+       ATMOSPHERE
+    */
+
+    const atmosphere =
+        clean(
+            appearance.atmosphere
+        ).toLowerCase();
+
+
+    if (
+        atmosphere &&
+        atmosphere !== "none"
+    ) {
+
+        planet.add(
+
+            createAtmosphere(
+
+                radius,
+
+                colour,
+
+                clean(
+                    appearance.glow
+                ).toLowerCase()
+            )
+        );
+    }
+
+
+    /*
+       CLOUDS
+    */
+
+    const clouds =
+        createCloudLayer(
+
+            radius,
+
+            "yes",
+
+            appearance[
+                "cloud colour"
+            ],
+
+            appearance[
+                "cloud opacity"
+            ],
+
+            appearance[
+                "cloud density"
+            ]
+        );
+
+
+    if (clouds) {
+
+        planet.add(
+            clouds
+        );
+    }
+
+
+    /*
+       RINGS
+    */
+
+    planet.add(
+
+        createPlanetRings(
+
+            radius,
+
+            hexToNumber(
+
+                appearance[
+                    "ring colour"
+                ],
+
+                colour
+            ),
+
+            clean(
+                appearance.rings
+            ).toLowerCase(),
+
+            appearance[
+                "ring density"
+            ]
+        )
+    );
+
+
+    /*
+       SCAN LINES
+    */
+
+    planet.add(
+
+        createScanLines(
+
+            radius,
+
+            colour,
+
+            clean(
+                appearance[
+                    "scan lines"
+                ]
+            ).toLowerCase()
+        )
+    );
+
+
+    /*
+       PARTICLES
+    */
+
+    planet.add(
+
+        createParticles(
+
+            radius,
+
+            colour,
+
+            clean(
+                appearance.particles
+            ).toLowerCase()
+        )
+    );
+
+
+    /*
+       RESEARCH POINTS
+    */
+
+    const pointsGroup =
+        new THREE.Group();
+
+
+    pointsGroup.name =
+        "Research Points";
+
+
+    pointsGroup.renderOrder =
+        20;
+
+
+    planet.add(
+        pointsGroup
+    );
+
+
+    scene.add(
+        planet
+    );
+
+
+    planets.push(
+        planet
+    );
+
+
+    projectObjects[
+        project
+    ] =
+        planet;
+
+
+    return planet;
+}
+
+
+/* =========================================================
+   ATTACH RESEARCH POINTS
+   ========================================================= */
+
+function attachResearchPoints() {
+
+    pointData.forEach(
+        row => {
+
+            const project =
+                clean(
+                    row.project
+                );
+
+
+            const planet =
+                projectObjects[
+                    project
+                ];
+
+
+            if (!planet) {
+
+                return;
+            }
+
+
+            const pointsGroup =
+                planet.children.find(
+
+                    child =>
+                        child.name ===
+                        "Research Points"
+                );
+
+
+            if (!pointsGroup) {
+
+                return;
+            }
+
+
+            pointsGroup.add(
+
+                createResearchPin(
+
+                    row,
+
+                    planet.userData.radius,
+
+                    planet.userData.colour,
+
+                    planet.userData.pointStyle
+                )
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   BUILD GALAXY
+   ========================================================= */
+
+function buildGalaxy() {
+
+    const projectsWithPoints =
+        new Set();
+
+
+    pointData.forEach(
+        row => {
+
+            const project =
+                clean(
+                    row.project
+                );
+
+
+            if (project) {
+
+                projectsWithPoints.add(
+                    project
+                );
+            }
+        }
+    );
+
+
+    const activeAppearances =
+        appearanceData.filter(
+
+            appearance =>
+                projectsWithPoints.has(
+
+                    clean(
+                        appearance.project
+                    )
+                )
+        );
+
+
+    const positions = [
+
+        new THREE.Vector3(
+            -6.2,
+            1.7,
+            -1
+        ),
+
+        new THREE.Vector3(
+            0.2,
+            -1.3,
+            -3
+        ),
+
+        new THREE.Vector3(
+            6.0,
+            1.0,
+            -1.5
+        ),
+
+        new THREE.Vector3(
+            -2.7,
+            -3.2,
+            -5
+        ),
+
+        new THREE.Vector3(
+            3.1,
+            3.4,
+            -5.5
+        ),
+
+        new THREE.Vector3(
+            8,
+            -2,
+            -7
+        ),
+
+        new THREE.Vector3(
+            -8,
+            -2,
+            -6
+        )
+    ];
+
+
+    activeAppearances.forEach(
+
+        (
+            appearance,
+            index
+        ) => {
+
+            createProjectPlanet(
+
+                appearance,
+
+                positions[
+                    index %
+                    positions.length
+                ].clone()
+            );
+        }
+    );
+
+
+    attachResearchPoints();
+}
+
+
+/* =========================================================
+   CAMERA ANIMATION
+   ========================================================= */
+
+function updateCameraLook() {
+
+    camera.lookAt(
+        cameraLookTarget
+    );
+}
+
+
+function startCameraAnimation(
+    targetPosition,
+    endLookTarget,
+    duration = 1600
+) {
+
+    cameraAnimationStart =
+        performance.now();
+
+
+    cameraStartPosition.copy(
+        camera.position
+    );
+
+
+    cameraTargetPosition.copy(
+        targetPosition
+    );
+
+
+    cameraStartLookTarget.copy(
+        cameraLookTarget
+    );
+
+
+    cameraEndLookTarget.copy(
+        endLookTarget
+    );
+
+
+    cameraAnimationDuration =
+        duration;
+
+
+    cameraAnimating =
+        true;
+}
+
+
+function updateCameraAnimation(
+    now
+) {
+
+    if (!cameraAnimating) {
+
+        return;
+    }
+
+
+    const elapsed =
+        now -
+        cameraAnimationStart;
+
+
+    const t =
+        Math.min(
+
+            elapsed /
+            cameraAnimationDuration,
+
+            1
+        );
+
+
+    const eased =
+        1 -
+        Math.pow(
+            1 - t,
+            3
+        );
+
+
+    camera.position.lerpVectors(
+
+        cameraStartPosition,
+
+        cameraTargetPosition,
+
+        eased
+    );
+
+
+    cameraLookTarget.lerpVectors(
+
+        cameraStartLookTarget,
+
+        cameraEndLookTarget,
+
+        eased
+    );
+
+
+    updateCameraLook();
+
+
+    if (
+        t >= 1
+    ) {
+
+        cameraAnimating =
+            false;
+    }
+}
+
+
+/* =========================================================
+   GALAXY CAMERA
+   ========================================================= */
+
+function updateGalaxyCamera() {
+
+    const x =
+        galaxyDistance *
+        Math.cos(
+            galaxyPitch
+        ) *
+        Math.sin(
+            galaxyYaw
+        );
+
+
+    const y =
+        galaxyDistance *
+        Math.sin(
+            galaxyPitch
+        );
+
+
+    const z =
+        galaxyDistance *
+        Math.cos(
+            galaxyPitch
+        ) *
+        Math.cos(
+            galaxyYaw
+        );
+
+
+    camera.position.set(
+        x,
+        y,
+        z
+    );
+
+
+    cameraLookTarget.set(
+        0,
+        0,
+        0
+    );
+
+
+    updateCameraLook();
+}
+
+
+/* =========================================================
+   FIXED PLANET CAMERA
+   ========================================================= */
+
+function updatePlanetCamera() {
+
+    if (
+        !selectedPlanet
+    ) {
+
+        return;
+    }
+
+
+    const position =
+        new THREE.Vector3();
+
+
+    selectedPlanet.getWorldPosition(
+        position
+    );
+
+
+    /*
+       Fixed front-facing view.
+
+       No camera orbit.
+
+       The globe itself can be rotated by dragging.
+    */
+
+    camera.position.set(
+
+        position.x,
+
+        position.y,
+
+        position.z +
+        planetDistance
+    );
+
+
+    cameraLookTarget.copy(
+        position
+    );
+
+
+    updateCameraLook();
+
+
+    updateMarkerConnector();
+}
 
 
 /* =========================================================
@@ -1544,347 +3835,1595 @@ function enterPlanet(
     planet
 ) {
 
+    if (
+        planetMode ||
+        cameraAnimating
+    ) {
+
+        return;
+    }
+
+
     selectedPlanet =
         planet;
 
-    mode =
-        "planet";
 
-    cameraAnimating =
+    selectedProject =
+        planet.userData.project;
+
+
+    /*
+       Remove the galaxy hover heading immediately
+       when the planet is selected.
+    */
+
+    hoveredPlanet =
+        null;
+
+
+    updatePlanetLabel();
+
+
+    planetMode =
         true;
+
+
+    activeMarker =
+        null;
+
+
+    hideMarkerCard();
+
+    hideMarkerConnector();
+
+
+    planets.forEach(
+        other => {
+
+            other.visible =
+                other === planet;
+        }
+    );
+
+
+    const worldPosition =
+        new THREE.Vector3();
+
+
+    planet.getWorldPosition(
+        worldPosition
+    );
+
+
+    planetDistance =
+        Math.max(
+
+            planet.userData.radius *
+            3.8,
+
+            7
+        );
+
+
+    const targetCamera =
+        new THREE.Vector3(
+
+            worldPosition.x,
+
+            worldPosition.y,
+
+            worldPosition.z +
+            planetDistance
+        );
+
+
+    startCameraAnimation(
+
+        targetCamera,
+
+        worldPosition,
+
+        1500
+    );
+
+
+    showPlanetHUD(
+        planet
+    );
 
 
     document
         .getElementById(
-            "planetMode"
+            "backButton"
         )
-        .style.display =
-        "block";
+        .classList.add(
+            "visible"
+        );
 
 
     document
         .getElementById(
             "instructions"
         )
-        .style.display =
-        "none";
-
-
-    document
-        .getElementById(
-            "header"
-        )
-        .style.display =
-        "none";
-
-
-    document
-        .getElementById(
-            "planetTitle"
-        )
-        .style.display =
-        "block";
-
-
-    document
-        .getElementById(
-            "planetTitleMain"
-        )
         .textContent =
-        planet.userData.project;
-
-
-    /*
-     * Move camera towards selected planet.
-     *
-     * Earth is at the centre, so this is
-     * a smooth journey into the selected
-     * object.
-     */
-
-    const destination =
-        new THREE.Vector3(
-
-            planet.position.x,
-
-            planet.position.y,
-
-            planet.position.z + 7
-
-        );
-
-
-    targetCameraPosition.copy(
-        destination
-    );
-
-
-    animateCameraTo(
-
-        targetCameraPosition,
-
-        1800,
-
-        () => {
-
-            cameraAnimating =
-                false;
-
-
-            /*
-             * Make research points visible
-             * once we have entered planet mode.
-             */
-
-            researchPoints.children
-                .forEach(
-                    point => {
-
-                        point.material.opacity =
-                            0.9;
-
-                        point.scale.set(
-                            1.25,
-                            1.25,
-                            1.25
-                        );
-
-                    }
-                );
-
-        }
-
-    );
-
+        "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A LOCATION";
 }
 
 
 /* =========================================================
-   CAMERA ANIMATION
+   EXIT PLANET
    ========================================================= */
 
-function animateCameraTo(
-    destination,
-    duration,
-    callback
-) {
+function exitPlanet() {
 
-    const start =
-        camera.position.clone();
+    if (!planetMode) {
 
-    const startTime =
-        performance.now();
+        return;
+    }
 
 
-    function animate() {
-
-        const elapsed =
-            performance.now() -
-            startTime;
+    planetMode =
+        false;
 
 
-        let progress =
-            Math.min(
-                elapsed /
-                    duration,
-                1
-            );
+    selectedPlanet =
+        null;
 
 
-        /*
-         * Smooth ease-in/ease-out
-         */
-
-        progress =
-            progress *
-            progress *
-            (
-                3 -
-                2 * progress
-            );
+    selectedProject =
+        null;
 
 
-        camera.position.lerpVectors(
-            start,
-            destination,
-            progress
+    activeMarker =
+        null;
+
+
+    hoveredPlanet =
+        null;
+
+
+    hideMarkerCard();
+
+    hideMarkerConnector();
+
+
+    hidePlanetHUD();
+
+
+    planets.forEach(
+        planet => {
+
+            planet.visible =
+                true;
+        }
+    );
+
+
+    document
+        .getElementById(
+            "backButton"
+        )
+        .classList.remove(
+            "visible"
         );
 
 
-        camera.lookAt(
+    document
+        .getElementById(
+            "instructions"
+        )
+        .textContent =
+        "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD";
 
-            selectedPlanet
-                ? selectedPlanet.position
-                : new THREE.Vector3(
-                    0,
-                    0,
-                    0
-                )
 
+    startCameraAnimation(
+
+        new THREE.Vector3(
+            0,
+            2,
+            20
+        ),
+
+        new THREE.Vector3(
+            0,
+            0,
+            0
+        ),
+
+        1200
+    );
+}
+
+
+/* =========================================================
+   PLANET HUD
+   ========================================================= */
+
+function showPlanetHUD(
+    planet
+) {
+
+    const appearance =
+        planet.userData.appearance;
+
+
+    const project =
+        clean(
+            appearance.project
+        );
+
+
+    const name =
+        clean(
+            appearance.name
+        );
+
+
+    const status =
+        clean(
+            appearance.status
+        );
+
+
+    const focus =
+        clean(
+            appearance.focus
+        );
+
+
+    const question =
+        clean(
+            appearance.question
+        );
+
+
+    const points =
+        pointData.filter(
+
+            row =>
+                clean(
+                    row.project
+                ) ===
+                project
+        ).length;
+
+
+    document
+        .getElementById(
+            "hudProject"
+        )
+        .textContent =
+        project;
+
+
+    document
+        .getElementById(
+            "hudName"
+        )
+        .textContent =
+        name;
+
+
+    document
+        .getElementById(
+            "hudStatus"
+        )
+        .textContent =
+        status;
+
+
+    document
+        .getElementById(
+            "hudPoints"
+        )
+        .textContent =
+        String(points).padStart(
+            3,
+            "0"
+        );
+
+
+    document
+        .getElementById(
+            "hudFocus"
+        )
+        .textContent =
+        focus;
+
+
+    document
+        .getElementById(
+            "hudQuestion"
+        )
+        .textContent =
+        question;
+
+
+    createMeasurementScale(
+        points
+    );
+
+
+    document
+        .getElementById(
+            "planetHud"
+        )
+        .classList.add(
+            "visible"
+        );
+}
+
+
+function hidePlanetHUD() {
+
+    document
+        .getElementById(
+            "planetHud"
+        )
+        .classList.remove(
+            "visible"
+        );
+}
+
+
+/* =========================================================
+   MEASUREMENT SCALE
+   ========================================================= */
+
+function createMeasurementScale(
+    pointCount
+) {
+
+    const scale =
+        document.getElementById(
+            "measurementScale"
+        );
+
+
+    scale.innerHTML =
+        '<div class="scale-line"></div>';
+
+
+    const count =
+        9;
+
+
+    for (
+        let i = 0;
+        i <= count;
+        i++
+    ) {
+
+        const tick =
+            document.createElement(
+                "div"
+            );
+
+
+        tick.className =
+            "scale-tick" +
+            (
+                i % 3 === 0
+                    ? " major"
+                    : ""
+            );
+
+
+        tick.style.top =
+            `${(
+                i /
+                count
+            ) * 100}%`;
+
+
+        scale.appendChild(
+            tick
         );
 
 
         if (
-            progress < 1
+            i % 3 === 0
         ) {
 
-            requestAnimationFrame(
-                animate
+            const number =
+                document.createElement(
+                    "div"
+                );
+
+
+            number.className =
+                "scale-number";
+
+
+            number.style.top =
+                `${(
+                    i /
+                    count
+                ) * 100}%`;
+
+
+            number.textContent =
+                String(
+                    i * 10
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            scale.appendChild(
+                number
             );
-
         }
-
-        else {
-
-            callback();
-
-        }
-
     }
 
 
-    animate();
+    /*
+       Point-count indicator remains inside
+       the shortened measurement area.
+    */
 
+    const label =
+        document.createElement(
+            "div"
+        );
+
+
+    label.style.position =
+        "absolute";
+
+
+    label.style.right =
+        "0";
+
+
+    label.style.bottom =
+        "-16px";
+
+
+    label.style.fontSize =
+        "6px";
+
+
+    label.style.letterSpacing =
+        "0.16em";
+
+
+    label.style.opacity =
+        "0.35";
+
+
+    label.textContent =
+        `PTS ${String(pointCount).padStart(3,"0")}`;
+
+
+    scale.appendChild(
+        label
+    );
 }
 
 
 /* =========================================================
-   RESEARCH PIN
+   MARKER CARD
    ========================================================= */
 
-function showResearchPin(
-    point
+function showMarkerCard(
+    marker
 ) {
 
-    const data =
-        point.userData;
+    document
+        .getElementById(
+            "markerCountry"
+        )
+        .textContent =
+        marker.country;
 
 
     document
         .getElementById(
-            "pinCountry"
+            "markerTitle"
         )
         .textContent =
-        data.country;
+        marker.title;
 
 
     document
         .getElementById(
-            "pinTitle"
+            "markerDescription"
         )
         .textContent =
-        data.title;
+        `LAT ${Number(marker.lat).toFixed(2)} · LON ${Number(marker.lon).toFixed(2)}`;
 
 
     const link =
         document.getElementById(
-            "pinLink"
+            "markerLink"
         );
 
 
     link.href =
-        data.url || "#";
+        marker.url ||
+        "#";
 
 
-    const screenPosition =
-        point.position.clone();
+    document
+        .getElementById(
+            "markerCard"
+        )
+        .classList.add(
+            "visible"
+        );
+}
 
 
-    point.parent.localToWorld(
-        screenPosition
+function hideMarkerCard() {
+
+    document
+        .getElementById(
+            "markerCard"
+        )
+        .classList.remove(
+            "visible"
+        );
+}
+
+
+/* =========================================================
+   MARKER CONNECTOR
+   ========================================================= */
+
+function showMarkerConnector() {
+
+    document
+        .getElementById(
+            "markerConnector"
+        )
+        .setAttribute(
+            "opacity",
+            "1"
+        );
+}
+
+
+function hideMarkerConnector() {
+
+    document
+        .getElementById(
+            "markerConnector"
+        )
+        .setAttribute(
+            "opacity",
+            "0"
+        );
+}
+
+
+/*
+   Convert Three.js world coordinates into
+   the fixed SVG HUD coordinate system.
+*/
+
+function projectToHUD(
+    worldPosition
+) {
+
+    const projected =
+        worldPosition
+            .clone()
+            .project(
+                camera
+            );
+
+
+    return {
+
+        x:
+            (
+                projected.x *
+                0.5 +
+                0.5
+            ) *
+            1000,
+
+        y:
+            (
+                -projected.y *
+                0.5 +
+                0.5
+            ) *
+            600
+    };
+}
+
+
+function updateMarkerConnector() {
+
+    if (
+        !planetMode ||
+        !activeMarker ||
+        !selectedPlanet
+    ) {
+
+        hideMarkerConnector();
+
+        return;
+    }
+
+
+    const markerWorld =
+        new THREE.Vector3();
+
+
+    activeMarker.getWorldPosition(
+        markerWorld
     );
 
 
-    screenPosition.project(
+    /*
+       Move the projected connector point down
+       slightly to give the marker more breathing room
+       from the planet title/central geometry.
+    */
+
+    const point =
+        projectToHUD(
+            markerWorld
+        );
+
+
+    point.y += 4;
+
+
+    /*
+       Fixed right/left callout.
+    */
+
+    const cardOnRight =
+        point.x < 570;
+
+
+    const targetX =
+        cardOnRight
+            ? 730
+            : 270;
+
+
+    const elbowX =
+        cardOnRight
+            ? 650
+            : 350;
+
+
+    const targetY =
+        Math.max(
+            100,
+            Math.min(
+                500,
+                point.y
+            )
+        );
+
+
+    const points =
+        [
+            `${point.x},${point.y}`,
+            `${elbowX},${point.y}`,
+            `${targetX},${targetY}`
+        ].join(" ");
+
+
+    document
+        .getElementById(
+            "markerConnectorPoint"
+        )
+        .setAttribute(
+            "cx",
+            point.x
+        );
+
+
+    document
+        .getElementById(
+            "markerConnectorPoint"
+        )
+        .setAttribute(
+            "cy",
+            point.y
+        );
+
+
+    document
+        .getElementById(
+            "markerConnectorLine"
+        )
+        .setAttribute(
+            "points",
+            points
+        );
+
+
+    document
+        .getElementById(
+            "markerConnectorTick"
+        )
+        .setAttribute(
+            "x1",
+            targetX
+        );
+
+
+    document
+        .getElementById(
+            "markerConnectorTick"
+        )
+        .setAttribute(
+            "y1",
+            targetY - 8
+        );
+
+
+    document
+        .getElementById(
+            "markerConnectorTick"
+        )
+        .setAttribute(
+            "x2",
+            targetX
+        );
+
+
+    document
+        .getElementById(
+            "markerConnectorTick"
+        )
+        .setAttribute(
+            "y2",
+            targetY + 8
+        );
+
+
+    showMarkerConnector();
+}
+
+
+/* =========================================================
+   POINTER STATE
+   ========================================================= */
+
+let isPointerDown = false;
+
+let isDragging = false;
+
+let didDrag = false;
+
+let pointerStartX = 0;
+
+let pointerStartY = 0;
+
+let previousPointerX = 0;
+
+let previousPointerY = 0;
+
+const DRAG_THRESHOLD = 6;
+
+const DRAG_SENSITIVITY = 0.0035;
+
+
+/* =========================================================
+   POINTER DOWN
+   ========================================================= */
+
+renderer.domElement.addEventListener(
+    "pointerdown",
+    event => {
+
+        if (
+            cameraAnimating
+        ) {
+
+            return;
+        }
+
+
+        /*
+           Both galaxy mode and planet mode accept
+           pointer dragging.
+
+           In galaxy mode, drag = camera orbit.
+           In planet mode, drag = globe rotation.
+        */
+
+        isPointerDown = true;
+
+        isDragging = false;
+
+        didDrag = false;
+
+
+        pointerStartX =
+            event.clientX;
+
+
+        pointerStartY =
+            event.clientY;
+
+
+        previousPointerX =
+            event.clientX;
+
+
+        previousPointerY =
+            event.clientY;
+
+
+        /*
+           Galaxy camera stores its spherical state.
+        */
+
+        if (!planetMode) {
+
+            const x =
+                camera.position.x;
+
+
+            const y =
+                camera.position.y;
+
+
+            const z =
+                camera.position.z;
+
+
+            galaxyDistance =
+                Math.sqrt(
+                    x * x +
+                    y * y +
+                    z * z
+                );
+
+
+            galaxyYaw =
+                Math.atan2(
+                    x,
+                    z
+                );
+
+
+            galaxyPitch =
+                Math.asin(
+                    y /
+                    galaxyDistance
+                );
+        }
+
+
+        renderer.domElement.setPointerCapture(
+            event.pointerId
+        );
+
+
+        document.body.classList.add(
+            "dragging"
+        );
+    }
+);
+
+
+/* =========================================================
+   POINTER MOVE
+   ========================================================= */
+
+renderer.domElement.addEventListener(
+    "pointermove",
+    event => {
+
+        /*
+           -------------------------------------------------
+           PLANET MODE
+           -------------------------------------------------
+
+           Dragging rotates the selected planet itself.
+
+           This keeps the camera fixed while allowing
+           exploration of the surface.
+        */
+
+        if (planetMode) {
+
+            if (
+                !isPointerDown ||
+                !selectedPlanet
+            ) {
+
+                return;
+            }
+
+
+            const dx =
+                event.clientX -
+                pointerStartX;
+
+
+            const dy =
+                event.clientY -
+                pointerStartY;
+
+
+            const distance =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                );
+
+
+            if (
+                !isDragging &&
+                distance >
+                DRAG_THRESHOLD
+            ) {
+
+                isDragging = true;
+
+                didDrag = true;
+            }
+
+
+            if (!isDragging) {
+
+                return;
+            }
+
+
+            const movementX =
+                event.clientX -
+                previousPointerX;
+
+
+            const movementY =
+                event.clientY -
+                previousPointerY;
+
+
+            previousPointerX =
+                event.clientX;
+
+
+            previousPointerY =
+                event.clientY;
+
+
+            /*
+               Horizontal drag rotates around the
+               planet's vertical axis.
+
+               Vertical drag rotates around its
+               horizontal axis.
+            */
+
+            selectedPlanet.rotation.y +=
+                movementX *
+                0.0045;
+
+
+            selectedPlanet.rotation.x +=
+                movementY *
+                0.0045;
+
+
+            /*
+               Prevent the planet being flipped
+               completely upside down.
+            */
+
+            selectedPlanet.rotation.x =
+                THREE.MathUtils.clamp(
+                    selectedPlanet.rotation.x,
+                    -1.25,
+                    1.25
+                );
+
+
+            /*
+               Keep any active research connector
+               attached to the moving marker.
+            */
+
+            if (
+                activeMarker
+            ) {
+
+                updateMarkerConnector();
+            }
+
+
+            return;
+        }
+
+
+        /*
+           -------------------------------------------------
+           GALAXY MODE HOVER
+           -------------------------------------------------
+        */
+
+        if (!isPointerDown) {
+
+            mouse.x =
+                (
+                    event.clientX /
+                    window.innerWidth
+                ) *
+                2 -
+                1;
+
+
+            mouse.y =
+                -(
+                    event.clientY /
+                    window.innerHeight
+                ) *
+                2 +
+                1;
+
+
+            raycaster.setFromCamera(
+                mouse,
+                camera
+            );
+
+
+            const intersects =
+                raycaster.intersectObjects(
+                    planets,
+                    true
+                );
+
+
+            hoveredPlanet =
+                null;
+
+
+            for (
+                let i = 0;
+                i < intersects.length;
+                i++
+            ) {
+
+                let object =
+                    intersects[i].object;
+
+
+                while (
+                    object &&
+                    !object.userData.project
+                ) {
+
+                    object =
+                        object.parent;
+                }
+
+
+                if (
+                    object &&
+                    object.userData.type ===
+                    "planet"
+                ) {
+
+                    hoveredPlanet =
+                        object;
+
+                    break;
+                }
+            }
+
+
+            updatePlanetLabel();
+
+            return;
+        }
+
+
+        /*
+           -------------------------------------------------
+           GALAXY MODE DRAG
+           -------------------------------------------------
+        */
+
+        const dx =
+            event.clientX -
+            pointerStartX;
+
+
+        const dy =
+            event.clientY -
+            pointerStartY;
+
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+
+        if (
+            !isDragging &&
+            distance >
+            DRAG_THRESHOLD
+        ) {
+
+            isDragging = true;
+
+            didDrag = true;
+        }
+
+
+        if (!isDragging) {
+
+            return;
+        }
+
+
+        const movementX =
+            event.clientX -
+            previousPointerX;
+
+
+        const movementY =
+            event.clientY -
+            previousPointerY;
+
+
+        previousPointerX =
+            event.clientX;
+
+
+        previousPointerY =
+            event.clientY;
+
+
+        galaxyYaw -=
+            movementX *
+            DRAG_SENSITIVITY;
+
+
+        galaxyPitch -=
+            movementY *
+            DRAG_SENSITIVITY;
+
+
+        galaxyPitch =
+            THREE.MathUtils.clamp(
+                galaxyPitch,
+                -1.35,
+                1.35
+            );
+
+
+        updateGalaxyCamera();
+    }
+);
+
+
+/* =========================================================
+   POINTER UP
+   ========================================================= */
+
+renderer.domElement.addEventListener(
+    "pointerup",
+    event => {
+
+        if (
+            cameraAnimating
+        ) {
+
+            return;
+        }
+
+
+        const wasDragging =
+            didDrag;
+
+
+        isPointerDown =
+            false;
+
+
+        isDragging =
+            false;
+
+
+        document.body.classList.remove(
+            "dragging"
+        );
+
+
+        try {
+
+            renderer.domElement.releasePointerCapture(
+                event.pointerId
+            );
+
+        } catch (error) {}
+
+
+        /*
+           PLANET MODE
+
+           A drag rotates the globe.
+           A click selects a research point.
+        */
+
+        if (planetMode) {
+
+            didDrag =
+                false;
+
+
+            if (
+                wasDragging
+            ) {
+
+                return;
+            }
+
+
+            handleClick(
+                event
+            );
+
+            return;
+        }
+
+
+        /*
+           GALAXY MODE
+        */
+
+        if (
+            wasDragging
+        ) {
+
+            didDrag =
+                false;
+
+            return;
+        }
+
+
+        didDrag =
+            false;
+
+
+        handleClick(
+            event
+        );
+    }
+);
+
+
+/* =========================================================
+   CLICK
+   ========================================================= */
+
+function handleClick(
+    event
+) {
+
+    mouse.x =
+        (
+            event.clientX /
+            window.innerWidth
+        ) *
+        2 -
+        1;
+
+
+    mouse.y =
+        -(
+            event.clientY /
+            window.innerHeight
+        ) *
+        2 +
+        1;
+
+
+    raycaster.setFromCamera(
+        mouse,
         camera
     );
 
 
-    let x =
+    /*
+       GALAXY MODE
+    */
+
+    if (!planetMode) {
+
+        const intersects =
+            raycaster.intersectObjects(
+                planets,
+                true
+            );
+
+
+        for (
+            let i = 0;
+            i < intersects.length;
+            i++
+        ) {
+
+            let object =
+                intersects[i].object;
+
+
+            while (
+                object &&
+                object.userData.type !==
+                "planet"
+            ) {
+
+                object =
+                    object.parent;
+            }
+
+
+            if (
+                object &&
+                object.userData.type ===
+                "planet"
+            ) {
+
+                enterPlanet(
+                    object
+                );
+
+                return;
+            }
+        }
+
+
+        return;
+    }
+
+
+    /*
+       PLANET MODE
+
+       Research points are the only interactive
+       elements on the planetary surface.
+    */
+
+    if (
+        !selectedPlanet
+    ) {
+
+        return;
+    }
+
+
+    const pointsGroup =
+        selectedPlanet.children.find(
+
+            child =>
+                child.name ===
+                "Research Points"
+        );
+
+
+    if (!pointsGroup) {
+
+        return;
+    }
+
+
+    /*
+       Invisible hit geometry remains
+       depth-independent.
+    */
+
+    const intersects =
+        raycaster.intersectObjects(
+            pointsGroup.children,
+            true
+        );
+
+
+    for (
+        let i = 0;
+        i < intersects.length;
+        i++
+    ) {
+
+        let object =
+            intersects[i].object;
+
+
+        while (
+            object &&
+            object.userData.type !==
+            "research"
+        ) {
+
+            object =
+                object.parent;
+        }
+
+
+        if (
+            object &&
+            object.userData.type ===
+            "research"
+        ) {
+
+            activeMarker =
+                object;
+
+
+            showMarkerCard(
+                object.userData
+            );
+
+
+            updateMarkerConnector();
+
+
+            return;
+        }
+    }
+}
+
+
+/* =========================================================
+   GALAXY ZOOM / PLANET ZOOM
+   ========================================================= */
+
+renderer.domElement.addEventListener(
+    "wheel",
+    event => {
+
+        event.preventDefault();
+
+
+        if (
+            cameraAnimating
+        ) {
+
+            return;
+        }
+
+
+        if (!planetMode) {
+
+            galaxyDistance +=
+                event.deltaY *
+                0.012;
+
+
+            galaxyDistance =
+                THREE.MathUtils.clamp(
+                    galaxyDistance,
+                    8,
+                    45
+                );
+
+
+            updateGalaxyCamera();
+
+            return;
+        }
+
+
+        /*
+           PLANET MODE:
+
+           Zoom only along the camera's
+           viewing axis.
+
+           No camera yaw or pitch is introduced.
+        */
+
+        planetDistance +=
+            event.deltaY *
+            0.008;
+
+
+        planetDistance =
+            THREE.MathUtils.clamp(
+                planetDistance,
+                3.5,
+                15
+            );
+
+
+        updatePlanetCamera();
+    },
+    {
+        passive: false
+    }
+);
+
+
+/* =========================================================
+   PLANET LABEL
+   ========================================================= */
+
+function updatePlanetLabel() {
+
+    const label =
+        document.getElementById(
+            "planetLabel"
+        );
+
+
+    if (
+        !hoveredPlanet ||
+        planetMode
+    ) {
+
+        label.classList.remove(
+            "visible"
+        );
+
+        return;
+    }
+
+
+    const worldPosition =
+        new THREE.Vector3();
+
+
+    hoveredPlanet.getWorldPosition(
+        worldPosition
+    );
+
+
+    const projected =
+        worldPosition
+            .clone()
+            .project(
+                camera
+            );
+
+
+    const x =
         (
-            screenPosition.x *
+            projected.x *
             0.5 +
             0.5
         ) *
         window.innerWidth;
 
 
-    let y =
+    const y =
         (
-            -screenPosition.y *
+            -projected.y *
             0.5 +
             0.5
         ) *
         window.innerHeight;
 
 
-    /*
-     * Keep card on screen.
-     */
-
-    x =
-        Math.max(
-            160,
-            Math.min(
-                window.innerWidth - 160,
-                x + 30
-            )
-        );
+    label.style.left =
+        `${x}px`;
 
 
-    y =
-        Math.max(
-            100,
-            Math.min(
-                window.innerHeight - 100,
-                y
-            )
-        );
+    label.style.top =
+        `${y - 14}px`;
 
 
-    const pin =
-        document.getElementById(
-            "researchPin"
-        );
+    label.textContent =
+        hoveredPlanet.userData.name;
 
 
-    pin.style.left =
-        x + "px";
-
-    pin.style.top =
-        y + "px";
-
-    pin.style.display =
-        "block";
-
+    label.classList.add(
+        "visible"
+    );
 }
 
 
 /* =========================================================
-   CLOSE PIN
-   ========================================================= */
-
-document
-    .getElementById(
-        "closePin"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            document
-                .getElementById(
-                    "researchPin"
-                )
-                .style.display =
-                "none";
-
-        }
-    );
-
-
-/* =========================================================
-   RETURN TO GALAXY
+   BACK BUTTON
    ========================================================= */
 
 document
@@ -1893,255 +5432,247 @@ document
     )
     .addEventListener(
         "click",
-        () => {
+        event => {
 
-            mode =
-                "galaxy";
+            event.stopPropagation();
 
-            selectedPlanet =
-                null;
-
-
-            document
-                .getElementById(
-                    "planetMode"
-                )
-                .style.display =
-                "none";
-
-
-            document
-                .getElementById(
-                    "planetTitle"
-                )
-                .style.display =
-                "none";
-
-
-            document
-                .getElementById(
-                    "researchPin"
-                )
-                .style.display =
-                "none";
-
-
-            document
-                .getElementById(
-                    "header"
-                )
-                .style.display =
-                "block";
-
-
-            document
-                .getElementById(
-                    "instructions"
-                )
-                .style.display =
-                "block";
-
-
-            cameraAnimating =
-                true;
-
-
-            animateCameraTo(
-
-                new THREE.Vector3(
-                    0,
-                    2,
-                    20
-                ),
-
-                1500,
-
-                () => {
-
-                    cameraAnimating =
-                        false;
-
-                }
-
-            );
-
-
-            researchPoints.children
-                .forEach(
-                    point => {
-
-                        point.material.opacity =
-                            0.25;
-
-                        point.scale.set(
-                            1,
-                            1,
-                            1
-                        );
-
-                    }
-                );
-
+            exitPlanet();
         }
     );
-
-
-/* =========================================================
-   LABEL POSITIONING
-   ========================================================= */
-
-function updateLabels() {
-
-    labels.forEach(
-        item => {
-
-            const planet =
-                item.planet;
-
-
-            const position =
-                planet.position.clone();
-
-
-            position.project(
-                camera
-            );
-
-
-            const x =
-                (
-                    position.x *
-                    0.5 +
-                    0.5
-                ) *
-                window.innerWidth;
-
-
-            const y =
-                (
-                    -position.y *
-                    0.5 +
-                    0.5
-                ) *
-                window.innerHeight;
-
-
-            item.element.style.left =
-                x + "px";
-
-
-            item.element.style.top =
-                (
-                    y -
-                    planet.geometry
-                        .parameters
-                        .radius -
-                    25
-                ) + "px";
-
-
-            /*
-             * Hide labels when entering
-             * planet mode.
-             */
-
-            const distance =
-                camera.position.distanceTo(
-                    planet.position
-                );
-
-
-            if (
-                mode === "galaxy" &&
-                distance < 18
-            ) {
-
-                item.element.style.opacity =
-                    "0.8";
-
-            }
-
-            else if (
-                mode === "galaxy"
-            ) {
-
-                item.element.style.opacity =
-                    "0.5";
-
-            }
-
-            else {
-
-                item.element.style.opacity =
-                    "0";
-
-            }
-
-        }
-    );
-
-}
 
 
 /* =========================================================
    ANIMATION
    ========================================================= */
 
-function animate() {
+let lastTime =
+    performance.now();
+
+
+function animate(now) {
 
     requestAnimationFrame(
         animate
     );
 
 
+    const delta =
+        Math.min(
+            (
+                now -
+                lastTime
+            ) / 1000,
+            0.05
+        );
+
+
+    lastTime =
+        now;
+
+
+    updateCameraAnimation(
+        now
+    );
+
+
     /*
-     * Slow movement of the
-     * research universe.
-     */
+       Galaxy planets rotate.
 
-    if (!dragging) {
+       Focused planets STOP rotating so the user
+       can manually explore them.
+    */
 
-        galaxy.rotation.y +=
-            rotationVelocityY;
+    if (
+        !planetMode &&
+        !isPointerDown &&
+        !cameraAnimating
+    ) {
 
-        galaxy.rotation.x +=
-            rotationVelocityX;
+        planets.forEach(
+            planet => {
+
+                let speed =
+                    0.05;
 
 
-        rotationVelocityY *=
-            0.96;
+                if (
+                    planet.userData.spin ===
+                    "slow"
+                ) {
 
-        rotationVelocityX *=
-            0.96;
+                    speed =
+                        0.025;
 
+                } else if (
+                    planet.userData.spin ===
+                    "fast"
+                ) {
+
+                    speed =
+                        0.09;
+                }
+
+
+                planet.rotation.y +=
+                    speed *
+                    delta;
+            }
+        );
     }
 
 
     /*
-     * Earth rotates.
-     */
+       Clouds can still move subtly.
+    */
 
-    earth.rotation.y +=
-        0.0015;
+    planets.forEach(
+        planet => {
+
+            planet.children.forEach(
+                child => {
+
+                    if (
+                        child.userData &&
+                        child.userData.isCloudLayer
+                    ) {
+
+                        child.rotation.y +=
+                            0.012 *
+                            delta;
+                    }
+                }
+            );
+        }
+    );
 
 
     /*
-     * Research points inherit
-     * Earth's rotation because
-     * they are children of Earth.
-     */
+       Very subtle motion on the 3D research
+       navigation grid attached to each planet.
+    */
 
-    updateLabels();
+    planets.forEach(
+        planet => {
+
+            const researchGrid =
+                planet.children.find(
+
+                    child =>
+                        child.name ===
+                        "3D Research Grid"
+                );
+
+
+            if (
+                researchGrid &&
+                !planetMode
+            ) {
+
+                researchGrid.rotation.y +=
+                    0.002 *
+                    delta;
+            }
+        }
+    );
+
+
+    /*
+       Pulse markers.
+
+       Invisible hit geometry NEVER scales.
+    */
+
+    planets.forEach(
+        planet => {
+
+            const pointsGroup =
+                planet.children.find(
+
+                    child =>
+                        child.name ===
+                        "Research Points"
+                );
+
+
+            if (!pointsGroup) {
+
+                return;
+            }
+
+
+            pointsGroup.children.forEach(
+                pin => {
+
+                    if (
+                        pin.userData &&
+                        pin.userData.pulse !==
+                        undefined
+                    ) {
+
+                        pin.userData.pulse +=
+                            delta *
+                            3;
+
+
+                        const scale =
+                            1 +
+                            Math.sin(
+                                pin.userData.pulse
+                            ) *
+                            0.25;
+
+
+                        pin.children.forEach(
+                            child => {
+
+                                if (
+                                    child.userData &&
+                                    child.userData.isResearchHit
+                                ) {
+
+                                    return;
+                                }
+
+
+                                if (
+                                    child.userData &&
+                                    child.userData.isResearchMarker
+                                ) {
+
+                                    child.scale.set(
+                                        scale,
+                                        scale,
+                                        scale
+                                    );
+                                }
+                            }
+                        );
+                    }
+                }
+            );
+        }
+    );
+
+
+    /*
+       Keep selected marker connector aligned
+       during zoom, planet rotation and camera animation.
+    */
+
+    if (
+        planetMode &&
+        activeMarker
+    ) {
+
+        updateMarkerConnector();
+    }
 
 
     renderer.render(
         scene,
         camera
     );
-
 }
-
-animate();
 
 
 /* =========================================================
@@ -2165,7 +5696,129 @@ window.addEventListener(
             window.innerHeight
         );
 
+
+        if (
+            planetMode &&
+            activeMarker
+        ) {
+
+            updateMarkerConnector();
+        }
     }
+);
+
+
+/* =========================================================
+   LOAD DATA
+   ========================================================= */
+
+async function loadData() {
+
+    try {
+
+        const [
+            pointsResponse,
+            appearanceResponse
+        ] =
+            await Promise.all([
+
+                fetch(
+                    POINTS_CSV +
+                    "&cache=" +
+                    Date.now()
+                ),
+
+                fetch(
+                    APPEARANCE_CSV +
+                    "&cache=" +
+                    Date.now()
+                )
+            ]);
+
+
+        if (
+            !pointsResponse.ok ||
+            !appearanceResponse.ok
+        ) {
+
+            throw new Error(
+                "Could not load Google Sheets."
+            );
+        }
+
+
+        const pointsText =
+            await pointsResponse.text();
+
+
+        const appearanceText =
+            await appearanceResponse.text();
+
+
+        pointData =
+            parseCSV(
+                pointsText
+            );
+
+
+        appearanceData =
+            parseCSV(
+                appearanceText
+            );
+
+
+        console.log(
+            "Research points:",
+            pointData
+        );
+
+
+        console.log(
+            "Planet appearances:",
+            appearanceData
+        );
+
+
+        buildGalaxy();
+
+
+        updateGalaxyCamera();
+
+
+        document
+            .getElementById(
+                "loading"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        document
+            .getElementById(
+                "loading"
+            )
+            .textContent =
+            "Could not load research universe";
+    }
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+loadData();
+
+animate(
+    performance.now()
 );
 
 </script>
