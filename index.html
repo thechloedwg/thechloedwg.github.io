@@ -4722,8 +4722,9 @@ function updateMarkerConnector() {
 
 }
 
+
 /* =========================================================
-   POINTER / TOUCH STATE
+   POINTER STATE
    ========================================================= */
 
 let isPointerDown = false;
@@ -4731,8 +4732,6 @@ let isPointerDown = false;
 let isDragging = false;
 
 let didDrag = false;
-
-let didPinch = false;
 
 let pointerStartX = 0;
 
@@ -4742,59 +4741,128 @@ let previousPointerX = 0;
 
 let previousPointerY = 0;
 
-const activePointers =
-    new Map();
-
-let previousPinchDistance =
-    null;
-
 const DRAG_THRESHOLD = 6;
 
 const DRAG_SENSITIVITY = 0.0035;
 
-const PINCH_SENSITIVITY_PLANET = 0.018;
-
-const PINCH_SENSITIVITY_GALAXY = 0.025;
-
-
-/* =========================================================
-   POINTER HELPERS
+    /* =========================================================
+   MARKER ROTATION
    ========================================================= */
 
-function getPinchDistance() {
+let markerRotationAnimating = false;
 
-    const pointers =
-        Array.from(
-            activePointers.values()
-        );
+let markerRotationStartTime = 0;
 
+const MARKER_ROTATION_DURATION = 650;
+
+const markerRotationStart =
+    new THREE.Euler();
+
+const markerRotationTarget =
+    new THREE.Euler();
+
+    function rotatePlanetToMarker(
+    marker
+) {
 
     if (
-        pointers.length < 2
+        !selectedPlanet ||
+        !marker
     ) {
 
-        return null;
+        return;
 
     }
 
 
-    const dx =
-        pointers[0].x -
-        pointers[1].x;
+    /*
+       Get the marker's position relative
+       to the planet.
+
+       Because the marker is a child of the
+       planet, this gives us its fixed local
+       position regardless of the planet's
+       current rotation.
+    */
+
+    const worldPosition =
+        new THREE.Vector3();
 
 
-    const dy =
-        pointers[0].y -
-        pointers[1].y;
-
-
-    return Math.sqrt(
-        dx * dx +
-        dy * dy
+    marker.getWorldPosition(
+        worldPosition
     );
 
-}
 
+    const localPosition =
+        selectedPlanet
+            .worldToLocal(
+                worldPosition.clone()
+            );
+
+
+    localPosition.normalize();
+
+
+    /*
+       Camera direction from the planet.
+
+       We want the selected marker to point
+       towards the camera, which puts it at
+       the centre/front of the planet.
+    */
+
+    const cameraDirection =
+        camera.position
+            .clone()
+            .sub(
+                selectedPlanet.position
+            )
+            .normalize();
+
+
+    /*
+       Find the shortest rotation that moves
+       the marker direction onto the camera
+       direction.
+    */
+
+    const targetQuaternion =
+        new THREE.Quaternion();
+
+
+    targetQuaternion.setFromUnitVectors(
+        localPosition,
+        cameraDirection
+    );
+
+
+    const targetEuler =
+        new THREE.Euler()
+            .setFromQuaternion(
+                targetQuaternion,
+                "XYZ"
+            );
+
+
+    markerRotationStart.copy(
+        selectedPlanet.rotation
+    );
+
+
+    markerRotationTarget.copy(
+        targetEuler
+    );
+
+
+    markerRotationStartTime =
+        performance.now();
+
+
+    markerRotationAnimating =
+        true;
+
+}
 
 /* =========================================================
    POINTER DOWN
@@ -4807,72 +4875,17 @@ renderer.domElement.addEventListener(
     event => {
 
         if (
-            cameraAnimating ||
-            markerRotationAnimating
-        ) {
+    cameraAnimating ||
+    markerRotationAnimating
+) {
 
-            return;
+    return;
 
-        }
+}
 
 
         event.preventDefault();
 
-
-        activePointers.set(
-
-            event.pointerId,
-
-            {
-                x: event.clientX,
-                y: event.clientY
-            }
-
-        );
-
-
-        /*
-           --------------------------------------------------
-           SECOND FINGER / PINCH START
-           --------------------------------------------------
-        */
-
-        if (
-            activePointers.size === 2
-        ) {
-
-            didPinch = true;
-
-            isDragging = false;
-
-            didDrag = false;
-
-
-            previousPinchDistance =
-                getPinchDistance();
-
-
-            /*
-               Do NOT close the marker here.
-
-               Pinching is zooming, not rotating.
-            */
-
-            renderer.domElement.setPointerCapture(
-                event.pointerId
-            );
-
-
-            return;
-
-        }
-
-
-        /*
-           --------------------------------------------------
-           FIRST FINGER
-           --------------------------------------------------
-        */
 
         isPointerDown = true;
 
@@ -4894,11 +4907,6 @@ renderer.domElement.addEventListener(
         previousPointerY =
             event.clientY;
 
-
-        /*
-           Store galaxy camera orientation at
-           the beginning of a drag.
-        */
 
         if (
             !planetMode
@@ -4966,130 +4974,6 @@ renderer.domElement.addEventListener(
 
     event => {
 
-        /*
-           Update this pointer's position.
-        */
-
-        if (
-            activePointers.has(
-                event.pointerId
-            )
-        ) {
-
-            activePointers.set(
-
-                event.pointerId,
-
-                {
-                    x: event.clientX,
-                    y: event.clientY
-                }
-
-            );
-
-        }
-
-
-        /*
-           --------------------------------------------------
-           PINCH ZOOM
-           --------------------------------------------------
-        */
-
-        if (
-            activePointers.size >= 2
-        ) {
-
-            const pinchDistance =
-                getPinchDistance();
-
-
-            if (
-                previousPinchDistance !== null
-            ) {
-
-                const pinchDelta =
-                    pinchDistance -
-                    previousPinchDistance;
-
-
-                if (
-                    planetMode
-                ) {
-
-                    /*
-                       Fingers moving apart:
-                       pinchDelta > 0
-                       camera moves closer.
-                    */
-
-                    planetDistance -=
-                        pinchDelta *
-                        PINCH_SENSITIVITY_PLANET;
-
-
-                    planetDistance =
-                        THREE.MathUtils.clamp(
-
-                            planetDistance,
-
-                            3.5,
-
-                            15
-
-                        );
-
-
-                    updatePlanetCamera();
-
-                } else {
-
-                    galaxyDistance -=
-                        pinchDelta *
-                        PINCH_SENSITIVITY_GALAXY;
-
-
-                    galaxyDistance =
-                        THREE.MathUtils.clamp(
-
-                            galaxyDistance,
-
-                            8,
-
-                            45
-
-                        );
-
-
-                    updateGalaxyCamera();
-
-                }
-
-            }
-
-
-            previousPinchDistance =
-                pinchDistance;
-
-
-            /*
-               Pinching is navigation, not a click.
-            */
-
-            didPinch = true;
-
-
-            return;
-
-        }
-
-
-        /*
-           --------------------------------------------------
-           NO ACTIVE DRAG
-           --------------------------------------------------
-        */
-
         if (
             !isPointerDown
         ) {
@@ -5102,10 +4986,6 @@ renderer.domElement.addEventListener(
 
             }
 
-
-            /*
-               Desktop / galaxy hover detection.
-            */
 
             mouse.x =
                 (
@@ -5186,12 +5066,6 @@ renderer.domElement.addEventListener(
         }
 
 
-        /*
-           --------------------------------------------------
-           ONE-FINGER / MOUSE DRAG
-           --------------------------------------------------
-        */
-
         const movementX =
             event.clientX -
             previousPointerX;
@@ -5221,44 +5095,35 @@ renderer.domElement.addEventListener(
             );
 
 
-        /*
-           Don't classify a movement as a drag
-           until it has passed the threshold.
-
-           This is what prevents accidental
-           marker selection while dragging.
-        */
-
         if (
-            !isDragging &&
-            distance >
-            DRAG_THRESHOLD
-        ) {
+    !isDragging &&
+    distance >
+    DRAG_THRESHOLD
+) {
 
-            isDragging =
-                true;
+    isDragging =
+        true;
 
-            didDrag =
-                true;
+    didDrag =
+        true;
 
 
-            /*
-               A real one-finger drag closes
-               the marker.
+    /*
+       Starting a real drag means the user is
+       navigating the planet rather than reading
+       the selected marker.
+    */
 
-               Pinching does NOT do this.
-            */
+    if (
+        planetMode &&
+        activeMarker
+    ) {
 
-            if (
-                planetMode &&
-                activeMarker
-            ) {
+        closeMarker();
 
-                closeMarker();
+    }
 
-            }
-
-        }
+}
 
 
         if (
@@ -5276,12 +5141,6 @@ renderer.domElement.addEventListener(
         previousPointerY =
             event.clientY;
 
-
-        /*
-           --------------------------------------------------
-           PLANET ROTATION
-           --------------------------------------------------
-        */
 
         if (
             planetMode
@@ -5334,12 +5193,6 @@ renderer.domElement.addEventListener(
         }
 
 
-        /*
-           --------------------------------------------------
-           GALAXY ROTATION
-           --------------------------------------------------
-        */
-
         galaxyYaw -=
             movementX *
             DRAG_SENSITIVITY;
@@ -5383,71 +5236,13 @@ renderer.domElement.addEventListener(
 
     event => {
 
-        /*
-           Remove this pointer from the active
-           pointer list.
-        */
-
-        activePointers.delete(
-            event.pointerId
-        );
-
-
-        /*
-           --------------------------------------------------
-           STILL HAVE ONE FINGER DOWN
-           --------------------------------------------------
-           
-           This means a pinch has just transitioned
-           back to one finger.
-
-           Reset the remaining finger's position
-           so releasing the second finger doesn't
-           cause a huge rotation jump.
-        */
-
-        if (
-            activePointers.size === 1
-        ) {
-
-            const remainingPointer =
-                Array.from(
-                    activePointers.values()
-                )[0];
-
-
-            previousPointerX =
-                remainingPointer.x;
-
-            previousPointerY =
-                remainingPointer.y;
-
-
-            previousPinchDistance =
-                null;
-
-
-            return;
-
-        }
-
-
-        /*
-           --------------------------------------------------
-           ALL POINTERS RELEASED
-           --------------------------------------------------
-        */
-
         const wasDragging =
             didDrag;
 
 
-        const wasPinching =
-            didPinch;
-
-
         isPointerDown =
             false;
+
 
         isDragging =
             false;
@@ -5469,27 +5264,11 @@ renderer.domElement.addEventListener(
         ) {}
 
 
-        /*
-           Reset pinch state.
-        */
-
-        previousPinchDistance =
-            null;
-
-
-        /*
-           A drag or pinch is NEVER a click.
-        */
-
         if (
-            wasDragging ||
-            wasPinching
+            wasDragging
         ) {
 
             didDrag =
-                false;
-
-            didPinch =
                 false;
 
             return;
@@ -5498,35 +5277,17 @@ renderer.domElement.addEventListener(
 
 
         if (
-            cameraAnimating ||
-            markerRotationAnimating
+            cameraAnimating
         ) {
-
-            didDrag =
-                false;
-
-            didPinch =
-                false;
 
             return;
 
         }
 
-
-        /*
-           Otherwise this was a genuine tap/click.
-        */
 
         handleClick(
             event
         );
-
-
-        didDrag =
-            false;
-
-        didPinch =
-            false;
 
     }
 
@@ -5543,11 +5304,6 @@ renderer.domElement.addEventListener(
 
     event => {
 
-        activePointers.delete(
-            event.pointerId
-        );
-
-
         isPointerDown =
             false;
 
@@ -5556,13 +5312,6 @@ renderer.domElement.addEventListener(
 
         didDrag =
             false;
-
-        didPinch =
-            false;
-
-        previousPinchDistance =
-            null;
-
 
         document.body.classList.remove(
             "dragging"
@@ -5582,6 +5331,7 @@ renderer.domElement.addEventListener(
     }
 
 );
+
 
 /* =========================================================
    CLICK HANDLER
