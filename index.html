@@ -498,6 +498,11 @@ canvas {
 
 @media (max-width: 700px) {
 
+    /* Hide ONLY the upper-left planet pointer */
+    #upperLeftPointer {
+        display: none;
+    }
+
     .title {
         top: 17px;
         left: 50%;
@@ -750,6 +755,7 @@ canvas {
      ================================================= -->
 
 <path
+    id="upperLeftPointer"
     class="hud-line"
     d="
         M 52 178
