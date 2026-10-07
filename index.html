@@ -1448,7 +1448,7 @@ let defaultCloudTexture =
    DATA
    ========================================================= */
 
-let pointData = [];
+let markerData = [];
 
 let appearanceData = [];
 
@@ -3627,7 +3627,7 @@ function createProjectPlanet(
 
 function attachResearchPoints() {
 
-    pointData.forEach(
+    markerData.forEach(
         row => {
 
             const project =
@@ -3692,7 +3692,7 @@ function buildGalaxy() {
         new Set();
 
 
-    pointData.forEach(
+    markerData.forEach(
         row => {
 
             const project =
@@ -4271,7 +4271,7 @@ function showPlanetHUD(
 
 
     const points =
-        pointData.filter(
+        markerData.filter(
             row =>
                 clean(
                     row.project
@@ -6017,7 +6017,7 @@ async function loadData() {
         console.log(POINTS_CSV);
 
         const pointsResponse = await fetch(
-            POINTS_CSV + "&cache=" + Date.now()
+            MARKERS_CSV + "&cache=" + Date.now()
         );
 
         console.log(
@@ -6076,7 +6076,7 @@ async function loadData() {
            PARSE
            --------------------------------------------- */
 
-        pointData =
+        markerData =
             parseCSV(pointsText);
 
         appearanceData =
@@ -6085,7 +6085,7 @@ async function loadData() {
 
         console.log(
             "Parsed research points:",
-            pointData
+            markerData
         );
 
         console.log(
@@ -6098,7 +6098,7 @@ async function loadData() {
            CHECK DATA
            --------------------------------------------- */
 
-        if (!pointData.length) {
+        if (!markerData.length) {
 
             throw new Error(
                 "The research-points spreadsheet loaded but contains no rows."
