@@ -1,35 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Chloe DWG — Research Universe</title>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+    Chloe DWG — Research Universe
+</title>
+
 
 <style>
+
+/* =========================================================
+   BASE
+   ========================================================= */
 
 * {
     box-sizing: border-box;
 }
 
+
 html,
 body {
+
     margin: 0;
+
     width: 100%;
     height: 100%;
+
     overflow: hidden;
+
     background: #02040a;
+
     color: white;
-    font-family: Arial, Helvetica, sans-serif;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 }
+
 
 body {
     cursor: grab;
 }
 
+
 body.dragging {
     cursor: grabbing;
 }
+
 
 canvas {
     display: block;
@@ -41,20 +67,28 @@ canvas {
    ========================================================= */
 
 .ui {
+
     position: fixed;
+
     inset: 0;
+
     pointer-events: none;
+
     z-index: 10;
 }
 
 
 .title {
+
     position: absolute;
+
     top: 24px;
     left: 28px;
 
     font-size: 12px;
+
     letter-spacing: 0.18em;
+
     opacity: 0.75;
 
     text-transform: uppercase;
@@ -62,14 +96,17 @@ canvas {
 
 
 .instructions {
+
     position: absolute;
 
     bottom: 24px;
     left: 50%;
 
-    transform: translateX(-50%);
+    transform:
+        translateX(-50%);
 
     font-size: 10px;
+
     letter-spacing: 0.18em;
 
     opacity: 0.45;
@@ -92,6 +129,7 @@ canvas {
     right: 26px;
 
     pointer-events: auto;
+
     cursor: pointer;
 
     border:
@@ -99,7 +137,7 @@ canvas {
         rgba(255,255,255,0.35);
 
     background:
-        rgba(2,4,10,0.65);
+        rgba(2,4,10,0.55);
 
     color: white;
 
@@ -119,9 +157,11 @@ canvas {
         border-color 0.2s ease;
 }
 
+
 .back-button.visible {
     opacity: 0.8;
 }
+
 
 .back-button:hover {
 
@@ -133,7 +173,7 @@ canvas {
 
 
 /* =========================================================
-   PLANET LABEL
+   PLANET HOVER LABEL
    ========================================================= */
 
 .planet-label {
@@ -151,10 +191,13 @@ canvas {
         rgba(255,255,255,0.25);
 
     background:
-        rgba(2,4,10,0.78);
+        rgba(2,4,10,0.65);
 
     backdrop-filter:
-        blur(8px);
+        blur(5px);
+
+    -webkit-backdrop-filter:
+        blur(5px);
 
     font-size: 10px;
 
@@ -170,13 +213,14 @@ canvas {
         opacity 0.15s ease;
 }
 
+
 .planet-label.visible {
     opacity: 1;
 }
 
 
 /* =========================================================
-   RESEARCH DASHBOARD
+   PROJECT DASHBOARD
    ========================================================= */
 
 .research-dashboard {
@@ -184,34 +228,112 @@ canvas {
     position: absolute;
 
     top: 50%;
-    right: 28px;
+    right: 30px;
 
     transform:
         translateY(-50%)
         translateX(20px);
 
     width:
-        min(390px, calc(100vw - 56px));
+        min(
+            370px,
+            calc(100vw - 60px)
+        );
 
     padding:
-        24px 25px 26px;
+        22px 24px 24px;
+
+    /*
+       Transparent holographic panel.
+       The planet remains visible underneath.
+    */
+
+    background:
+        rgba(2,8,14,0.48);
+
+    backdrop-filter:
+        blur(5px);
+
+    -webkit-backdrop-filter:
+        blur(5px);
 
     border:
         1px solid
         rgba(255,255,255,0.24);
 
-    background:
-        rgba(2,4,10,0.82);
+    box-shadow:
+        0 0 35px
+        rgba(0,0,0,0.18),
 
-    backdrop-filter:
-        blur(18px);
+        inset 0 0 25px
+        rgba(255,255,255,0.025);
 
     opacity: 0;
 
     transition:
         opacity 0.35s ease,
         transform 0.35s ease;
+
+    pointer-events: none;
+
+    overflow: hidden;
 }
+
+
+/*
+   Very subtle holographic scan layer.
+*/
+
+.research-dashboard::before {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 5px,
+            rgba(255,255,255,0.018) 6px,
+            transparent 7px
+        );
+
+    pointer-events: none;
+
+    opacity: 0.45;
+}
+
+
+/*
+   Technical corner detail.
+*/
+
+.research-dashboard::after {
+
+    content: "";
+
+    position: absolute;
+
+    top: 7px;
+    right: 7px;
+
+    width: 22px;
+    height: 22px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,0.45);
+
+    border-right:
+        1px solid
+        rgba(255,255,255,0.45);
+
+    opacity: 0.65;
+}
+
 
 .research-dashboard.visible {
 
@@ -225,13 +347,15 @@ canvas {
 
 .dashboard-project {
 
-    font-size: 9px;
+    position: relative;
 
-    letter-spacing: 0.25em;
+    font-size: 8px;
+
+    letter-spacing: 0.28em;
 
     text-transform: uppercase;
 
-    opacity: 0.45;
+    opacity: 0.48;
 
     margin-bottom: 8px;
 }
@@ -239,99 +363,120 @@ canvas {
 
 .dashboard-name {
 
-    font-size: 25px;
+    position: relative;
+
+    font-size: 24px;
 
     line-height: 1.15;
 
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+
+    letter-spacing: 0.01em;
 }
 
 
 .dashboard-status {
 
+    position: relative;
+
     display: inline-block;
 
     padding:
-        5px 8px;
-
-    border:
-        1px solid
-        rgba(255,255,255,0.25);
-
-    font-size: 8px;
-
-    letter-spacing: 0.18em;
-
-    text-transform: uppercase;
-
-    opacity: 0.65;
-
-    margin-bottom: 20px;
-}
-
-
-.dashboard-section {
-
-    border-top:
-        1px solid
-        rgba(255,255,255,0.12);
-
-    padding-top: 14px;
-
-    margin-top: 14px;
-}
-
-
-.dashboard-heading {
-
-    font-size: 8px;
-
-    letter-spacing: 0.2em;
-
-    text-transform: uppercase;
-
-    opacity: 0.4;
-
-    margin-bottom: 7px;
-}
-
-
-.dashboard-text {
-
-    font-size: 12px;
-
-    line-height: 1.55;
-
-    opacity: 0.82;
-}
-
-
-/* =========================================================
-   RESEARCH CARD
-   ========================================================= */
-
-.research-card {
-
-    position: absolute;
-
-    right: 28px;
-    bottom: 28px;
-
-    width:
-        min(350px, calc(100vw - 56px));
-
-    padding:
-        18px 20px;
+        4px 8px;
 
     border:
         1px solid
         rgba(255,255,255,0.25);
 
     background:
-        rgba(2,4,10,0.86);
+        rgba(255,255,255,0.025);
+
+    font-size: 7px;
+
+    letter-spacing: 0.2em;
+
+    text-transform: uppercase;
+
+    opacity: 0.62;
+
+    margin-bottom: 16px;
+}
+
+
+.dashboard-section {
+
+    position: relative;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    padding-top: 12px;
+
+    margin-top: 12px;
+}
+
+
+.dashboard-heading {
+
+    font-size: 7px;
+
+    letter-spacing: 0.23em;
+
+    text-transform: uppercase;
+
+    opacity: 0.42;
+
+    margin-bottom: 6px;
+}
+
+
+.dashboard-text {
+
+    font-size: 11px;
+
+    line-height: 1.55;
+
+    opacity: 0.78;
+}
+
+
+/* =========================================================
+   RESEARCH / BLOG CARD
+   ========================================================= */
+
+.research-card {
+
+    position: absolute;
+
+    left: 28px;
+    bottom: 28px;
+
+    width:
+        min(
+            350px,
+            calc(100vw - 56px)
+        );
+
+    padding:
+        16px 18px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.22);
+
+    background:
+        rgba(2,4,10,0.52);
 
     backdrop-filter:
-        blur(14px);
+        blur(5px);
+
+    -webkit-backdrop-filter:
+        blur(5px);
+
+    box-shadow:
+        0 0 25px
+        rgba(0,0,0,0.15);
 
     opacity: 0;
 
@@ -341,7 +486,10 @@ canvas {
     transition:
         opacity 0.25s ease,
         transform 0.25s ease;
+
+    pointer-events: auto;
 }
+
 
 .research-card.visible {
 
@@ -391,6 +539,7 @@ canvas {
     opacity: 0.7;
 }
 
+
 .research-link:hover {
     opacity: 1;
 }
@@ -422,11 +571,14 @@ canvas {
         opacity 0.4s ease;
 }
 
+
 .loading.hidden {
     opacity: 0;
 }
 
+
 </style>
+
 </head>
 
 
@@ -434,6 +586,7 @@ canvas {
 
 
 <div class="ui">
+
 
     <div class="title">
         CHLOE DWG — RESEARCH UNIVERSE
@@ -454,7 +607,9 @@ canvas {
     ></div>
 
 
-    <!-- PROJECT DASHBOARD -->
+    <!-- =====================================================
+         PROJECT DASHBOARD
+         ===================================================== -->
 
     <div
         class="research-dashboard"
@@ -466,10 +621,12 @@ canvas {
             id="dashboardProject"
         ></div>
 
+
         <div
             class="dashboard-name"
             id="dashboardName"
         ></div>
+
 
         <div
             class="dashboard-status"
@@ -521,7 +678,9 @@ canvas {
     </div>
 
 
-    <!-- ARTICLE CARD -->
+    <!-- =====================================================
+         ARTICLE CARD
+         ===================================================== -->
 
     <div
         class="research-card"
@@ -533,10 +692,12 @@ canvas {
             id="researchCountry"
         ></div>
 
+
         <div
             class="research-title"
             id="researchTitle"
         ></div>
+
 
         <a
             class="research-link"
@@ -593,8 +754,11 @@ const APPEARANCE_CSV =
 const scene =
     new THREE.Scene();
 
+
 scene.background =
-    new THREE.Color(0x02040a);
+    new THREE.Color(
+        0x02040a
+    );
 
 
 const camera =
@@ -614,8 +778,6 @@ camera.position.set(
 );
 
 
-/* The point the camera is looking at */
-
 const cameraLookTarget =
     new THREE.Vector3(
         0,
@@ -626,7 +788,9 @@ const cameraLookTarget =
 
 const renderer =
     new THREE.WebGLRenderer({
+
         antialias: true,
+
         alpha: false
     });
 
@@ -660,6 +824,7 @@ const ambientLight =
         1.1
     );
 
+
 scene.add(
     ambientLight
 );
@@ -671,11 +836,13 @@ const directionalLight =
         1.8
     );
 
+
 directionalLight.position.set(
     5,
     4,
     8
 );
+
 
 scene.add(
     directionalLight
@@ -1114,7 +1281,7 @@ function sizeToRadius(size) {
 
 
 /* =========================================================
-   LAT/LONG
+   LAT / LONG
    ========================================================= */
 
 function latLonToVector3(
@@ -1297,7 +1464,9 @@ function createLatitudeLongitudeGrid(
             );
 
 
-        group.add(line);
+        group.add(
+            line
+        );
     }
 
 
@@ -1375,7 +1544,9 @@ function createLatitudeLongitudeGrid(
             );
 
 
-        group.add(line);
+        group.add(
+            line
+        );
     }
 
 
@@ -1890,12 +2061,7 @@ function createCloudLayer(
     }
 
 
-    /*
-       Density controls the scale and visibility
-       of the cloud texture.
-    */
-
-    let density =
+    const density =
         clean(
             cloudDensity
         ).toLowerCase();
@@ -1924,11 +2090,6 @@ function createCloudLayer(
         );
 
 
-    /*
-       Different density settings alter
-       the visual strength of the layer.
-    */
-
     let densityMultiplier =
         1;
 
@@ -1939,13 +2100,6 @@ function createCloudLayer(
 
         densityMultiplier =
             0.65;
-
-    } else if (
-        density === "medium"
-    ) {
-
-        densityMultiplier =
-            1;
 
     } else if (
         density === "dense"
@@ -2076,7 +2230,9 @@ function createProjectPlanet(
 
         pointStyle:
             clean(
-                appearance["point style"]
+                appearance[
+                    "point style"
+                ]
             ).toLowerCase(),
 
         appearance:
@@ -2420,7 +2576,7 @@ function createProjectPlanet(
 
 
 /* =========================================================
-   RESEARCH POINTS
+   RESEARCH POINT
    ========================================================= */
 
 function createResearchPin(
@@ -2481,18 +2637,14 @@ function createResearchPin(
 
 
     /*
-       IMPORTANT:
-       The pin group itself is positioned on
-       the planet surface.
+       The marker group is fixed permanently
+       to the surface.
 
-       Previously the pulse animation scaled
-       the entire group, which meant the position
-       itself changed and the pin appeared to jump.
-
-       Now the group stays fixed.
+       We NEVER scale this parent.
     */
 
     group.position.copy(
+
         normal.clone()
             .multiplyScalar(
                 radius * 1.028
@@ -2501,59 +2653,17 @@ function createResearchPin(
 
 
     /* =====================================================
-       VISIBLE DOT
-       ===================================================== */
-
-    const dotGeometry =
-        new THREE.SphereGeometry(
-            radius * 0.035,
-            20,
-            20
-        );
-
-
-    const dotMaterial =
-        new THREE.MeshBasicMaterial({
-
-            color:
-                colour,
-
-            transparent: true,
-
-            opacity: 1,
-
-            depthWrite: false
-        });
-
-
-    const dot =
-        new THREE.Mesh(
-            dotGeometry,
-            dotMaterial
-        );
-
-
-    dot.userData.isResearchMarker =
-        true;
-
-
-    group.add(
-        dot
-    );
-
-
-    /* =====================================================
-       OUTER RING
+       HOLOGRAPHIC RING
        ===================================================== */
 
     const ringGeometry =
         new THREE.RingGeometry(
 
-            radius * 0.045,
+            radius * 0.055,
 
-            radius * 0.065,
+            radius * 0.075,
 
-            32
+            48
         );
 
 
@@ -2565,7 +2675,7 @@ function createResearchPin(
 
             transparent: true,
 
-            opacity: 0.9,
+            opacity: 0.72,
 
             side:
                 THREE.DoubleSide,
@@ -2603,8 +2713,16 @@ function createResearchPin(
 
 
     /* =====================================================
-       LARGE INVISIBLE HIT AREA
+       INVISIBLE HIT AREA
        ===================================================== */
+
+    /*
+       This is deliberately much larger than
+       the visible marker.
+
+       It makes clicking a country easy without
+       visually changing the design.
+    */
 
     const hitGeometry =
         new THREE.SphereGeometry(
@@ -2833,6 +2951,11 @@ function buildGalaxy() {
     );
 
 
+    /*
+       A planet only exists when its project
+       has at least one research point.
+    */
+
     const activeAppearances =
         appearanceData.filter(
 
@@ -2921,7 +3044,7 @@ function buildGalaxy() {
 
 
 /* =========================================================
-   CAMERA LOOK
+   CAMERA
    ========================================================= */
 
 function updateCameraLook() {
@@ -2931,10 +3054,6 @@ function updateCameraLook() {
     );
 }
 
-
-/* =========================================================
-   CAMERA ANIMATION
-   ========================================================= */
 
 function startCameraAnimation(
     targetPosition,
@@ -3085,10 +3204,6 @@ function enterPlanet(
         "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A LOCATION";
 
 
-    /* =====================================================
-       HIDE HOVER LABEL
-       ===================================================== */
-
     hoveredPlanet =
         null;
 
@@ -3102,18 +3217,17 @@ function enterPlanet(
         );
 
 
-    /* =====================================================
-       SHOW PROJECT DASHBOARD
-       ===================================================== */
-
     showProjectDashboard(
         planet.userData.appearance
     );
 
 
-    /* =====================================================
-       HIDE OTHER PLANETS
-       ===================================================== */
+    /*
+       Hide every other research world.
+
+       This means the selected world becomes
+       the entire focus of the screen.
+    */
 
     planets.forEach(
         other => {
@@ -3135,9 +3249,9 @@ function enterPlanet(
     );
 
 
-    /* =====================================================
-       FIND ACTUAL PLANET POSITION
-       ===================================================== */
+    /*
+       Find the planet's actual world position.
+    */
 
     const worldPosition =
         new THREE.Vector3();
@@ -3149,14 +3263,11 @@ function enterPlanet(
 
 
     /*
-       The camera should end up directly in front
-       of the planet from its CURRENT viewing direction.
+       Put the camera on the side of the planet
+       from which it is currently viewing.
 
-       This is the important fix.
-
-       We calculate the vector from the planet
-       towards the current camera, then place the
-       camera along that vector at a sensible distance.
+       This avoids the old "fly to the wrong side
+       of the planet" problem.
     */
 
     const cameraDirection =
@@ -3164,8 +3275,24 @@ function enterPlanet(
             .clone()
             .sub(
                 worldPosition
-            )
-            .normalize();
+            );
+
+
+    if (
+        cameraDirection.lengthSq() <
+        0.001
+    ) {
+
+        cameraDirection.set(
+            0,
+            0,
+            1
+        );
+
+    } else {
+
+        cameraDirection.normalize();
+    }
 
 
     const distance =
@@ -3242,8 +3369,6 @@ function exitPlanet() {
         "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD";
 
 
-    /* Restore planets */
-
     planets.forEach(
         planet => {
 
@@ -3257,10 +3382,6 @@ function exitPlanet() {
 
     hideProjectDashboard();
 
-
-    /*
-       Return camera to galaxy.
-    */
 
     startCameraAnimation(
 
@@ -3507,44 +3628,8 @@ function updatePlanetLabel() {
 
 
 /* =========================================================
-   POINTER / NAVIGATION
+   CAMERA ORBIT
    ========================================================= */
-
-let isPointerDown =
-    false;
-
-
-let isDragging =
-    false;
-
-
-let pointerStartX =
-    0;
-
-
-let pointerStartY =
-    0;
-
-
-let previousPointerX =
-    0;
-
-
-let previousPointerY =
-    0;
-
-
-const DRAG_THRESHOLD =
-    6;
-
-
-const DRAG_SENSITIVITY =
-    0.0035;
-
-
-/*
-   Galaxy camera orbit values.
-*/
 
 let galaxyYaw =
     0;
@@ -3557,10 +3642,6 @@ let galaxyPitch =
 let galaxyDistance =
     20;
 
-
-/*
-   Planet camera orbit values.
-*/
 
 let planetYaw =
     0;
@@ -3698,6 +3779,42 @@ function updatePlanetCamera() {
 
 
 /* =========================================================
+   POINTER STATE
+   ========================================================= */
+
+let isPointerDown =
+    false;
+
+
+let isDragging =
+    false;
+
+
+let pointerStartX =
+    0;
+
+
+let pointerStartY =
+    0;
+
+
+let previousPointerX =
+    0;
+
+
+let previousPointerY =
+    0;
+
+
+const DRAG_THRESHOLD =
+    6;
+
+
+const DRAG_SENSITIVITY =
+    0.0035;
+
+
+/* =========================================================
    POINTER DOWN
    ========================================================= */
 
@@ -3744,8 +3861,8 @@ renderer.domElement.addEventListener(
 
 
         /*
-           Initialise orbit angles from the
-           current camera position when in galaxy mode.
+           Reconstruct galaxy orbit from the
+           current camera position.
         */
 
         if (!planetMode) {
@@ -3844,7 +3961,7 @@ renderer.domElement.addEventListener(
     event => {
 
         /*
-           HOVER
+           Hover only exists in galaxy mode.
         */
 
         if (!isPointerDown) {
@@ -3929,7 +4046,7 @@ renderer.domElement.addEventListener(
 
 
         /*
-           DRAG DETECTION
+           Drag detection.
         */
 
         const dx =
@@ -3989,7 +4106,7 @@ renderer.domElement.addEventListener(
 
         /*
            GALAXY:
-           drag the camera.
+           move the camera around the universe.
         */
 
         if (!planetMode) {
@@ -4024,8 +4141,8 @@ renderer.domElement.addEventListener(
 
         /*
            PLANET:
-           drag the planet camera around
-           the selected world.
+           orbit the camera around the selected
+           research planet.
         */
 
         planetYaw -=
@@ -4055,7 +4172,7 @@ renderer.domElement.addEventListener(
 
 
 /* =========================================================
-   FINISH POINTER
+   POINTER FINISH
    ========================================================= */
 
 function finishPointer(
@@ -4173,7 +4290,7 @@ function handleClick(
 
 
     /* =====================================================
-       GALAXY MODE
+       GALAXY
        ===================================================== */
 
     if (!planetMode) {
@@ -4226,7 +4343,7 @@ function handleClick(
 
 
     /* =====================================================
-       PLANET MODE
+       PLANET
        ===================================================== */
 
     if (
@@ -4251,12 +4368,6 @@ function handleClick(
         return;
     }
 
-
-    /*
-       Recursive raycast into all pin geometry.
-       The invisible hit sphere makes the clickable
-       area much larger than the visible marker.
-    */
 
     const intersects =
         raycaster.intersectObjects(
@@ -4326,14 +4437,11 @@ renderer.domElement.addEventListener(
         }
 
 
+        /*
+           GALAXY ZOOM
+        */
+
         if (!planetMode) {
-
-            /*
-               Galaxy zoom.
-
-               This ONLY changes camera distance.
-               It does NOT rotate planets.
-            */
 
             galaxyDistance +=
                 event.deltaY *
@@ -4357,7 +4465,7 @@ renderer.domElement.addEventListener(
         } else {
 
             /*
-               Planet zoom.
+               PLANET ZOOM
             */
 
             planetDistance +=
@@ -4453,15 +4561,6 @@ function animate(now) {
        AUTOMATIC PLANET ROTATION
        ===================================================== */
 
-    /*
-       IMPORTANT:
-
-       In galaxy mode the CAMERA moves.
-
-       The planets can still slowly rotate visually,
-       but dragging no longer rotates the entire galaxy.
-    */
-
     if (
         !isPointerDown &&
         !isDragging &&
@@ -4494,23 +4593,13 @@ function animate(now) {
 
 
                 /*
-                   In planet mode the selected planet
-                   itself remains stable while the
-                   camera orbits it.
+                   In planet mode the camera moves
+                   around the selected planet instead.
                 */
 
                 if (
                     planetMode
                 ) {
-
-                    if (
-                        planet !==
-                        selectedPlanet
-                    ) {
-
-                        return;
-                    }
-
 
                     return;
                 }
@@ -4550,7 +4639,7 @@ function animate(now) {
 
 
     /* =====================================================
-       POINT PULSES
+       HOLOGRAPHIC POINT PULSES
        ===================================================== */
 
     planets.forEach(
@@ -4594,13 +4683,12 @@ function animate(now) {
 
 
                         /*
-                           IMPORTANT:
+                           ONLY visible marker
+                           geometry is scaled.
 
-                           Scale the marker itself,
-                           NOT the pin group.
-
-                           This stops the pin from
-                           physically jumping.
+                           The parent group remains fixed,
+                           and the invisible hit area remains
+                           fixed.
                         */
 
                         pin.children.forEach(
@@ -4615,11 +4703,20 @@ function animate(now) {
                                 }
 
 
-                                child.scale.set(
-                                    scale,
-                                    scale,
-                                    scale
-                                );
+                                if (
+                                    child.userData &&
+                                    child.userData.isResearchMarker
+                                ) {
+
+                                    child.scale.set(
+
+                                        scale,
+
+                                        scale,
+
+                                        scale
+                                    );
+                                }
                             }
                         );
                     }
@@ -4630,7 +4727,7 @@ function animate(now) {
 
 
     /* =====================================================
-       SCAN LINE ANIMATION
+       SCAN LINES
        ===================================================== */
 
     planets.forEach(
@@ -4642,12 +4739,8 @@ function animate(now) {
                     if (
                         child.children &&
                         child.children.length &&
-                        child !==
-                        planet.children.find(
-                            c =>
-                                c.name ===
-                                "Research Points"
-                        )
+                        child.name !==
+                        "Research Points"
                     ) {
 
                         child.children.forEach(
@@ -4672,6 +4765,10 @@ function animate(now) {
     );
 
 
+    /* =====================================================
+       RENDER
+       ===================================================== */
+
     renderer.render(
         scene,
         camera
@@ -4680,7 +4777,7 @@ function animate(now) {
 
 
 /* =========================================================
-   WINDOW RESIZE
+   RESIZE
    ========================================================= */
 
 window.addEventListener(
@@ -4708,7 +4805,7 @@ window.addEventListener(
 
 
 /* =========================================================
-   LOAD DATA
+   LOAD GOOGLE SHEETS
    ========================================================= */
 
 async function loadData() {
@@ -4781,10 +4878,6 @@ async function loadData() {
         buildGalaxy();
 
 
-        /*
-           Initialise galaxy camera.
-        */
-
         updateGalaxyCamera();
 
 
@@ -4828,4 +4921,5 @@ animate(
 </script>
 
 </body>
+
 </html>
