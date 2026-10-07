@@ -303,6 +303,15 @@ canvas {
     opacity: 0.75;
 }
 
+.question-pointer {
+    position: absolute;
+    left: 0;
+    top: -30px;
+    width: 300px;
+    height: 80px;
+    overflow: visible;
+    pointer-events: none;
+}
 
 /* =========================================================
    RIGHT MEASUREMENT SCALE
@@ -622,8 +631,7 @@ canvas {
         height: 45px;
     }
 
-    id="lowerLeftPointer" {
-         transform: translateY(50px);
+
 
 }
 
@@ -767,23 +775,6 @@ canvas {
     "
 />
 
-
-<!-- =================================================
-     LEFT LOWER QUESTION POINTER
-
-     Long horizontal run beneath the question, followed by
-     a longer gentle diagonal rising toward the planet.
-     ================================================= -->
-
-<path
-    id="lowerLeftPointer"
-    class="hud-line"
-    d="
-        M 52 452
-        L 245 452
-        L 310 415
-    "
-/>
 
 
         <!-- =================================================
@@ -1267,24 +1258,38 @@ canvas {
              PRIMARY QUESTION
              ===================================================== -->
 
-        <div class="planet-question">
+      <div class="planet-question">
 
-            <div
-                class="question-label"
-                id="hudQuestionLabel"
-            >
-                PRIMARY QUESTION
-            </div>
+    <svg
+        class="question-pointer"
+        viewBox="0 0 300 80"
+        preserveAspectRatio="none"
+    >
+        <path
+            class="hud-line"
+            d="
+                M 0 20
+                L 193 20
+                L 258 0
+            "
+        />
+    </svg>
 
-            <div
-                class="question-text"
-                id="hudQuestion"
-            >
-                —
-            </div>
+    <div
+        class="question-label"
+        id="hudQuestionLabel"
+    >
+        PRIMARY QUESTION
+    </div>
 
-        </div>
+    <div
+        class="question-text"
+        id="hudQuestion"
+    >
+        —
+    </div>
 
+</div>
 
         <!-- =====================================================
              MEASUREMENT SCALE
