@@ -5996,70 +5996,121 @@ window.addEventListener(
 
 async function loadData() {
 
+    const loading = document.getElementById("loading");
+
     try {
 
-        const [
-            pointsResponse,
-            appearanceResponse
-        ] = await Promise.all([
+        loading.textContent = "Loading research data";
 
-            fetch(
-                POINTS_CSV +
-                "&cache=" +
-                Date.now()
-            ),
+        console.log("Loading points sheet...");
+        console.log(POINTS_CSV);
 
-            fetch(
-                APPEARANCE_CSV +
-                "&cache=" +
-                Date.now()
-            )
+        const pointsResponse = await fetch(
+            POINTS_CSV + "&cache=" + Date.now()
+        );
 
-        ]);
+        console.log(
+            "Points response:",
+            pointsResponse.status,
+            pointsResponse.statusText
+        );
+
+        if (!pointsResponse.ok) {
+            throw new Error(
+                `Points sheet failed: ${pointsResponse.status} ${pointsResponse.statusText}`
+            );
+        }
+
+        const pointsText =
+            await pointsResponse.text();
+
+        console.log(
+            "Points CSV loaded:",
+            pointsText.substring(0, 500)
+        );
 
 
-        if (
-            !pointsResponse.ok ||
-            !appearanceResponse.ok
-        ) {
+        loading.textContent = "Loading planet settings";
+
+
+        console.log("Loading appearance sheet...");
+        console.log(APPEARANCE_CSV);
+
+        const appearanceResponse = await fetch(
+            APPEARANCE_CSV + "&cache=" + Date.now()
+        );
+
+        console.log(
+            "Appearance response:",
+            appearanceResponse.status,
+            appearanceResponse.statusText
+        );
+
+        if (!appearanceResponse.ok) {
+            throw new Error(
+                `Appearance sheet failed: ${appearanceResponse.status} ${appearanceResponse.statusText}`
+            );
+        }
+
+        const appearanceText =
+            await appearanceResponse.text();
+
+        console.log(
+            "Appearance CSV loaded:",
+            appearanceText.substring(0, 1000)
+        );
+
+
+        /* ---------------------------------------------
+           PARSE
+           --------------------------------------------- */
+
+        pointData =
+            parseCSV(pointsText);
+
+        appearanceData =
+            parseCSV(appearanceText);
+
+
+        console.log(
+            "Parsed research points:",
+            pointData
+        );
+
+        console.log(
+            "Parsed appearance data:",
+            appearanceData
+        );
+
+
+        /* ---------------------------------------------
+           CHECK DATA
+           --------------------------------------------- */
+
+        if (!pointData.length) {
 
             throw new Error(
-                "Could not load Google Sheets."
+                "The research-points spreadsheet loaded but contains no rows."
             );
 
         }
 
 
-        const pointsText =
-            await pointsResponse.text();
+        if (!appearanceData.length) {
 
-
-        const appearanceText =
-            await appearanceResponse.text();
-
-
-        pointData =
-            parseCSV(
-                pointsText
+            throw new Error(
+                "The appearance spreadsheet loaded but contains no rows."
             );
 
-
-        appearanceData =
-            parseCSV(
-                appearanceText
-            );
+        }
 
 
-        console.log(
-            "Research points:",
-            pointData
-        );
+        /* ---------------------------------------------
+           BUILD
+           --------------------------------------------- */
 
-
-        console.log(
-            "Planet appearances:",
-            appearanceData
-        );
+        loading.textContent =
+            "Building research universe";
 
 
         buildGalaxy();
@@ -6068,29 +6119,42 @@ async function loadData() {
         updateGalaxyCamera();
 
 
-        document
-            .getElementById(
-                "loading"
-            )
-            .classList.add(
-                "hidden"
-            );
+        loading.classList.add(
+            "hidden"
+        );
+
+
+        console.log(
+            "Research universe loaded successfully."
+        );
 
     }
 
     catch (error) {
 
         console.error(
+            "RESEARCH UNIVERSE ERROR:",
             error
         );
 
 
-        document
-            .getElementById(
-                "loading"
-            )
-            .textContent =
-                "Could not load research universe";
+        loading.textContent =
+            "Could not load research universe";
+
+
+        /*
+         * Give the browser console the actual
+         * reason rather than hiding it.
+         */
+
+        setTimeout(() => {
+
+            console.error(
+                "Full loading error:",
+                error.message
+            );
+
+        }, 100);
 
     }
 
