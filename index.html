@@ -3026,15 +3026,6 @@ planet.userData = {
     appearance:
         appearance,
 
-    flickerTimer:
-        Math.random() * 2,
-
-    flickerDuration:
-        0,
-
-    flickerStrength:
-        0
-
 };
 
 
@@ -3079,7 +3070,127 @@ surface.name =
     planet.add(
         surface
     );
+/* =====================================================
+   HOLOGRAM GLITCH SLICES
+   ===================================================== */
 
+const glitchGroup =
+    new THREE.Group();
+
+glitchGroup.name =
+    "Hologram Glitch";
+
+
+const glitchCount = 10;
+
+
+for (
+    let i = 0;
+    i < glitchCount;
+    i++
+) {
+
+    /*
+       Random horizontal section of the globe.
+    */
+
+    const thetaStart =
+        Math.random() *
+        Math.PI;
+
+
+    const thetaLength =
+        THREE.MathUtils.degToRad(
+            2 +
+            Math.random() * 7
+        );
+
+
+    const geometry =
+        new THREE.SphereGeometry(
+
+            radius * 1.006,
+
+            64,
+
+            8,
+
+            0,
+
+            Math.PI * 2,
+
+            thetaStart,
+
+            thetaLength
+
+        );
+
+
+    const material =
+        new THREE.MeshPhongMaterial({
+
+            map:
+                earthTexture,
+
+            color:
+                colour,
+
+            transparent:
+                true,
+
+            opacity:
+                0,
+
+            depthWrite:
+                false,
+
+            shininess:
+                8
+
+        });
+
+
+    const slice =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+
+    slice.userData = {
+
+        active:
+            false,
+
+        timer:
+            Math.random() *
+            3,
+
+        duration:
+            0,
+
+        baseX:
+            0,
+
+        baseY:
+            0,
+
+        baseZ:
+            0
+
+    };
+
+
+    glitchGroup.add(
+        slice
+    );
+
+}
+
+
+planet.add(
+    glitchGroup
+);
 
     planet.add(
 
@@ -5992,220 +6103,213 @@ function animate(
         now
     );
 
-
-  /* =====================================================
-   INDIVIDUAL PLANET HOLOGRAM BREAKUP
+    /* =====================================================
+   INDIVIDUAL PLANET HOLOGRAM GLITCH
    ===================================================== */
 
 planets.forEach(
     planet => {
 
-        const data =
-            planet.userData;
-
-
-        /* ---------------------------------------------
-           COUNT DOWN TO NEXT GLITCH
-           --------------------------------------------- */
-
-        data.flickerTimer -= delta;
+        const glitchGroup =
+            planet.getObjectByName(
+                "Hologram Glitch"
+            );
 
 
         if (
-            data.flickerTimer <= 0
+            !glitchGroup
         ) {
 
-            /*
-               Short, irregular bursts.
-            */
-
-            data.flickerDuration =
-                0.045 +
-                Math.random() * 0.12;
-
-
-            data.flickerStrength =
-                0.25 +
-                Math.random() * 0.55;
-
-
-            /*
-               Wait a random amount before
-               the next breakup.
-            */
-
-            data.flickerTimer =
-                0.7 +
-                Math.random() * 2.8;
+            return;
 
         }
 
 
-        /* ---------------------------------------------
-           ACTIVE GLITCH
-           --------------------------------------------- */
+        glitchGroup.children.forEach(
+            slice => {
 
-        if (
-            data.flickerDuration > 0
-        ) {
-
-            data.flickerDuration -=
-                delta;
+                const data =
+                    slice.userData;
 
 
-            const strength =
-                data.flickerStrength;
+                data.timer -= delta;
 
 
-            /*
-               Find the visual layers.
-            */
-
-            const surface =
-                planet.getObjectByName(
-                    "Planet Surface"
-                );
-
-
-            const atmosphere =
-                planet.getObjectByName(
-                    "Atmosphere"
-                );
-
-
-            const glow =
-                planet.getObjectByName(
-                    "Glow"
-                );
-
-
-            /*
-               Sudden digital-looking variation.
-            */
-
-            const breakup =
-                1 -
-                Math.random() *
-                strength;
-
-
-            if (surface) {
+                /* -----------------------------------------
+                   TRIGGER A NEW GLITCH
+                   ----------------------------------------- */
 
                 if (
-                    surface.userData.baseOpacity ===
-                    undefined
+                    data.timer <= 0 &&
+                    !data.active
                 ) {
 
-                    surface.userData.baseOpacity =
-                        surface.material.opacity;
-
-                }
+                    data.active =
+                        true;
 
 
-                surface.material.opacity =
-                    surface.userData.baseOpacity *
-                    breakup;
-
-            }
+                    data.duration =
+                        0.035 +
+                        Math.random() * 0.09;
 
 
-            if (atmosphere) {
+                    /*
+                       Small horizontal displacement.
 
-                if (
-                    atmosphere.userData.baseOpacity ===
-                    undefined
-                ) {
+                       The slices move mostly sideways,
+                       like a broken holographic signal.
+                    */
 
-                    atmosphere.userData.baseOpacity =
-                        atmosphere.material.opacity;
+                    data.baseX =
+                        (
+                            Math.random() -
+                            0.5
+                        ) *
+                        planet.userData.radius *
+                        0.28;
 
-                }
+
+                    data.baseY =
+                        (
+                            Math.random() -
+                            0.5
+                        ) *
+                        planet.userData.radius *
+                        0.025;
 
 
-                atmosphere.material.opacity =
-                    atmosphere.userData.baseOpacity *
-                    (
-                        0.45 +
-                        Math.random() * 0.8
+                    /*
+                       Reset the slice.
+                    */
+
+                    slice.position.set(
+                        data.baseX,
+                        data.baseY,
+                        0
                     );
 
-            }
 
+                    /*
+                       Make the slice visible.
+                    */
 
-            if (glow) {
-
-                if (
-                    glow.userData.baseOpacity ===
-                    undefined
-                ) {
-
-                    glow.userData.baseOpacity =
-                        glow.material.opacity;
+                    slice.material.opacity =
+                        0.18 +
+                        Math.random() *
+                        0.35;
 
                 }
 
 
-                glow.material.opacity =
-                    glow.userData.baseOpacity *
-                    (
-                        0.35 +
-                        Math.random() * 1.8
-                    );
+                /* -----------------------------------------
+                   ACTIVE GLITCH
+                   ----------------------------------------- */
+
+                if (
+                    data.active
+                ) {
+
+                    data.duration -=
+                        delta;
+
+
+                    /*
+                       Rapidly change the slice
+                       position while active.
+
+                       This produces the digital
+                       "jumping" effect.
+                    */
+
+                    slice.position.x =
+                        data.baseX +
+                        (
+                            Math.random() -
+                            0.5
+                        ) *
+                        planet.userData.radius *
+                        0.08;
+
+
+                    slice.position.y =
+                        data.baseY +
+                        (
+                            Math.random() -
+                            0.5
+                        ) *
+                        planet.userData.radius *
+                        0.025;
+
+
+                    /*
+                       Irregular opacity makes it
+                       flicker in and out rather than
+                       looking like a solid band.
+                    */
+
+                    slice.material.opacity =
+                        Math.random() *
+                        0.5;
+
+
+                    /*
+                       Occasionally make the slice
+                       disappear for a single frame.
+                    */
+
+                    if (
+                        Math.random() < 0.12
+                    ) {
+
+                        slice.material.opacity =
+                            0;
+
+                    }
+
+
+                    /* -------------------------------------
+                       END GLITCH
+                       ------------------------------------- */
+
+                    if (
+                        data.duration <= 0
+                    ) {
+
+                        data.active =
+                            false;
+
+
+                        slice.material.opacity =
+                            0;
+
+
+                        slice.position.set(
+                            0,
+                            0,
+                            0
+                        );
+
+
+                        /*
+                           Give this slice a new
+                           random delay.
+                        */
+
+                        data.timer =
+                            0.4 +
+                            Math.random() *
+                            2.4;
+
+                    }
+
+                }
 
             }
 
-        }
-
-        else {
-
-            /*
-               Return everything cleanly to normal.
-            */
-
-            const surface =
-                planet.getObjectByName(
-                    "Planet Surface"
-                );
-
-
-            const atmosphere =
-                planet.getObjectByName(
-                    "Atmosphere"
-                );
-
-
-            const glow =
-                planet.getObjectByName(
-                    "Glow"
-                );
-
-
-            if (surface) {
-
-                surface.material.opacity =
-                    surface.userData.baseOpacity;
-
-            }
-
-
-            if (atmosphere) {
-
-                atmosphere.material.opacity =
-                    atmosphere.userData.baseOpacity;
-
-            }
-
-
-            if (glow) {
-
-                glow.material.opacity =
-                    glow.userData.baseOpacity;
-
-            }
-
-        }
+        );
 
     }
+
 );
 
     /* =========================================================
