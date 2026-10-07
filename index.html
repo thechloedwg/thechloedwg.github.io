@@ -162,7 +162,7 @@ canvas {
 
 
 /*
-   The HUD SVG now sits BEHIND the rendered planet.
+   The HUD SVG sits BEHIND the rendered planet.
 
    Text/cards sit above it separately.
 
@@ -252,7 +252,7 @@ canvas {
 .planet-info {
     position: absolute;
     left: 5.5%;
-    top: 21.5%;
+    top: 16%;
     width: 300px;
     z-index: 25;
 }
@@ -523,7 +523,7 @@ canvas {
 
     .planet-info {
         left: 7%;
-        top: 15%;
+        top: 10.5%;
         width: 220px;
     }
 
@@ -725,18 +725,10 @@ canvas {
 
             <!-- =================================================
                  RIGHT ORBITAL ARC
-                 
-                 Reduced to two broad, gentle curves.
+
+                 Lighter outer curve retained.
+                 The heavier overlapping curve has been removed.
                  ================================================= -->
-
-            <path
-                class="hud-line"
-                d="
-                    M 775 150
-                    A 150 150 0 0 1 775 450
-                "
-            />
-
 
             <path
                 class="hud-fine"
@@ -786,9 +778,6 @@ canvas {
 
             <!-- =================================================
                  CENTRAL RETICLE
-                 
-                 These are deliberately subtle so the planet
-                 remains visually dominant.
                  ================================================= -->
 
             <circle
@@ -1353,9 +1342,8 @@ let galaxyDistance = 20;
 
 
 /*
-   Planet camera remains fixed.
-
-   There is no planet orbit.
+   Planet camera remains fixed relative to the selected
+   planet's world position.
 
    Zoom changes distance only.
 */
@@ -1786,13 +1774,6 @@ function createLatitudeLongitudeGrid(
             );
 
 
-        /*
-           Slightly below the surface.
-
-           The actual sphere therefore remains
-           visually dominant.
-        */
-
         line.renderOrder = 1;
 
 
@@ -1882,13 +1863,6 @@ function createLatitudeLongitudeGrid(
 
 /* =========================================================
    3D CARTOGRAPHIC RESEARCH GRID
-   =========================================================
-
-   This is the new spatial/navigation layer.
-
-   It sits slightly ABOVE the planet and is intentionally
-   sparse. It is designed to feel like a research-navigation
-   system rather than another conventional globe grid.
    ========================================================= */
 
 function createResearchMapGrid(
@@ -2054,9 +2028,6 @@ function createResearchMapGrid(
 
     /*
        LONGITUDINAL GREAT-CIRCLE GUIDES
-
-       Only a handful are used to keep the effect
-       architectural and sparse.
     */
 
     const longitudes = [
@@ -2133,8 +2104,6 @@ function createResearchMapGrid(
 
     /*
        RESEARCH AXIS MARKS
-
-       Small floating markers around the equator.
     */
 
     for (
@@ -2836,9 +2805,8 @@ function createResearchPin(
 
 
     /*
-       Push the marker very slightly farther from
-       the surface so it cannot disappear into the
-       sphere/grid when zoomed.
+       Push the marker slightly farther from
+       the surface so it remains visible.
     */
 
     group.position.copy(
@@ -2912,11 +2880,7 @@ function createResearchPin(
 
 
     /*
-       LARGE, INVISIBLE CLICK AREA.
-
-       This is deliberately outside the surface.
-       It makes selection much more reliable when
-       the planet is heavily zoomed.
+       LARGE INVISIBLE CLICK AREA
     */
 
     const hit =
@@ -2954,7 +2918,7 @@ function createResearchPin(
 
 
     /*
-       CROSSHAIR POINT STYLE.
+       CROSSHAIR POINT STYLE
     */
 
     if (
@@ -3108,8 +3072,6 @@ function createProjectPlanet(
 
     /*
        GLOW FIRST
-
-       This establishes the depth stack.
     */
 
     const glow =
@@ -3139,9 +3101,6 @@ function createProjectPlanet(
 
     /*
        SURFACE
-
-       The surface is deliberately rendered after
-       the underlying map geometry.
     */
 
     const surface =
@@ -3231,8 +3190,6 @@ function createProjectPlanet(
 
     /*
        STANDARD LAT/LON GRID
-
-       It sits just beneath the colour wash.
     */
 
     const standardGrid =
@@ -3264,8 +3221,6 @@ function createProjectPlanet(
 
     /*
        NEW 3D RESEARCH / NAVIGATION GRID
-
-       Sparse, architectural, and spatial.
     */
 
     const researchGrid =
@@ -3428,9 +3383,6 @@ function createProjectPlanet(
 
     /*
        RESEARCH POINTS
-
-       Always added last so their visible geometry
-       sits above the planetary surface.
     */
 
     const pointsGroup =
@@ -3836,7 +3788,9 @@ function updatePlanetCamera() {
     /*
        Fixed front-facing view.
 
-       No planet orbit.
+       No camera orbit.
+
+       The globe itself can now be rotated by dragging.
     */
 
     camera.position.set(
@@ -3885,6 +3839,18 @@ function enterPlanet(
 
     selectedProject =
         planet.userData.project;
+
+
+    /*
+       Remove the galaxy hover heading immediately
+       when the planet is selected.
+    */
+
+    hoveredPlanet =
+        null;
+
+
+    updatePlanetLabel();
 
 
     planetMode =
@@ -3969,7 +3935,7 @@ function enterPlanet(
             "instructions"
         )
         .textContent =
-        "SCROLL TO ZOOM · SELECT A LOCATION";
+        "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A LOCATION";
 }
 
 
@@ -3998,6 +3964,10 @@ function exitPlanet() {
 
 
     activeMarker =
+        null;
+
+
+    hoveredPlanet =
         null;
 
 
@@ -4645,18 +4615,12 @@ renderer.domElement.addEventListener(
 
 
         /*
-           Focused planet:
+           Both galaxy mode and planet mode accept
+           pointer dragging.
 
-           Do not start galaxy dragging.
-           This prevents accidental camera-orbit
-           behaviour while interacting with the map.
+           In galaxy mode, drag = camera orbit.
+           In planet mode, drag = globe rotation.
         */
-
-        if (planetMode) {
-
-            return;
-        }
-
 
         isPointerDown = true;
 
@@ -4681,38 +4645,45 @@ renderer.domElement.addEventListener(
             event.clientY;
 
 
-        const x =
-            camera.position.x;
+        /*
+           Galaxy camera stores its spherical state.
+        */
+
+        if (!planetMode) {
+
+            const x =
+                camera.position.x;
 
 
-        const y =
-            camera.position.y;
+            const y =
+                camera.position.y;
 
 
-        const z =
-            camera.position.z;
+            const z =
+                camera.position.z;
 
 
-        galaxyDistance =
-            Math.sqrt(
-                x * x +
-                y * y +
-                z * z
-            );
+            galaxyDistance =
+                Math.sqrt(
+                    x * x +
+                    y * y +
+                    z * z
+                );
 
 
-        galaxyYaw =
-            Math.atan2(
-                x,
-                z
-            );
+            galaxyYaw =
+                Math.atan2(
+                    x,
+                    z
+                );
 
 
-        galaxyPitch =
-            Math.asin(
-                y /
-                galaxyDistance
-            );
+            galaxyPitch =
+                Math.asin(
+                    y /
+                    galaxyDistance
+                );
+        }
 
 
         renderer.domElement.setPointerCapture(
@@ -4736,16 +4707,133 @@ renderer.domElement.addEventListener(
     event => {
 
         /*
-           No galaxy hover while focused.
+           -------------------------------------------------
+           PLANET MODE
+           -------------------------------------------------
+
+           Dragging rotates the selected planet itself.
+
+           This keeps the camera fixed while allowing
+           exploration of the surface.
         */
 
-        if (
-            planetMode
-        ) {
+        if (planetMode) {
+
+            if (
+                !isPointerDown ||
+                !selectedPlanet
+            ) {
+
+                return;
+            }
+
+
+            const dx =
+                event.clientX -
+                pointerStartX;
+
+
+            const dy =
+                event.clientY -
+                pointerStartY;
+
+
+            const distance =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                );
+
+
+            if (
+                !isDragging &&
+                distance >
+                DRAG_THRESHOLD
+            ) {
+
+                isDragging = true;
+
+                didDrag = true;
+            }
+
+
+            if (!isDragging) {
+
+                return;
+            }
+
+
+            const movementX =
+                event.clientX -
+                previousPointerX;
+
+
+            const movementY =
+                event.clientY -
+                previousPointerY;
+
+
+            previousPointerX =
+                event.clientX;
+
+
+            previousPointerY =
+                event.clientY;
+
+
+            /*
+               Horizontal drag rotates around the
+               planet's vertical axis.
+
+               Vertical drag rotates around its
+               horizontal axis.
+            */
+
+            selectedPlanet.rotation.y +=
+                movementX *
+                0.0045;
+
+
+            selectedPlanet.rotation.x +=
+                movementY *
+                0.0045;
+
+
+            /*
+               Prevent the planet being flipped
+               completely upside down.
+            */
+
+            selectedPlanet.rotation.x =
+                THREE.MathUtils.clamp(
+                    selectedPlanet.rotation.x,
+                    -1.25,
+                    1.25
+                );
+
+
+            /*
+               Keep any active research connector
+               attached to the moving marker.
+            */
+
+            if (
+                activeMarker
+            ) {
+
+                updateMarkerConnector();
+            }
+
 
             return;
         }
 
+
+        /*
+           -------------------------------------------------
+           GALAXY MODE HOVER
+           -------------------------------------------------
+        */
 
         if (!isPointerDown) {
 
@@ -4823,6 +4911,12 @@ renderer.domElement.addEventListener(
             return;
         }
 
+
+        /*
+           -------------------------------------------------
+           GALAXY MODE DRAG
+           -------------------------------------------------
+        */
 
         const dx =
             event.clientX -
@@ -4909,25 +5003,23 @@ renderer.domElement.addEventListener(
     event => {
 
         if (
-            planetMode
+            cameraAnimating
         ) {
-
-            /*
-               In planet mode a pointer release is treated
-               as a click only if it has not become a drag.
-            */
-
-            handleClick(
-                event
-            );
 
             return;
         }
 
 
-        isPointerDown = false;
+        const wasDragging =
+            didDrag;
 
-        isDragging = false;
+
+        isPointerDown =
+            false;
+
+
+        isDragging =
+            false;
 
 
         document.body.classList.remove(
@@ -4944,20 +5036,52 @@ renderer.domElement.addEventListener(
         } catch (error) {}
 
 
-        if (didDrag) {
+        /*
+           PLANET MODE
 
-            didDrag = false;
+           A drag rotates the globe.
+           A click selects a research point.
+        */
+
+        if (planetMode) {
+
+            didDrag =
+                false;
+
+
+            if (
+                wasDragging
+            ) {
+
+                return;
+            }
+
+
+            handleClick(
+                event
+            );
 
             return;
         }
 
+
+        /*
+           GALAXY MODE
+        */
 
         if (
-            cameraAnimating
+            wasDragging
         ) {
+
+            didDrag =
+                false;
 
             return;
         }
+
+
+        didDrag =
+            false;
 
 
         handleClick(
@@ -5083,9 +5207,8 @@ function handleClick(
 
 
     /*
-       Hit areas are intentionally invisible and
-       depth-independent, so the surface/grid cannot
-       break selection when zoomed.
+       Invisible hit geometry remains
+       depth-independent.
     */
 
     const intersects =
@@ -5183,8 +5306,10 @@ renderer.domElement.addEventListener(
         /*
            PLANET MODE:
 
-           Zoom only along the camera's viewing axis.
-           No yaw or pitch is introduced.
+           Zoom only along the camera's
+           viewing axis.
+
+           No camera yaw or pitch is introduced.
         */
 
         planetDistance +=
@@ -5346,7 +5471,8 @@ function animate(now) {
     /*
        Galaxy planets rotate.
 
-       Focused planets STOP rotating.
+       Focused planets STOP rotating so the user
+       can manually explore them.
     */
 
     if (
