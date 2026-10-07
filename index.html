@@ -4501,6 +4501,17 @@ function hideMarkerCard() {
 }
 
 
+function closeMarker() {
+
+    activeMarker = null;
+
+    hideMarkerCard();
+
+    hideMarkerConnector();
+
+}
+
+
 /* =========================================================
    MARKER CONNECTOR
    ========================================================= */
@@ -4734,6 +4745,124 @@ const DRAG_THRESHOLD = 6;
 
 const DRAG_SENSITIVITY = 0.0035;
 
+    /* =========================================================
+   MARKER ROTATION
+   ========================================================= */
+
+let markerRotationAnimating = false;
+
+let markerRotationStartTime = 0;
+
+const MARKER_ROTATION_DURATION = 650;
+
+const markerRotationStart =
+    new THREE.Euler();
+
+const markerRotationTarget =
+    new THREE.Euler();
+
+    function rotatePlanetToMarker(
+    marker
+) {
+
+    if (
+        !selectedPlanet ||
+        !marker
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+       Get the marker's position relative
+       to the planet.
+
+       Because the marker is a child of the
+       planet, this gives us its fixed local
+       position regardless of the planet's
+       current rotation.
+    */
+
+    const worldPosition =
+        new THREE.Vector3();
+
+
+    marker.getWorldPosition(
+        worldPosition
+    );
+
+
+    const localPosition =
+        selectedPlanet
+            .worldToLocal(
+                worldPosition.clone()
+            );
+
+
+    localPosition.normalize();
+
+
+    /*
+       Camera direction from the planet.
+
+       We want the selected marker to point
+       towards the camera, which puts it at
+       the centre/front of the planet.
+    */
+
+    const cameraDirection =
+        camera.position
+            .clone()
+            .sub(
+                selectedPlanet.position
+            )
+            .normalize();
+
+
+    /*
+       Find the shortest rotation that moves
+       the marker direction onto the camera
+       direction.
+    */
+
+    const targetQuaternion =
+        new THREE.Quaternion();
+
+
+    targetQuaternion.setFromUnitVectors(
+        localPosition,
+        cameraDirection
+    );
+
+
+    const targetEuler =
+        new THREE.Euler()
+            .setFromQuaternion(
+                targetQuaternion,
+                "XYZ"
+            );
+
+
+    markerRotationStart.copy(
+        selectedPlanet.rotation
+    );
+
+
+    markerRotationTarget.copy(
+        targetEuler
+    );
+
+
+    markerRotationStartTime =
+        performance.now();
+
+
+    markerRotationAnimating =
+        true;
+
+}
 
 /* =========================================================
    POINTER DOWN
@@ -4746,12 +4875,13 @@ renderer.domElement.addEventListener(
     event => {
 
         if (
-            cameraAnimating
-        ) {
+    cameraAnimating ||
+    markerRotationAnimating
+) {
 
-            return;
+    return;
 
-        }
+}
 
 
         event.preventDefault();
@@ -4966,18 +5096,34 @@ renderer.domElement.addEventListener(
 
 
         if (
-            !isDragging &&
-            distance >
-            DRAG_THRESHOLD
-        ) {
+    !isDragging &&
+    distance >
+    DRAG_THRESHOLD
+) {
 
-            isDragging =
-                true;
+    isDragging =
+        true;
 
-            didDrag =
-                true;
+    didDrag =
+        true;
 
-        }
+
+    /*
+       Starting a real drag means the user is
+       navigating the planet rather than reading
+       the selected marker.
+    */
+
+    if (
+        planetMode &&
+        activeMarker
+    ) {
+
+        closeMarker();
+
+    }
+
+}
 
 
         if (
@@ -5340,19 +5486,24 @@ function handleClick(
             "research"
         ) {
 
-            activeMarker =
-                object;
+          activeMarker =
+    object;
 
 
-            showMarkerCard(
-                object.userData
-            );
+showMarkerCard(
+    object.userData
+);
 
 
-            updateMarkerConnector();
+updateMarkerConnector();
 
 
-            return;
+rotatePlanetToMarker(
+    object
+);
+
+
+return;
 
         }
 
@@ -5581,6 +5732,94 @@ function animate(
         now
     );
 
+    /* =========================================================
+   MARKER ROTATION ANIMATION
+   ========================================================= */
+
+if (
+    markerRotationAnimating &&
+    selectedPlanet
+) {
+
+    const elapsed =
+        now -
+        markerRotationStartTime;
+
+
+    const progress =
+        Math.min(
+            elapsed /
+            MARKER_ROTATION_DURATION,
+            1
+        );
+
+
+    /*
+       Smooth ease-in/ease-out.
+    */
+
+    const eased =
+        progress < 0.5
+
+            ? 2 *
+              progress *
+              progress
+
+            : 1 -
+              Math.pow(
+                  -2 *
+                  progress +
+                  2,
+                  2
+              ) /
+              2;
+
+
+    selectedPlanet.rotation.x =
+        THREE.MathUtils.lerp(
+            markerRotationStart.x,
+            markerRotationTarget.x,
+            eased
+        );
+
+
+    selectedPlanet.rotation.y =
+        THREE.MathUtils.lerp(
+            markerRotationStart.y,
+            markerRotationTarget.y,
+            eased
+        );
+
+
+    selectedPlanet.rotation.z =
+        THREE.MathUtils.lerp(
+            markerRotationStart.z,
+            markerRotationTarget.z,
+            eased
+        );
+
+
+    planetRotationX =
+        selectedPlanet.rotation.x;
+
+
+    planetRotationY =
+        selectedPlanet.rotation.y;
+
+
+    updateMarkerConnector();
+
+
+    if (
+        progress >= 1
+    ) {
+
+        markerRotationAnimating =
+            false;
+
+    }
+
+}
 
     if (
         !planetMode &&
