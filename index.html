@@ -42,6 +42,9 @@ body.dragging {
 
 canvas {
     display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
 }
 
 
@@ -64,6 +67,7 @@ canvas {
     letter-spacing: 0.18em;
     opacity: 0.75;
     text-transform: uppercase;
+    z-index: 30;
 }
 
 .instructions {
@@ -76,6 +80,7 @@ canvas {
     opacity: 0.45;
     text-transform: uppercase;
     white-space: nowrap;
+    z-index: 30;
 }
 
 
@@ -100,6 +105,7 @@ canvas {
     transition:
         opacity 0.3s ease,
         border-color 0.2s ease;
+    z-index: 40;
 }
 
 .back-button.visible {
@@ -130,6 +136,7 @@ canvas {
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.15s ease;
+    z-index: 35;
 }
 
 .planet-label.visible {
@@ -146,6 +153,7 @@ canvas {
     inset: 0;
     opacity: 0;
     transition: opacity 0.45s ease;
+    pointer-events: none;
 }
 
 .planet-hud.visible {
@@ -154,11 +162,12 @@ canvas {
 
 
 /*
-   SVG is purely an interface layer.
+   The HUD SVG now sits BEHIND the rendered planet.
 
-   It does NOT belong to the planet itself.
-   Therefore the technical lines remain fixed
-   while the camera is fixed.
+   Text/cards sit above it separately.
+
+   This prevents the large technical circles and lines
+   from visually cutting through the planet.
 */
 
 .hud-svg {
@@ -168,6 +177,7 @@ canvas {
     height: 100%;
     overflow: visible;
     pointer-events: none;
+    z-index: 2;
 }
 
 
@@ -242,8 +252,9 @@ canvas {
 .planet-info {
     position: absolute;
     left: 5.5%;
-    top: 20%;
+    top: 21.5%;
     width: 300px;
+    z-index: 25;
 }
 
 .planet-info-project {
@@ -251,7 +262,7 @@ canvas {
     letter-spacing: 0.28em;
     text-transform: uppercase;
     opacity: 0.48;
-    margin-bottom: 9px;
+    margin-bottom: 10px;
 }
 
 .planet-info-name {
@@ -259,14 +270,15 @@ canvas {
     line-height: 1.1;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    margin-bottom: 13px;
+    margin-bottom: 16px;
+    max-width: 270px;
 }
 
 .planet-info-rule {
     width: 235px;
     height: 1px;
     background: rgba(255,255,255,0.5);
-    margin-bottom: 13px;
+    margin-bottom: 14px;
 }
 
 .planet-info-row {
@@ -292,6 +304,7 @@ canvas {
     left: 5.5%;
     bottom: 17%;
     width: 290px;
+    z-index: 25;
 }
 
 .question-label {
@@ -316,9 +329,10 @@ canvas {
 .measurement-scale {
     position: absolute;
     right: 7.2%;
-    top: 7%;
-    bottom: 22%;
+    top: 10%;
+    bottom: 27%;
     width: 50px;
+    z-index: 25;
 }
 
 .scale-line {
@@ -362,6 +376,7 @@ canvas {
     right: 6%;
     bottom: 12%;
     text-align: right;
+    z-index: 25;
 }
 
 .technical-readout div {
@@ -382,6 +397,7 @@ canvas {
     width: 65px;
     height: 65px;
     opacity: 0.45;
+    z-index: 25;
 }
 
 .corner-detail::before,
@@ -434,6 +450,7 @@ canvas {
     transition:
         opacity 0.25s ease,
         transform 0.25s ease;
+    z-index: 35;
 }
 
 .marker-card.visible {
@@ -490,6 +507,7 @@ canvas {
     text-transform: uppercase;
     opacity: 0.55;
     transition: opacity 0.4s ease;
+    z-index: 50;
 }
 
 .loading.hidden {
@@ -530,6 +548,12 @@ canvas {
 
     .instructions {
         font-size: 8px;
+    }
+
+    .measurement-scale {
+        right: 5%;
+        top: 12%;
+        bottom: 25%;
     }
 }
 
@@ -701,13 +725,15 @@ canvas {
 
             <!-- =================================================
                  RIGHT ORBITAL ARC
+                 
+                 Reduced to two broad, gentle curves.
                  ================================================= -->
 
             <path
                 class="hud-line"
                 d="
-                    M 770 205
-                    A 74 74 0 0 1 770 355
+                    M 775 150
+                    A 150 150 0 0 1 775 450
                 "
             />
 
@@ -715,17 +741,8 @@ canvas {
             <path
                 class="hud-fine"
                 d="
-                    M 755 207
-                    A 59 59 0 0 1 755 353
-                "
-            />
-
-
-            <path
-                class="hud-fine"
-                d="
-                    M 788 205
-                    A 90 90 0 0 1 788 355
+                    M 795 155
+                    A 170 170 0 0 1 795 445
                 "
             />
 
@@ -769,6 +786,9 @@ canvas {
 
             <!-- =================================================
                  CENTRAL RETICLE
+                 
+                 These are deliberately subtle so the planet
+                 remains visually dominant.
                  ================================================= -->
 
             <circle
@@ -1019,6 +1039,7 @@ canvas {
                 id="markerLink"
                 href="#"
                 target="_blank"
+                rel="noopener noreferrer"
             >
                 Read the full analysis →
             </a>
@@ -1332,14 +1353,11 @@ let galaxyDistance = 20;
 
 
 /*
-   Planet camera is deliberately simple.
+   Planet camera remains fixed.
 
-   There is NO planet yaw/pitch.
+   There is no planet orbit.
 
-   Once focused, the planet is viewed from a
-   fixed direction.
-
-   Wheel zoom changes distance only.
+   Zoom changes distance only.
 */
 
 let planetDistance = 8;
@@ -1638,7 +1656,7 @@ function latLonToVector3(
 
 
 /* =========================================================
-   GRID
+   PLANET GRID
    ========================================================= */
 
 function createLatitudeLongitudeGrid(
@@ -1682,11 +1700,17 @@ function createLatitudeLongitudeGrid(
 
             transparent: true,
 
-            opacity: opacity,
+            opacity: opacity * 0.72,
 
-            depthWrite: false
+            depthWrite: false,
+
+            depthTest: true
         });
 
+
+    /*
+       LATITUDE LINES
+    */
 
     for (
         let i = 1;
@@ -1750,17 +1774,37 @@ function createLatitudeLongitudeGrid(
         }
 
 
-        group.add(
+        const line =
             new THREE.Line(
+
                 new THREE.BufferGeometry()
                     .setFromPoints(
                         points
                     ),
+
                 material
-            )
+            );
+
+
+        /*
+           Slightly below the surface.
+
+           The actual sphere therefore remains
+           visually dominant.
+        */
+
+        line.renderOrder = 1;
+
+
+        group.add(
+            line
         );
     }
 
+
+    /*
+       LONGITUDE LINES
+    */
 
     for (
         let i = 0;
@@ -1811,14 +1855,353 @@ function createLatitudeLongitudeGrid(
         }
 
 
-        group.add(
+        const line =
             new THREE.Line(
+
                 new THREE.BufferGeometry()
                     .setFromPoints(
                         points
                     ),
+
                 material
+            );
+
+
+        line.renderOrder = 1;
+
+
+        group.add(
+            line
+        );
+    }
+
+
+    return group;
+}
+
+
+/* =========================================================
+   3D CARTOGRAPHIC RESEARCH GRID
+   =========================================================
+
+   This is the new spatial/navigation layer.
+
+   It sits slightly ABOVE the planet and is intentionally
+   sparse. It is designed to feel like a research-navigation
+   system rather than another conventional globe grid.
+   ========================================================= */
+
+function createResearchMapGrid(
+    radius,
+    colour,
+    intensity = 1
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const lineOpacity =
+        0.12 *
+        intensity;
+
+
+    const material =
+        new THREE.LineBasicMaterial({
+
+            color: colour,
+
+            transparent: true,
+
+            opacity: lineOpacity,
+
+            depthWrite: false,
+
+            depthTest: true
+        });
+
+
+    /*
+       EQUATORIAL NAVIGATION RINGS
+    */
+
+    const ringScales = [
+        1.018,
+        1.045,
+        1.075
+    ];
+
+
+    ringScales.forEach(
+        scale => {
+
+            const geometry =
+                new THREE.RingGeometry(
+                    radius * scale,
+                    radius * scale +
+                    radius * 0.004,
+                    128
+                );
+
+
+            const ring =
+                new THREE.Mesh(
+                    geometry,
+                    material
+                );
+
+
+            ring.rotation.x =
+                Math.PI / 2;
+
+
+            ring.renderOrder = 2;
+
+
+            group.add(
+                ring
+            );
+        }
+    );
+
+
+    /*
+       LARGE-LATITUDE GUIDE RINGS
+    */
+
+    const latitudes = [
+        35,
+        -35
+    ];
+
+
+    latitudes.forEach(
+        lat => {
+
+            const phi =
+                THREE.MathUtils.degToRad(
+                    90 - lat
+                );
+
+
+            const y =
+                radius *
+                Math.cos(phi) *
+                1.022;
+
+
+            const circleRadius =
+                radius *
+                Math.sin(phi) *
+                1.022;
+
+
+            const points = [];
+
+
+            for (
+                let i = 0;
+                i <= 96;
+                i++
+            ) {
+
+                const theta =
+                    (
+                        i / 96
+                    ) *
+                    Math.PI *
+                    2;
+
+
+                points.push(
+
+                    new THREE.Vector3(
+
+                        circleRadius *
+                        Math.cos(theta),
+
+                        y,
+
+                        circleRadius *
+                        Math.sin(theta)
+
+                    )
+                );
+            }
+
+
+            const line =
+                new THREE.Line(
+
+                    new THREE.BufferGeometry()
+                        .setFromPoints(
+                            points
+                        ),
+
+                    material
+                );
+
+
+            line.renderOrder = 2;
+
+
+            group.add(
+                line
+            );
+        }
+    );
+
+
+    /*
+       LONGITUDINAL GREAT-CIRCLE GUIDES
+
+       Only a handful are used to keep the effect
+       architectural and sparse.
+    */
+
+    const longitudes = [
+        0,
+        Math.PI / 2,
+        Math.PI,
+        Math.PI * 1.5
+    ];
+
+
+    longitudes.forEach(
+        theta => {
+
+            const points = [];
+
+
+            for (
+                let i = 0;
+                i <= 96;
+                i++
+            ) {
+
+                const phi =
+                    (
+                        i / 96
+                    ) *
+                    Math.PI;
+
+
+                points.push(
+
+                    new THREE.Vector3(
+
+                        radius *
+                        1.022 *
+                        Math.sin(phi) *
+                        Math.cos(theta),
+
+                        radius *
+                        1.022 *
+                        Math.cos(phi),
+
+                        radius *
+                        1.022 *
+                        Math.sin(phi) *
+                        Math.sin(theta)
+
+                    )
+                );
+            }
+
+
+            const line =
+                new THREE.Line(
+
+                    new THREE.BufferGeometry()
+                        .setFromPoints(
+                            points
+                        ),
+
+                    material
+                );
+
+
+            line.renderOrder = 2;
+
+
+            group.add(
+                line
+            );
+        }
+    );
+
+
+    /*
+       RESEARCH AXIS MARKS
+
+       Small floating markers around the equator.
+    */
+
+    for (
+        let i = 0;
+        i < 12;
+        i++
+    ) {
+
+        const theta =
+            (
+                i / 12
+            ) *
+            Math.PI *
+            2;
+
+
+        const innerRadius =
+            radius *
+            1.055;
+
+
+        const outerRadius =
+            radius *
+            1.095;
+
+
+        const y =
+            0;
+
+
+        const points = [
+
+            new THREE.Vector3(
+                innerRadius *
+                Math.cos(theta),
+                y,
+                innerRadius *
+                Math.sin(theta)
+            ),
+
+            new THREE.Vector3(
+                outerRadius *
+                Math.cos(theta),
+                y,
+                outerRadius *
+                Math.sin(theta)
             )
+        ];
+
+
+        const tick =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
+            );
+
+
+        tick.renderOrder = 3;
+
+
+        group.add(
+            tick
         );
     }
 
@@ -1854,27 +2237,34 @@ function createAtmosphere(
     }
 
 
-    return new THREE.Mesh(
+    const atmosphere =
+        new THREE.Mesh(
 
-        new THREE.SphereGeometry(
-            radius * 1.06,
-            64,
-            64
-        ),
+            new THREE.SphereGeometry(
+                radius * 1.06,
+                64,
+                64
+            ),
 
-        new THREE.MeshBasicMaterial({
+            new THREE.MeshBasicMaterial({
 
-            color: colour,
+                color: colour,
 
-            transparent: true,
+                transparent: true,
 
-            opacity: opacity,
+                opacity: opacity,
 
-            side: THREE.BackSide,
+                side: THREE.BackSide,
 
-            depthWrite: false
-        })
-    );
+                depthWrite: false
+            })
+        );
+
+
+    atmosphere.renderOrder = 4;
+
+
+    return atmosphere;
 }
 
 
@@ -1911,27 +2301,34 @@ function createGlow(
     }
 
 
-    return new THREE.Mesh(
+    const glow =
+        new THREE.Mesh(
 
-        new THREE.SphereGeometry(
-            radius * scale,
-            48,
-            48
-        ),
+            new THREE.SphereGeometry(
+                radius * scale,
+                48,
+                48
+            ),
 
-        new THREE.MeshBasicMaterial({
+            new THREE.MeshBasicMaterial({
 
-            color: colour,
+                color: colour,
 
-            transparent: true,
+                transparent: true,
 
-            opacity: opacity,
+                opacity: opacity,
 
-            side: THREE.BackSide,
+                side: THREE.BackSide,
 
-            depthWrite: false
-        })
-    );
+                depthWrite: false
+            })
+        );
+
+
+    glow.renderOrder = 0;
+
+
+    return glow;
 }
 
 
@@ -2048,6 +2445,9 @@ function createPlanetRings(
             i * 0.25;
 
 
+        ring.renderOrder = 2;
+
+
         group.add(
             ring
         );
@@ -2124,6 +2524,9 @@ function createScanLines(
 
         line.userData.offset =
             i / count;
+
+
+        line.renderOrder = 2;
 
 
         group.add(
@@ -2368,6 +2771,9 @@ function createCloudLayer(
         true;
 
 
+    clouds.renderOrder = 5;
+
+
     return clouds;
 }
 
@@ -2429,20 +2835,41 @@ function createResearchPin(
         ).normalize();
 
 
+    /*
+       Push the marker very slightly farther from
+       the surface so it cannot disappear into the
+       sphere/grid when zoomed.
+    */
+
     group.position.copy(
 
         normal
             .clone()
             .multiplyScalar(
-                radius * 1.028
+                radius * 1.055
             )
     );
 
 
     /*
-       FLAT HOLOGRAPHIC MARKER.
+       Keep the marker oriented relative to the
+       planet surface.
+    */
 
-       There is deliberately no visible sphere.
+    group.quaternion.setFromUnitVectors(
+
+        new THREE.Vector3(
+            0,
+            0,
+            1
+        ),
+
+        normal
+    );
+
+
+    /*
+       VISIBLE HOLOGRAPHIC MARKER
     */
 
     const ring =
@@ -2460,30 +2887,23 @@ function createResearchPin(
 
                 transparent: true,
 
-                opacity: 0.72,
+                opacity: 0.78,
 
                 side:
                     THREE.DoubleSide,
 
-                depthWrite: false
+                depthWrite: false,
+
+                depthTest: true
             })
         );
 
 
-    ring.quaternion.setFromUnitVectors(
-
-        new THREE.Vector3(
-            0,
-            0,
-            1
-        ),
-
-        normal
-    );
-
-
     ring.userData.isResearchMarker =
         true;
+
+
+    ring.renderOrder = 10;
 
 
     group.add(
@@ -2492,14 +2912,18 @@ function createResearchPin(
 
 
     /*
-       INVISIBLE CLICK AREA.
+       LARGE, INVISIBLE CLICK AREA.
+
+       This is deliberately outside the surface.
+       It makes selection much more reliable when
+       the planet is heavily zoomed.
     */
 
     const hit =
         new THREE.Mesh(
 
             new THREE.SphereGeometry(
-                radius * 0.14,
+                radius * 0.19,
                 16,
                 16
             ),
@@ -2510,13 +2934,18 @@ function createResearchPin(
 
                 opacity: 0,
 
-                depthWrite: false
+                depthWrite: false,
+
+                depthTest: false
             })
         );
 
 
     hit.userData.isResearchHit =
         true;
+
+
+    hit.renderOrder = 20;
 
 
     group.add(
@@ -2580,18 +3009,18 @@ function createResearchPin(
 
                     opacity: 0.8,
 
-                    depthWrite: false
+                    depthWrite: false,
+
+                    depthTest: true
                 })
             );
 
 
-        crosshair.quaternion.copy(
-            ring.quaternion
-        );
-
-
         crosshair.userData.isResearchMarker =
             true;
+
+
+        crosshair.renderOrder = 11;
 
 
         group.add(
@@ -2678,7 +3107,41 @@ function createProjectPlanet(
 
 
     /*
+       GLOW FIRST
+
+       This establishes the depth stack.
+    */
+
+    const glow =
+        clean(
+            appearance.glow
+        ).toLowerCase();
+
+
+    if (
+        glow &&
+        glow !== "none"
+    ) {
+
+        planet.add(
+
+            createGlow(
+
+                radius,
+
+                colour,
+
+                glow
+            )
+        );
+    }
+
+
+    /*
        SURFACE
+
+       The surface is deliberately rendered after
+       the underlying map geometry.
     */
 
     const surface =
@@ -2705,13 +3168,20 @@ function createProjectPlanet(
                         ]
                     ) || 0.9,
 
-                shininess: 8
+                shininess: 8,
+
+                depthWrite: true,
+
+                depthTest: true
             })
         );
 
 
     surface.userData.isPlanetSurface =
         true;
+
+
+    surface.renderOrder = 6;
 
 
     planet.add(
@@ -2723,8 +3193,7 @@ function createProjectPlanet(
        COLOUR WASH
     */
 
-    planet.add(
-
+    const colourWash =
         new THREE.Mesh(
 
             new THREE.SphereGeometry(
@@ -2745,21 +3214,31 @@ function createProjectPlanet(
                         ? 0.18
                         : 0.28,
 
-                depthWrite: false
+                depthWrite: false,
+
+                depthTest: true
             })
-        )
+        );
+
+
+    colourWash.renderOrder = 7;
+
+
+    planet.add(
+        colourWash
     );
 
 
     /*
-       GRID
+       STANDARD LAT/LON GRID
+
+       It sits just beneath the colour wash.
     */
 
-    planet.add(
-
+    const standardGrid =
         createLatitudeLongitudeGrid(
 
-            radius * 1.008,
+            radius * 1.005,
 
             colour,
 
@@ -2772,7 +3251,44 @@ function createProjectPlanet(
             clean(
                 appearance.grid
             ).toLowerCase()
-        )
+        );
+
+
+    standardGrid.renderOrder = 3;
+
+
+    planet.add(
+        standardGrid
+    );
+
+
+    /*
+       NEW 3D RESEARCH / NAVIGATION GRID
+
+       Sparse, architectural, and spatial.
+    */
+
+    const researchGrid =
+        createResearchMapGrid(
+
+            radius,
+
+            colour,
+
+            clean(
+                appearance.grid
+            ).toLowerCase() === "dense"
+                ? 1.25
+                : 1
+        );
+
+
+    researchGrid.name =
+        "3D Research Grid";
+
+
+    planet.add(
+        researchGrid
     );
 
 
@@ -2802,35 +3318,6 @@ function createProjectPlanet(
                 clean(
                     appearance.glow
                 ).toLowerCase()
-            )
-        );
-    }
-
-
-    /*
-       GLOW
-    */
-
-    const glow =
-        clean(
-            appearance.glow
-        ).toLowerCase();
-
-
-    if (
-        glow &&
-        glow !== "none"
-    ) {
-
-        planet.add(
-
-            createGlow(
-
-                radius,
-
-                colour,
-
-                glow
             )
         );
     }
@@ -2941,6 +3428,9 @@ function createProjectPlanet(
 
     /*
        RESEARCH POINTS
+
+       Always added last so their visible geometry
+       sits above the planetary surface.
     */
 
     const pointsGroup =
@@ -2949,6 +3439,10 @@ function createProjectPlanet(
 
     pointsGroup.name =
         "Research Points";
+
+
+    pointsGroup.renderOrder =
+        20;
 
 
     planet.add(
@@ -3340,13 +3834,9 @@ function updatePlanetCamera() {
 
 
     /*
-       ALWAYS VIEW THE PLANET FROM +Z.
+       Fixed front-facing view.
 
-       No planet yaw.
-       No planet pitch.
-       No camera orbit.
-
-       This is what makes the HUD fixed.
+       No planet orbit.
     */
 
     camera.position.set(
@@ -3418,10 +3908,6 @@ function enterPlanet(
         }
     );
 
-
-    /*
-       Fixed front-facing view.
-    */
 
     const worldPosition =
         new THREE.Vector3();
@@ -3792,7 +4278,8 @@ function createMeasurementScale(
 
 
     /*
-       Tiny point-count indicator.
+       Point-count indicator remains inside
+       the shortened measurement area.
     */
 
     const label =
@@ -3810,7 +4297,7 @@ function createMeasurementScale(
 
 
     label.style.bottom =
-        "-18px";
+        "-16px";
 
 
     label.style.fontSize =
@@ -3931,8 +4418,8 @@ function hideMarkerConnector() {
 
 
 /*
-   Convert a Three.js world coordinate into the
-   fixed SVG HUD coordinate system.
+   Convert Three.js world coordinates into
+   the fixed SVG HUD coordinate system.
 */
 
 function projectToHUD(
@@ -3991,18 +4478,23 @@ function updateMarkerConnector() {
     );
 
 
+    /*
+       Move the projected connector point down
+       slightly to give the marker more breathing room
+       from the planet title/central geometry.
+    */
+
     const point =
         projectToHUD(
             markerWorld
         );
 
 
-    /*
-       Fixed right-hand callout.
+    point.y += 4;
 
-       The line starts at the actual location
-       on the planet and travels horizontally
-       toward the marker information.
+
+    /*
+       Fixed right/left callout.
     */
 
     const cardOnRight =
@@ -4153,11 +4645,11 @@ renderer.domElement.addEventListener(
 
 
         /*
-           IMPORTANT:
+           Focused planet:
 
-           Once inside a planet, dragging does NOTHING.
-
-           The camera is deliberately fixed.
+           Do not start galaxy dragging.
+           This prevents accidental camera-orbit
+           behaviour while interacting with the map.
         */
 
         if (planetMode) {
@@ -4244,7 +4736,7 @@ renderer.domElement.addEventListener(
     event => {
 
         /*
-           No hover processing while focused.
+           No galaxy hover while focused.
         */
 
         if (
@@ -4420,6 +4912,11 @@ renderer.domElement.addEventListener(
             planetMode
         ) {
 
+            /*
+               In planet mode a pointer release is treated
+               as a click only if it has not become a drag.
+            */
+
             handleClick(
                 event
             );
@@ -4558,7 +5055,8 @@ function handleClick(
     /*
        PLANET MODE
 
-       Only research points are interactive.
+       Research points are the only interactive
+       elements on the planetary surface.
     */
 
     if (
@@ -4583,6 +5081,12 @@ function handleClick(
         return;
     }
 
+
+    /*
+       Hit areas are intentionally invisible and
+       depth-independent, so the surface/grid cannot
+       break selection when zoomed.
+    */
 
     const intersects =
         raycaster.intersectObjects(
@@ -4679,8 +5183,8 @@ renderer.domElement.addEventListener(
         /*
            PLANET MODE:
 
-           Zoom straight toward / away from
-           the planet without changing viewing angle.
+           Zoom only along the camera's viewing axis.
+           No yaw or pitch is introduced.
         */
 
         planetDistance +=
@@ -4768,8 +5272,12 @@ function updatePlanetLabel() {
         `${x}px`;
 
 
+    /*
+       Slightly lower than before.
+    */
+
     label.style.top =
-        `${y - 20}px`;
+        `${y - 14}px`;
 
 
     label.textContent =
@@ -4839,9 +5347,6 @@ function animate(now) {
        Galaxy planets rotate.
 
        Focused planets STOP rotating.
-
-       This makes the research coordinates stable
-       while the planetary HUD is active.
     */
 
     if (
@@ -4909,10 +5414,39 @@ function animate(now) {
 
 
     /*
+       Very subtle motion on the 3D research
+       navigation grid.
+    */
+
+    planets.forEach(
+        planet => {
+
+            const researchGrid =
+                planet.children.find(
+
+                    child =>
+                        child.name ===
+                        "3D Research Grid"
+                );
+
+
+            if (
+                researchGrid &&
+                !planetMode
+            ) {
+
+                researchGrid.rotation.y +=
+                    0.002 *
+                    delta;
+            }
+        }
+    );
+
+
+    /*
        Pulse markers.
 
-       Only visible marker geometry scales.
-       Invisible click geometry NEVER scales.
+       Invisible hit geometry NEVER scales.
     */
 
     planets.forEach(
@@ -4989,7 +5523,7 @@ function animate(now) {
 
     /*
        Keep selected marker connector aligned
-       if the user zooms.
+       during zoom and camera animation.
     */
 
     if (
