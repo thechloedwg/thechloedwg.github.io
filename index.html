@@ -700,190 +700,160 @@ canvas {
         id="planetLabel"
     ></div>
 
+<!-- =====================================================
+     PLANET HUD
+     ===================================================== -->
 
-    <!-- =====================================================
-         PLANET HUD
-         ===================================================== -->
+<div
+    class="planet-hud"
+    id="planetHud"
+>
 
-    <div
-        class="planet-hud"
-        id="planetHud"
+    <svg
+        class="hud-svg"
+        id="hudSvg"
+        viewBox="0 0 1000 600"
+        preserveAspectRatio="none"
     >
 
-        <svg
-            class="hud-svg"
-            id="hudSvg"
-            viewBox="0 0 1000 600"
-            preserveAspectRatio="none"
-        >
+        <defs>
 
-            <defs>
+            <filter id="hudGlow">
 
-                <filter id="hudGlow">
+                <feGaussianBlur
+                    stdDeviation="1.5"
+                    result="blur"
+                />
 
-                    <feGaussianBlur
-                        stdDeviation="1.5"
-                        result="blur"
+                <feMerge>
+
+                    <feMergeNode
+                        in="blur"
                     />
 
-                    <feMerge>
+                    <feMergeNode
+                        in="SourceGraphic"
+                    />
 
-                        <feMergeNode
-                            in="blur"
-                        />
+                </feMerge>
 
-                        <feMergeNode
-                            in="SourceGraphic"
-                        />
+            </filter>
 
-                    </feMerge>
-
-                </filter>
-
-            </defs>
+        </defs>
 
 
-            <!-- =================================================
-                 LEFT UPPER GEOMETRIC POINTER
+        <!-- =================================================
+             LEFT UPPER PLANET POINTER
 
-                 Lowered so the connector sits beneath the
-                 upper technical line and immediately above
-                 the STATUS information.
-                 ================================================= -->
+             Short elbow positioned between the planet title
+             and the STATUS information.
+             ================================================= -->
 
-            <path
-                class="hud-line"
-                d="
-                    M 52 170
-                    L 225 170
-                    L 285 202
-                "
-            />
-
-
-            <!-- =================================================
-                 LEFT UPPER SECONDARY TECHNICAL LINE
-                 ================================================= -->
-
-            <path
-                class="hud-fine"
-                d="
-                    M 52 154
-                    L 190 154
-                    L 222 170
-                "
-            />
+        <path
+            class="hud-line"
+            d="
+                M 52 145
+                L 52 165
+                L 76 165
+            "
+        />
 
 
-            <!-- =================================================
-                 LEFT LOWER TECHNICAL BRACKET
+        <!-- =================================================
+             LEFT LOWER QUESTION POINTER
 
-                 Lowered so the final section sits just above
-                 PRIMARY QUESTION.
-                 ================================================= -->
+             Short elbow positioned between PRIMARY QUESTION
+             and the question text.
+             ================================================= -->
 
-            <path
-                class="hud-line"
-                d="
-                    M 52 456
-                    L 245 456
-                    L 300 414
-                "
-            />
-
-
-            <!-- =================================================
-                 LEFT LOWER SECONDARY LINE
-                 ================================================= -->
-
-            <path
-                class="hud-fine"
-                d="
-                    M 52 472
-                    L 205 472
-                    L 250 456
-                "
-            />
+        <path
+            class="hud-line"
+            d="
+                M 52 490
+                L 52 470
+                L 76 470
+            "
+        />
 
 
-            <!-- =================================================
-                 UPPER ORBITAL BRACKETS
-                 ================================================= -->
+        <!-- =================================================
+             UPPER ORBITAL BRACKETS
+             ================================================= -->
 
-            <path
-                class="hud-fine"
-                d="
-                    M 285 42
-                    L 300 42
-                    L 316 65
-                "
-            />
+        <path
+            class="hud-fine"
+            d="
+                M 285 42
+                L 300 42
+                L 316 65
+            "
+        />
 
-            <path
-                class="hud-fine"
-                d="
-                    M 350 38
-                    L 360 54
-                "
-            />
+        <path
+            class="hud-fine"
+            d="
+                M 350 38
+                L 360 54
+            "
+        />
 
-            <path
-                class="hud-fine"
-                d="
-                    M 400 20
-                    L 401 48
-                "
-            />
+        <path
+            class="hud-fine"
+            d="
+                M 400 20
+                L 401 48
+            "
+        />
 
-            <path
-                class="hud-fine"
-                d="
-                    M 710 45
-                    L 695 62
-                    L 680 62
-                "
-            />
+        <path
+            class="hud-fine"
+            d="
+                M 710 45
+                L 695 62
+                L 680 62
+            "
+        />
 
 
-            <!-- =================================================
-                 ADDITIONAL LINEAR PLANET FRAMEWORK
-                 ================================================= -->
+        <!-- =================================================
+             ADDITIONAL LINEAR PLANET FRAMEWORK
+             ================================================= -->
 
-            <path
-                class="hud-faint-line"
-                d="
-                    M 315 84
-                    L 365 84
-                    L 395 108
-                "
-            />
+        <path
+            class="hud-faint-line"
+            d="
+                M 315 84
+                L 365 84
+                L 395 108
+            "
+        />
 
-            <path
-                class="hud-faint-line"
-                d="
-                    M 685 84
-                    L 635 84
-                    L 605 108
-                "
-            />
+        <path
+            class="hud-faint-line"
+            d="
+                M 685 84
+                L 635 84
+                L 605 108
+            "
+        />
 
-            <path
-                class="hud-fine"
-                d="
-                    M 255 110
-                    L 290 110
-                    L 312 128
-                "
-            />
+        <path
+            class="hud-fine"
+            d="
+                M 255 110
+                L 290 110
+                L 312 128
+            "
+        />
 
-            <path
-                class="hud-fine"
-                d="
-                    M 745 110
-                    L 710 110
-                    L 688 128
-                "
-            />
+        <path
+            class="hud-fine"
+            d="
+                M 745 110
+                L 710 110
+                L 688 128
+            "
+        />
 
 
             <!-- =================================================
