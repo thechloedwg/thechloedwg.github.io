@@ -410,17 +410,58 @@ let hoveredPlanet = null;
 
 let cameraAnimating = false;
 
+
+/*
+    Navigation state.
+
+    isPointerDown:
+    The mouse/finger is currently held down.
+
+    isDragging:
+    The pointer has moved far enough to
+    actually count as a drag.
+
+    didDrag:
+    Remembers that this interaction was a
+    drag, so releasing it cannot accidentally
+    trigger a click.
+*/
+
+let isPointerDown = false;
+
 let isDragging = false;
+
+let didDrag = false;
+
 
 let previousMouse = {
     x: 0,
     y: 0
 };
 
+
 let pointerDownPosition = {
     x: 0,
     y: 0
 };
+
+
+/*
+    How far the pointer needs to move before
+    dragging starts.
+*/
+
+const DRAG_THRESHOLD = 6;
+
+
+/*
+    Rotation sensitivity.
+
+    Lower than before so movement feels
+    smoother and easier to control.
+*/
+
+const DRAG_SENSITIVITY = 0.0035;
 
 
 const planets = [];
@@ -599,8 +640,6 @@ function createProjectPlanet(
     );
 
 
-    // Outer holographic shell
-
     addHolographicShell(
         planet,
         radius,
@@ -608,8 +647,6 @@ function createProjectPlanet(
         isUNGA
     );
 
-
-    // Earth clouds
 
     if (isUNGA) {
 
@@ -983,8 +1020,6 @@ function updateLabels() {
                     .parameters.radius;
 
 
-            // Put heading above planet
-
             worldPosition.y +=
                 radius + 0.45;
 
@@ -1023,8 +1058,6 @@ function updateLabels() {
             item.element.style.top =
                 `${y}px`;
 
-
-            // ONLY show when hovering
 
             if (
 
@@ -1402,26 +1435,6 @@ function createResearchPin(
     };
 
 
-    /*
-        THE HOOP
-
-        RingGeometry normally lies flat
-        in the XY plane.
-
-        Its normal therefore points along Z.
-
-        We rotate that Z direction so that
-        it points along the radius from the
-        centre of the planet to the location.
-
-        Therefore:
-
-        - hoop plane = tangent to planet
-        - hoop normal = planet radius
-        - hoop sits flush against surface
-    */
-
-
     const ringGeometry =
         new THREE.RingGeometry(
             radius * 0.025,
@@ -1463,18 +1476,6 @@ function createResearchPin(
     );
 
 
-    /*
-        Store the radius direction.
-
-        We cannot calculate this from
-        group.position here because the group
-        has not yet been positioned.
-
-        So we calculate it from latitude
-        and longitude instead.
-    */
-
-
     const surfaceNormal =
         latLonToVector3(
 
@@ -1485,13 +1486,6 @@ function createResearchPin(
             1
 
         ).normalize();
-
-
-    /*
-        RingGeometry's face normal is +Z.
-
-        Rotate +Z to the surface normal.
-    */
 
 
     ring.quaternion.setFromUnitVectors(
@@ -1506,12 +1500,6 @@ function createResearchPin(
 
     );
 
-
-    /*
-        Tiny offset so the ring doesn't
-        mathematically disappear inside
-        the planet due to z-fighting.
-    */
 
     group.position.copy(
 
@@ -1536,10 +1524,6 @@ function createResearchPin(
 function buildUniverse(
     data
 ) {
-
-    /*
-        Group spreadsheet rows by project.
-    */
 
     data.forEach(
         row => {
@@ -1586,10 +1570,6 @@ function buildUniverse(
         );
 
 
-    /*
-        Create one planet per project.
-    */
-
     projectNames.forEach(
         (
             project,
@@ -1599,13 +1579,6 @@ function buildUniverse(
             const rows =
                 projectData[project];
 
-
-            /*
-                Size comes from spreadsheet.
-
-                If there isn't a size yet,
-                default to 3.
-            */
 
             let size =
                 parseFloat(
@@ -1638,10 +1611,6 @@ function buildUniverse(
                     .toUpperCase() ===
                 "UNGA81";
 
-
-            /*
-                Position planets.
-            */
 
             let position;
 
@@ -1723,10 +1692,6 @@ function buildUniverse(
                 project
             );
 
-
-            /*
-                Research points for this planet.
-            */
 
             const pointsGroup =
                 new THREE.Group();
@@ -1857,8 +1822,16 @@ fetch(
 
 
 // ============================================================
-// MOUSE
+// MOUSE / POINTER
 // ============================================================
+
+
+const mouse =
+    new THREE.Vector2();
+
+
+const raycaster =
+    new THREE.Raycaster();
 
 
 function getMouse(
@@ -1880,16 +1853,65 @@ function getMouse(
 }
 
 
-const mouse =
-    new THREE.Vector2();
+// ============================================================
+// POINTER DOWN
+// ============================================================
 
 
-const raycaster =
-    new THREE.Raycaster();
+renderer.domElement.addEventListener(
+    "pointerdown",
+    event => {
+
+        if (
+            cameraAnimating
+        ) {
+
+            return;
+        }
+
+
+        isPointerDown =
+            true;
+
+
+        isDragging =
+            false;
+
+
+        didDrag =
+            false;
+
+
+        pointerDownPosition.x =
+            event.clientX;
+
+
+        pointerDownPosition.y =
+            event.clientY;
+
+
+        previousMouse.x =
+            event.clientX;
+
+
+        previousMouse.y =
+            event.clientY;
+
+
+        /*
+            Keep receiving pointer events even
+            if the cursor leaves the canvas.
+        */
+
+        renderer.domElement.setPointerCapture(
+            event.pointerId
+        );
+    }
+);
 
 
 // ============================================================
-// HOVER PLANETS
+// POINTER MOVE
 // ============================================================
 
 
@@ -1897,28 +1919,153 @@ renderer.domElement.addEventListener(
     "pointermove",
     event => {
 
+        /*
+            --------------------------------------------------
+            DRAGGING
+            --------------------------------------------------
+        */
+
         if (
-            isDragging
+            isPointerDown &&
+            !cameraAnimating
         ) {
 
-            return;
+            const totalDX =
+                event.clientX -
+                pointerDownPosition.x;
+
+
+            const totalDY =
+                event.clientY -
+                pointerDownPosition.y;
+
+
+            const distanceMoved =
+                Math.sqrt(
+                    totalDX * totalDX +
+                    totalDY * totalDY
+                );
+
+
+            /*
+                Don't start rotating until the
+                pointer has moved a little.
+            */
+
+            if (
+                !isDragging &&
+                distanceMoved >
+                    DRAG_THRESHOLD
+            ) {
+
+                isDragging =
+                    true;
+
+
+                didDrag =
+                    true;
+            }
+
+
+            /*
+                Once dragging begins, rotate
+                based only on movement since the
+                previous frame.
+            */
+
+            if (
+                isDragging
+            ) {
+
+                const deltaX =
+                    event.clientX -
+                    previousMouse.x;
+
+
+                const deltaY =
+                    event.clientY -
+                    previousMouse.y;
+
+
+                if (
+                    mode === "galaxy"
+                ) {
+
+                    galaxy.rotation.y +=
+                        deltaX *
+                        DRAG_SENSITIVITY;
+
+
+                    galaxy.rotation.x +=
+                        deltaY *
+                        DRAG_SENSITIVITY;
+
+                }
+
+                else if (
+                    mode === "planet" &&
+                    selectedPlanet
+                ) {
+
+                    selectedPlanet.rotation.y +=
+                        deltaX *
+                        DRAG_SENSITIVITY;
+
+
+                    selectedPlanet.rotation.x +=
+                        deltaY *
+                        DRAG_SENSITIVITY;
+                }
+            }
+
+
+            previousMouse.x =
+                event.clientX;
+
+
+            previousMouse.y =
+                event.clientY;
+
+
+            /*
+                Don't run hover detection while
+                actually dragging.
+            */
+
+            if (
+                isDragging
+            ) {
+
+                hoveredPlanet =
+                    null;
+
+                return;
+            }
         }
 
 
-        getMouse(
-            event
-        );
-
-
-        raycaster.setFromCamera(
-            mouse,
-            camera
-        );
-
+        /*
+            --------------------------------------------------
+            HOVER
+            --------------------------------------------------
+        */
 
         if (
-            mode === "galaxy"
+            !isPointerDown &&
+            mode === "galaxy" &&
+            !cameraAnimating
         ) {
+
+            getMouse(
+                event
+            );
+
+
+            raycaster.setFromCamera(
+                mouse,
+                camera
+            );
+
 
             const hits =
                 raycaster.intersectObjects(
@@ -1945,129 +2092,44 @@ renderer.domElement.addEventListener(
 
 
 // ============================================================
-// DRAG
+// POINTER UP
 // ============================================================
 
 
-renderer.domElement.addEventListener(
-    "pointerdown",
-    event => {
+function finishPointer(
+    event
+) {
 
-        isDragging =
-            false;
-
-
-        previousMouse.x =
-            event.clientX;
+    isPointerDown =
+        false;
 
 
-        previousMouse.y =
-            event.clientY;
+    isDragging =
+        false;
 
 
-        pointerDownPosition.x =
-            event.clientX;
+    if (
+        renderer.domElement.hasPointerCapture(
+            event.pointerId
+        )
+    ) {
 
-
-        pointerDownPosition.y =
-            event.clientY;
+        renderer.domElement.releasePointerCapture(
+            event.pointerId
+        );
     }
-);
-
-
-renderer.domElement.addEventListener(
-    "pointermove",
-    event => {
-
-        const dx =
-            event.clientX -
-            pointerDownPosition.x;
-
-
-        const dy =
-            event.clientY -
-            pointerDownPosition.y;
-
-
-        if (
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            ) > 4
-        ) {
-
-            isDragging =
-                true;
-        }
-
-
-        if (
-            !isDragging ||
-            cameraAnimating
-        ) {
-
-            return;
-        }
-
-
-        const deltaX =
-            event.clientX -
-            previousMouse.x;
-
-
-        const deltaY =
-            event.clientY -
-            previousMouse.y;
-
-
-        if (
-            mode === "galaxy"
-        ) {
-
-            galaxy.rotation.y +=
-                deltaX * 0.005;
-
-
-            galaxy.rotation.x +=
-                deltaY * 0.005;
-
-        } else if (
-            selectedPlanet
-        ) {
-
-            selectedPlanet.rotation.y +=
-                deltaX * 0.005;
-
-
-            selectedPlanet.rotation.x +=
-                deltaY * 0.005;
-        }
-
-
-        previousMouse.x =
-            event.clientX;
-
-
-        previousMouse.y =
-            event.clientY;
-    }
-);
+}
 
 
 renderer.domElement.addEventListener(
     "pointerup",
-    () => {
+    finishPointer
+);
 
-        setTimeout(
-            () => {
 
-                isDragging =
-                    false;
-
-            },
-            10
-        );
-    }
+renderer.domElement.addEventListener(
+    "pointercancel",
+    finishPointer
 );
 
 
@@ -2140,8 +2202,24 @@ renderer.domElement.addEventListener(
     "click",
     event => {
 
+        /*
+            If the user dragged, this is NOT
+            a click.
+        */
+
         if (
-            isDragging
+            didDrag
+        ) {
+
+            didDrag =
+                false;
+
+            return;
+        }
+
+
+        if (
+            cameraAnimating
         ) {
 
             return;
@@ -2162,12 +2240,7 @@ renderer.domElement.addEventListener(
         /*
             GALAXY MODE
 
-            IMPORTANT:
-
             Only planets are clickable.
-
-            Research hoops are completely
-            ignored here.
         */
 
         if (
@@ -2182,8 +2255,7 @@ renderer.domElement.addEventListener(
 
 
             if (
-                hits.length > 0 &&
-                !cameraAnimating
+                hits.length > 0
             ) {
 
                 enterPlanet(
@@ -2199,8 +2271,7 @@ renderer.domElement.addEventListener(
         /*
             PLANET MODE
 
-            Now research hoops become
-            clickable.
+            Research hoops are clickable.
         */
 
         if (
@@ -2242,11 +2313,6 @@ renderer.domElement.addEventListener(
                 let point =
                     hits[0].object;
 
-
-                /*
-                    Walk back up to the
-                    research group.
-                */
 
                 while (
 
@@ -2312,10 +2378,6 @@ function enterPlanet(
         "DRAG TO ROTATE · SCROLL TO ZOOM · SELECT A LOCATION";
 
 
-    /*
-        Hide all other planets.
-    */
-
     planets.forEach(
         other => {
 
@@ -2344,11 +2406,6 @@ function enterPlanet(
     );
 
 
-    /*
-        Get the planet's actual world
-        position.
-    */
-
     const worldPosition =
         new THREE.Vector3();
 
@@ -2357,10 +2414,6 @@ function enterPlanet(
         worldPosition
     );
 
-
-    /*
-        Camera direction.
-    */
 
     const direction =
         new THREE.Vector3()
@@ -2562,6 +2615,18 @@ document.getElementById(
             false;
 
 
+        isPointerDown =
+            false;
+
+
+        isDragging =
+            false;
+
+
+        didDrag =
+            false;
+
+
         document.getElementById(
             "backButton"
         ).style.display =
@@ -2579,10 +2644,6 @@ document.getElementById(
         ).textContent =
             "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD";
 
-
-        /*
-            Restore all planets.
-        */
 
         planets.forEach(
             planet => {
@@ -2666,12 +2727,14 @@ function animate() {
 
 
     /*
-        Slowly rotate galaxy.
+        Slowly rotate galaxy when the user
+        isn't interacting with it.
     */
 
     if (
 
         mode === "galaxy" &&
+        !isPointerDown &&
         !isDragging &&
         !cameraAnimating
 
@@ -2692,11 +2755,6 @@ function animate() {
             planet.rotation.y +=
                 0.0007;
 
-
-            /*
-                Clouds rotate slightly
-                faster than Earth.
-            */
 
             planet.children.forEach(
                 child => {
