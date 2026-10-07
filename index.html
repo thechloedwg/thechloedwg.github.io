@@ -1658,8 +1658,10 @@ let galaxyYaw = 0;
 
 let galaxyPitch = 0.10;
 
-let galaxyDistance = 20;
-
+let galaxyDistance =
+    window.innerWidth <= 700
+        ? 24
+        : 20;
 
 let planetDistance = 8;
 
