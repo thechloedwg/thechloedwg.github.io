@@ -59,6 +59,7 @@ canvas {
     letter-spacing: 0.18em;
     opacity: 0.75;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .instructions {
@@ -84,17 +85,25 @@ canvas {
     right: 26px;
     pointer-events: auto;
     cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.35);
-    background: rgba(2,4,10,0.55);
+
+    /* deliberately borderless */
+    border: none;
+    outline: none;
+
+    background: transparent;
     color: white;
-    padding: 9px 13px;
+
+    padding: 7px 2px;
+
     font-size: 10px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
+
     opacity: 0;
+
     transition:
         opacity 0.3s ease,
-        border-color 0.2s ease;
+        transform 0.2s ease;
 }
 
 .back-button.visible {
@@ -102,8 +111,8 @@ canvas {
 }
 
 .back-button:hover {
-    border-color: rgba(255,255,255,0.8);
     opacity: 1;
+    transform: translateX(-2px);
 }
 
 
@@ -302,15 +311,8 @@ canvas {
 .measurement-scale {
     position: absolute;
     right: 7.2%;
-
-    /*
-       Raised slightly and shortened so the scale
-       sits centrally between the return button
-       and the technical readout.
-    */
     top: 31%;
     bottom: 34%;
-
     width: 50px;
 }
 
@@ -496,14 +498,51 @@ canvas {
 
 @media (max-width: 700px) {
 
+    .title {
+        top: 17px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: calc(100% - 130px);
+        text-align: center;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        line-height: 1.4;
+        white-space: normal;
+    }
+
+    .back-button {
+        top: 58px;
+        right: 7%;
+        padding: 5px 1px;
+        font-size: 8px;
+        letter-spacing: 0.13em;
+    }
+
     .planet-info {
         left: 7%;
         top: 15%;
         width: 220px;
     }
 
+    .planet-info-project {
+        font-size: 6px;
+        margin-bottom: 6px;
+    }
+
     .planet-info-name {
         font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .planet-info-rule {
+        width: 175px;
+        margin-bottom: 10px;
+    }
+
+    .planet-info-row {
+        font-size: 6px;
+        margin-bottom: 6px;
     }
 
     .planet-question {
@@ -512,9 +551,31 @@ canvas {
         width: 220px;
     }
 
+    .question-label {
+        font-size: 6px;
+        margin-bottom: 6px;
+    }
+
+    .question-text {
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
     .marker-card {
         right: 7%;
         width: 220px;
+    }
+
+    .marker-card-country {
+        font-size: 6px;
+    }
+
+    .marker-card-title {
+        font-size: 14px;
+    }
+
+    .marker-card-description {
+        font-size: 8px;
     }
 
     .technical-readout {
@@ -525,11 +586,95 @@ canvas {
         right: 6%;
         top: 30%;
         bottom: 35%;
+        width: 38px;
+    }
+
+    .scale-line {
+        right: 16px;
+    }
+
+    .scale-tick {
+        right: 16px;
+        width: 12px;
+    }
+
+    .scale-tick.major {
+        width: 21px;
+    }
+
+    .scale-number {
+        font-size: 5px;
     }
 
     .instructions {
-        font-size: 8px;
+        bottom: 16px;
+        font-size: 7px;
+        letter-spacing: 0.12em;
     }
+
+    .corner-detail {
+        width: 45px;
+        height: 45px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+    .title {
+        top: 15px;
+        width: calc(100% - 110px);
+        font-size: 8px;
+        letter-spacing: 0.12em;
+    }
+
+    .back-button {
+        top: 54px;
+        right: 6%;
+        font-size: 7px;
+    }
+
+    .planet-info {
+        top: 14%;
+        left: 6%;
+        width: 190px;
+    }
+
+    .planet-info-name {
+        font-size: 12px;
+    }
+
+    .planet-question {
+        left: 6%;
+        bottom: 12%;
+        width: 190px;
+    }
+
+    .question-text {
+        font-size: 9px;
+    }
+
+    .measurement-scale {
+        right: 5%;
+        top: 32%;
+        bottom: 36%;
+    }
+
+    .instructions {
+        font-size: 6px;
+        bottom: 11px;
+    }
+
+    .corner-detail {
+        width: 38px;
+        height: 38px;
+    }
+
 }
 
 </style>
@@ -601,31 +746,62 @@ canvas {
             <!-- =================================================
                  LEFT UPPER GEOMETRIC POINTER
 
-                 Replaces the previous curved line.
-                 It sits slightly above the lower-left
-                 straight technical line.
+                 Lowered so the connector sits beneath the
+                 upper technical line and immediately above
+                 the STATUS information.
                  ================================================= -->
 
             <path
                 class="hud-line"
                 d="
-                    M 52 145
-                    L 225 145
-                    L 285 185
+                    M 52 170
+                    L 225 170
+                    L 285 202
+                "
+            />
+
+
+            <!-- =================================================
+                 LEFT UPPER SECONDARY TECHNICAL LINE
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 52 154
+                    L 190 154
+                    L 222 170
                 "
             />
 
 
             <!-- =================================================
                  LEFT LOWER TECHNICAL BRACKET
+
+                 Lowered so the final section sits just above
+                 PRIMARY QUESTION.
                  ================================================= -->
 
             <path
                 class="hud-line"
                 d="
-                    M 52 420
-                    L 245 420
-                    L 300 375
+                    M 52 456
+                    L 245 456
+                    L 300 414
+                "
+            />
+
+
+            <!-- =================================================
+                 LEFT LOWER SECONDARY LINE
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 52 472
+                    L 205 472
+                    L 250 456
                 "
             />
 
@@ -670,14 +846,144 @@ canvas {
 
 
             <!-- =================================================
+                 ADDITIONAL LINEAR PLANET FRAMEWORK
+                 ================================================= -->
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 315 84
+                    L 365 84
+                    L 395 108
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 685 84
+                    L 635 84
+                    L 605 108
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 255 110
+                    L 290 110
+                    L 312 128
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 745 110
+                    L 710 110
+                    L 688 128
+                "
+            />
+
+
+            <!-- =================================================
                  RIGHT ORBITAL ARC
+
+                 Gentler, wider arc around the planet.
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 720 145
+                    A 245 245 0 0 1 720 455
+                "
+            />
+
+
+            <!-- =================================================
+                 RIGHT SECONDARY ORBITAL SEGMENT
+                 ================================================= -->
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 755 205
+                    A 270 270 0 0 1 755 395
+                "
+            />
+
+
+            <!-- =================================================
+                 RIGHT LINEAR TECHNICAL BREAKS
                  ================================================= -->
 
             <path
                 class="hud-line"
                 d="
-                    M 700 125
-                    A 190 190 0 0 1 700 475
+                    M 735 188
+                    L 780 188
+                "
+            />
+
+            <path
+                class="hud-line"
+                d="
+                    M 735 412
+                    L 780 412
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 755 230
+                    L 790 230
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 755 370
+                    L 790 370
+                "
+            />
+
+
+            <!-- =================================================
+                 PLANET-SIDE HORIZONTAL TECHNICAL LINES
+                 ================================================= -->
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 305 250
+                    L 355 250
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 305 350
+                    L 355 350
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 645 250
+                    L 695 250
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 645 350
+                    L 695 350
                 "
             />
 
@@ -720,6 +1026,29 @@ canvas {
 
 
             <!-- =================================================
+                 ADDITIONAL LOWER FRAME LINES
+                 ================================================= -->
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 300 500
+                    L 350 500
+                    L 375 480
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 700 500
+                    L 650 500
+                    L 625 480
+                "
+            />
+
+
+            <!-- =================================================
                  CENTRAL RETICLE
                  ================================================= -->
 
@@ -736,6 +1065,43 @@ canvas {
                 r="218"
                 class="hud-faint-line"
                 stroke-dasharray="2 12"
+            />
+
+
+            <!-- =================================================
+                 INNER LINEAR RETICLE SEGMENTS
+                 ================================================= -->
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 500 70
+                    L 500 105
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 500 495
+                    L 500 530
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 270 300
+                    L 305 300
+                "
+            />
+
+            <path
+                class="hud-faint-line"
+                d="
+                    M 695 300
+                    L 730 300
+                "
             />
 
 
@@ -761,6 +1127,43 @@ canvas {
             <path
                 class="hud-line"
                 d="M 715 300 L 735 300"
+            />
+
+
+            <!-- =================================================
+                 SMALL ANGULAR TECHNICAL MARKS
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 330 195
+                    L 350 180
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 670 180
+                    L 690 195
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 330 405
+                    L 350 420
+                "
+            />
+
+            <path
+                class="hud-fine"
+                d="
+                    M 670 420
+                    L 690 405
+                "
             />
 
 
@@ -4539,13 +4942,6 @@ renderer.domElement.addEventListener(
         }
 
 
-        /*
-           Calculate movement from the immediately
-           previous pointer position.
-
-           This allows rotation in BOTH directions.
-        */
-
         const movementX =
             event.clientX -
             previousPointerX;
@@ -4606,17 +5002,6 @@ renderer.domElement.addEventListener(
             event.clientY;
 
 
-        /*
-           PLANET MODE
-
-           Horizontal movement:
-           left = one direction
-           right = opposite direction
-
-           Vertical movement:
-           up/down changes pitch.
-        */
-
         if (
             planetMode
         ) {
@@ -4667,13 +5052,6 @@ renderer.domElement.addEventListener(
 
         }
 
-
-        /*
-           GALAXY MODE
-
-           Both positive and negative horizontal
-           movement are preserved.
-        */
 
         galaxyYaw -=
             movementX *
@@ -4847,10 +5225,6 @@ function handleClick(
     );
 
 
-    /*
-       GALAXY MODE
-    */
-
     if (
         !planetMode
     ) {
@@ -4905,10 +5279,6 @@ function handleClick(
 
     }
 
-
-    /*
-       PLANET MODE
-    */
 
     if (
         !selectedPlanet
@@ -5218,10 +5588,6 @@ function animate(
     );
 
 
-    /*
-       Galaxy planets rotate automatically.
-    */
-
     if (
         !planetMode &&
         !isPointerDown &&
@@ -5266,10 +5632,6 @@ function animate(
     }
 
 
-    /*
-       Clouds move subtly.
-    */
-
     planets.forEach(
 
         planet => {
@@ -5297,10 +5659,6 @@ function animate(
 
     );
 
-
-    /*
-       Pulse markers.
-    */
 
     planets.forEach(
 
