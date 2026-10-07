@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
 
 <meta
@@ -14,23 +13,27 @@
 
 <style>
 
+/* =========================================================
+   BASE
+   ========================================================= */
+
 * {
     box-sizing: border-box;
 }
 
 html,
 body {
+    margin: 0;
     width: 100%;
     height: 100%;
-    margin: 0;
-    padding: 0;
     overflow: hidden;
     background: #02040a;
-    color: #ffffff;
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    cursor: grab;
 }
 
 body.dragging {
@@ -39,88 +42,105 @@ body.dragging {
 
 canvas {
     display: block;
-    width: 100%;
-    height: 100%;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
 }
 
 
 /* =========================================================
-   MAIN UI
+   GENERAL UI
    ========================================================= */
 
-#ui {
+.ui {
     position: fixed;
     inset: 0;
-    pointer-events: none;
     z-index: 20;
+    pointer-events: none;
 }
 
-#title {
+.title {
     position: absolute;
-    top: 28px;
-    left: 32px;
-    font-size: 11px;
-    line-height: 1.4;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    opacity: 0.72;
-}
-
-#instructions {
-    position: absolute;
-    top: 48px;
-    left: 32px;
-    font-size: 7px;
+    top: 24px;
+    left: 28px;
+    font-size: 12px;
     letter-spacing: 0.18em;
-    opacity: 0.35;
+    opacity: 0.75;
     text-transform: uppercase;
+    z-index: 30;
 }
 
-#backButton {
+.instructions {
     position: absolute;
-    top: 28px;
-    right: 32px;
-    padding: 8px 12px;
-    border: 1px solid rgba(255,255,255,0.22);
-    font-size: 7px;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
     letter-spacing: 0.18em;
+    opacity: 0.45;
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 30;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+   ========================================================= */
+
+.back-button {
+    position: absolute;
+    top: 22px;
+    right: 26px;
+    pointer-events: auto;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(2,4,10,0.55);
+    color: white;
+    padding: 9px 13px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     opacity: 0;
-    pointer-events: none;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
+    transition:
+        opacity 0.3s ease,
+        border-color 0.2s ease;
+    z-index: 40;
 }
 
-#backButton.visible {
-    opacity: 0.65;
-    pointer-events: auto;
+.back-button.visible {
+    opacity: 0.8;
 }
 
-#backButton:hover {
+.back-button:hover {
+    border-color: rgba(255,255,255,0.8);
     opacity: 1;
 }
 
 
 /* =========================================================
-   GALAXY LABEL
+   GALAXY HOVER LABEL
    ========================================================= */
 
-#planetLabel {
+.planet-label {
     position: absolute;
     transform: translate(-50%, -100%);
-    padding: 5px 8px;
-    border: 1px solid rgba(255,255,255,0.22);
-    background: rgba(2,4,10,0.78);
-    font-size: 8px;
-    letter-spacing: 0.16em;
+    padding: 7px 10px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(2,4,10,0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    font-size: 10px;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    opacity: 0;
     white-space: nowrap;
+    opacity: 0;
     transition: opacity 0.15s ease;
+    z-index: 35;
 }
 
-#planetLabel.visible {
-    opacity: 0.9;
+.planet-label.visible {
+    opacity: 1;
 }
 
 
@@ -128,57 +148,100 @@ canvas {
    PLANET HUD
    ========================================================= */
 
-#planetHud {
+.planet-hud {
     position: absolute;
     inset: 0;
     opacity: 0;
+    transition: opacity 0.45s ease;
     pointer-events: none;
-    transition: opacity 0.35s ease;
 }
 
-#planetHud.visible {
+.planet-hud.visible {
     opacity: 1;
 }
 
 
-/* =========================================================
-   HUD SVG
-   ========================================================= */
+/*
+   The HUD SVG sits BEHIND the rendered planet.
 
-#hudSvg {
+   Text/cards sit above it separately.
+
+   This prevents the large technical circles and lines
+   from visually cutting through the planet.
+*/
+
+.hud-svg {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    overflow: visible;
     pointer-events: none;
-    z-index: 1;
+    z-index: 2;
 }
 
-.hud-line {
-    fill: none;
-    stroke: rgba(255,255,255,0.23);
-    stroke-width: 1;
+
+/* =========================================================
+   HUD TYPOGRAPHY
+   ========================================================= */
+
+.hud-text {
+    fill: rgba(255,255,255,0.75);
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    text-transform: uppercase;
+}
+
+.hud-small {
+    font-size: 8px;
+    letter-spacing: 2px;
+}
+
+.hud-tiny {
+    font-size: 6px;
+    letter-spacing: 1.5px;
+}
+
+.hud-large {
+    font-size: 17px;
+    letter-spacing: 2px;
 }
 
 .hud-faint {
-    fill: none;
-    stroke: rgba(255,255,255,0.10);
-    stroke-width: 1;
+    fill: rgba(255,255,255,0.35);
 }
 
 .hud-bright {
+    fill: rgba(255,255,255,0.88);
+}
+
+
+/* =========================================================
+   HUD LINES
+   ========================================================= */
+
+.hud-line {
+    stroke: rgba(255,255,255,0.55);
+    stroke-width: 1;
     fill: none;
-    stroke: rgba(255,255,255,0.42);
-    stroke-width: 1;
 }
 
-.hud-dot {
-    fill: rgba(255,255,255,0.7);
+.hud-fine {
+    stroke: rgba(255,255,255,0.28);
+    stroke-width: 0.7;
+    fill: none;
 }
 
-.hud-tick {
-    stroke: rgba(255,255,255,0.32);
-    stroke-width: 1;
+.hud-faint-line {
+    stroke: rgba(255,255,255,0.13);
+    stroke-width: 0.7;
+    fill: none;
+}
+
+.hud-dashed {
+    stroke-dasharray: 3 5;
 }
 
 
@@ -186,108 +249,121 @@ canvas {
    PLANET INFORMATION
    ========================================================= */
 
-#planetInfo {
+.planet-info {
     position: absolute;
-    top: 110px;
-    left: 42px;
-    width: 250px;
-    z-index: 5;
+    left: 5.5%;
+    top: 16%;
+    width: 300px;
+    z-index: 25;
 }
 
-#hudProject {
+.planet-info-project {
+    font-size: 8px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    opacity: 0.48;
+    margin-bottom: 10px;
+}
+
+.planet-info-name {
+    font-size: 19px;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    max-width: 270px;
+}
+
+.planet-info-rule {
+    width: 235px;
+    height: 1px;
+    background: rgba(255,255,255,0.5);
+    margin-bottom: 20px;
+}
+
+.planet-info-row {
     font-size: 7px;
-    letter-spacing: 0.24em;
-    opacity: 0.42;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-}
-
-#hudName {
-    font-size: 25px;
-    line-height: 1.05;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    margin-bottom: 8px;
-}
-
-#hudStatus {
-    display: inline-block;
-    border: 1px solid rgba(255,255,255,0.22);
-    padding: 4px 7px;
-    font-size: 6px;
-    letter-spacing: 0.17em;
-    text-transform: uppercase;
-    opacity: 0.62;
-    margin-bottom: 22px;
-}
-
-.info-label {
-    font-size: 6px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    opacity: 0.34;
-    margin-bottom: 5px;
+    opacity: 0.5;
+    margin-bottom: 8px;
 }
 
-#hudFocus {
-    font-size: 9px;
-    line-height: 1.45;
-    max-width: 230px;
-    opacity: 0.72;
-    margin-bottom: 18px;
-}
-
-#hudQuestion {
-    font-size: 10px;
-    line-height: 1.45;
-    max-width: 245px;
+.planet-info-row strong {
     opacity: 0.9;
+    font-weight: normal;
 }
 
 
 /* =========================================================
-   MEASUREMENT SCALE
+   PRIMARY QUESTION
    ========================================================= */
 
-#measurementScale {
+.planet-question {
     position: absolute;
-    right: 42px;
-    top: 160px;
-    width: 52px;
-    height: 260px;
-    z-index: 5;
+    left: 5.5%;
+    bottom: 17%;
+    width: 290px;
+    z-index: 25;
+}
+
+.question-label {
+    font-size: 7px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 8px;
+}
+
+.question-text {
+    font-size: 12px;
+    line-height: 1.45;
+    opacity: 0.75;
+}
+
+
+/* =========================================================
+   RIGHT MEASUREMENT SCALE
+   ========================================================= */
+
+.measurement-scale {
+    position: absolute;
+    right: 7.2%;
+    top: 10%;
+    bottom: 27%;
+    width: 50px;
+    z-index: 25;
 }
 
 .scale-line {
     position: absolute;
+    right: 22px;
     top: 0;
-    right: 12px;
+    bottom: 0;
     width: 1px;
-    height: 100%;
-    background: rgba(255,255,255,0.24);
+    background: rgba(255,255,255,0.28);
 }
 
 .scale-tick {
     position: absolute;
-    right: 8px;
-    width: 9px;
+    right: 22px;
+    width: 18px;
     height: 1px;
-    background: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.5);
 }
 
 .scale-tick.major {
-    right: 5px;
-    width: 12px;
-    background: rgba(255,255,255,0.5);
+    width: 30px;
+    background: rgba(255,255,255,0.7);
 }
 
 .scale-number {
     position: absolute;
-    right: 24px;
+    right: 0;
     transform: translateY(-50%);
     font-size: 6px;
-    letter-spacing: 0.08em;
-    opacity: 0.35;
+    letter-spacing: 0.1em;
+    opacity: 0.42;
 }
 
 
@@ -295,126 +371,124 @@ canvas {
    TECHNICAL READOUT
    ========================================================= */
 
-#technicalReadout {
+.technical-readout {
     position: absolute;
-    right: 42px;
-    bottom: 40px;
-    width: 190px;
+    right: 6%;
+    bottom: 12%;
     text-align: right;
-    z-index: 5;
+    z-index: 25;
 }
 
-.tech-line {
+.technical-readout div {
     font-size: 6px;
-    line-height: 1.8;
-    letter-spacing: 0.13em;
-    opacity: 0.25;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
+    opacity: 0.38;
+    margin-top: 6px;
 }
 
 
 /* =========================================================
-   CORNER DETAILS
+   CORNER TECHNICAL DETAILS
    ========================================================= */
 
-.corner {
+.corner-detail {
     position: absolute;
-    width: 42px;
-    height: 42px;
-    opacity: 0.28;
+    width: 65px;
+    height: 65px;
+    opacity: 0.45;
+    z-index: 25;
 }
 
-.corner::before,
-.corner::after {
+.corner-detail::before,
+.corner-detail::after {
     content: "";
     position: absolute;
-    background: rgba(255,255,255,0.4);
 }
 
-.corner.tl {
-    top: 18px;
-    left: 18px;
-    border-top: 1px solid rgba(255,255,255,0.28);
-    border-left: 1px solid rgba(255,255,255,0.28);
+.corner-detail.top-left {
+    left: 3.5%;
+    top: 8%;
+    border-left: 1px solid rgba(255,255,255,0.4);
+    border-top: 1px solid rgba(255,255,255,0.4);
 }
 
-.corner.tr {
-    top: 18px;
-    right: 18px;
-    border-top: 1px solid rgba(255,255,255,0.28);
-    border-right: 1px solid rgba(255,255,255,0.28);
+.corner-detail.top-right {
+    right: 3.5%;
+    top: 8%;
+    border-right: 1px solid rgba(255,255,255,0.4);
+    border-top: 1px solid rgba(255,255,255,0.4);
 }
 
-.corner.bl {
-    bottom: 18px;
-    left: 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.28);
-    border-left: 1px solid rgba(255,255,255,0.28);
+.corner-detail.bottom-left {
+    left: 3.5%;
+    bottom: 8%;
+    border-left: 1px solid rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.4);
 }
 
-.corner.br {
-    bottom: 18px;
-    right: 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.28);
-    border-right: 1px solid rgba(255,255,255,0.28);
+.corner-detail.bottom-right {
+    right: 3.5%;
+    bottom: 8%;
+    border-right: 1px solid rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.4);
 }
 
 
 /* =========================================================
-   MARKER CARD
+   ARTICLE MARKER CARD
    ========================================================= */
 
-#markerCard {
+.marker-card {
     position: absolute;
-    right: 70px;
+    right: 5.5%;
     top: 50%;
-    width: 230px;
-    transform: translateY(-50%);
-    padding: 15px 17px;
-    border-left: 1px solid rgba(255,255,255,0.35);
-    background: rgba(2,4,10,0.74);
-    opacity: 0;
-    pointer-events: none;
-    z-index: 10;
-    transition: opacity 0.25s ease;
-}
-
-#markerCard.visible {
-    opacity: 1;
+    width: 300px;
     pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-50%) translateX(15px);
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+    z-index: 35;
 }
 
-#markerCountry {
-    font-size: 6px;
-    letter-spacing: 0.22em;
+.marker-card.visible {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+.marker-card-country {
+    font-size: 8px;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
-    opacity: 0.42;
-    margin-bottom: 7px;
-}
-
-#markerTitle {
-    font-size: 13px;
-    line-height: 1.35;
+    opacity: 0.55;
     margin-bottom: 8px;
 }
 
-#markerDescription {
-    font-size: 6px;
-    letter-spacing: 0.13em;
-    opacity: 0.35;
-    margin-bottom: 12px;
+.marker-card-title {
+    font-size: 17px;
+    line-height: 1.35;
+    margin-bottom: 13px;
 }
 
-#markerLink {
-    color: #ffffff;
+.marker-card-description {
+    font-size: 9px;
+    line-height: 1.5;
+    opacity: 0.5;
+    margin-bottom: 13px;
+}
+
+.marker-card-link {
+    color: white;
     text-decoration: none;
-    font-size: 6px;
+    font-size: 8px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
-#markerLink:hover {
+.marker-card-link:hover {
     opacity: 1;
 }
 
@@ -423,24 +497,21 @@ canvas {
    LOADING
    ========================================================= */
 
-#loading {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #02040a;
-    z-index: 100;
-    font-size: 8px;
-    letter-spacing: 0.22em;
+.loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    opacity: 0.6;
-    transition: opacity 0.5s ease;
+    opacity: 0.55;
+    transition: opacity 0.4s ease;
+    z-index: 50;
 }
 
-#loading.hidden {
+.loading.hidden {
     opacity: 0;
-    pointer-events: none;
 }
 
 
@@ -448,203 +519,315 @@ canvas {
    MOBILE
    ========================================================= */
 
-@media (
-    max-width: 700px
-) {
+@media (max-width: 700px) {
 
-    #title {
-        top: 22px;
-        left: 20px;
+    .planet-info {
+        left: 7%;
+        top: 10.5%;
+        width: 220px;
     }
 
-    #instructions {
-        top: 42px;
-        left: 20px;
+    .planet-info-name {
+        font-size: 14px;
     }
 
-    #backButton {
-        top: 22px;
-        right: 20px;
+    .planet-question {
+        left: 7%;
+        bottom: 13%;
+        width: 220px;
     }
 
-    #planetInfo {
-        top: 90px;
-        left: 24px;
-        width: 210px;
+    .marker-card {
+        right: 7%;
+        width: 220px;
     }
 
-    #hudName {
-        font-size: 20px;
+    .technical-readout {
+        display: none;
     }
 
-    #measurementScale {
-        right: 20px;
-        top: 130px;
-        height: 210px;
+    .instructions {
+        font-size: 8px;
     }
 
-    #technicalReadout {
-        right: 20px;
-        bottom: 25px;
-    }
-
-    #markerCard {
-        right: 20px;
-        left: 20px;
-        width: auto;
-        bottom: 25px;
-        top: auto;
-        transform: none;
+    .measurement-scale {
+        right: 5%;
+        top: 12%;
+        bottom: 25%;
     }
 }
 
 </style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 </head>
 
 
 <body>
 
 
-<div id="loading">
-    Loading research universe
-</div>
+<div class="ui">
 
-
-<div id="ui">
-
-    <div id="title">
+    <div class="title">
         POP CULTURE AS PARABLE — MAPPED
     </div>
 
-    <div id="instructions">
-        DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD
-    </div>
 
-    <div id="backButton">
-        ← CHANGE RESEARCH
-    </div>
-
-    <div id="planetLabel"></div>
+    <button
+        class="back-button"
+        id="backButton"
+    >
+        ← Change research
+    </button>
 
 
-    <div id="planetHud">
+    <div
+        class="planet-label"
+        id="planetLabel"
+    ></div>
 
 
-        <!-- =================================================
-             HUD SVG
-             ================================================= -->
+    <!-- =====================================================
+         PLANET HUD
+         ===================================================== -->
+
+    <div
+        class="planet-hud"
+        id="planetHud"
+    >
 
         <svg
+            class="hud-svg"
             id="hudSvg"
             viewBox="0 0 1000 600"
             preserveAspectRatio="none"
         >
 
-            <!-- LEFT CONNECTORS -->
+            <defs>
 
-            <polyline
-                class="hud-line"
-                points="0,115 115,115 145,145"
-            />
+                <filter id="hudGlow">
 
-            <polyline
-                class="hud-line"
-                points="0,455 115,455 145,425"
-            />
+                    <feGaussianBlur
+                        stdDeviation="1.5"
+                        result="blur"
+                    />
 
-            <!-- LOWER BRACKETS -->
+                    <feMerge>
 
-            <polyline
-                class="hud-faint"
-                points="155,570 155,535 225,535"
-            />
+                        <feMergeNode
+                            in="blur"
+                        />
 
-            <polyline
-                class="hud-faint"
-                points="845,570 845,535 775,535"
-            />
+                        <feMergeNode
+                            in="SourceGraphic"
+                        />
 
-            <!-- UPPER ORBITAL BRACKETS -->
+                    </feMerge>
 
-            <path
-                class="hud-faint"
-                d="M 230 45 A 250 250 0 0 1 770 45"
-            />
+                </filter>
 
-            <path
-                class="hud-faint"
-                d="M 270 55 A 210 210 0 0 1 730 55"
-            />
+            </defs>
 
-            <!-- RIGHT ORBITAL ARC -->
+
+            <!-- =================================================
+                 LEFT PLANET CONNECTOR
+                 ================================================= -->
 
             <path
                 class="hud-line"
-                d="M 795 155 A 170 170 0 0 1 795 445"
+                d="M 52 156 L 260 156 L 345 205"
             />
 
-            <!-- CENTRAL RETICLE -->
 
-            <circle
-                class="hud-faint"
-                cx="500"
-                cy="300"
-                r="178"
+            <path
+                class="hud-fine"
+                d="M 52 166 L 245 166"
             />
 
-            <circle
-                class="hud-faint"
-                cx="500"
-                cy="300"
-                r="192"
+
+            <path
+                class="hud-fine"
+                d="M 52 176 L 205 176"
             />
 
+
+            <!-- =================================================
+                 LEFT LOWER TECHNICAL BRACKET
+                 ================================================= -->
+
+            <path
+                class="hud-line"
+                d="
+                    M 52 420
+                    L 245 420
+                    L 300 375
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 52 431
+                    L 205 431
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 52 441
+                    L 175 441
+                "
+            />
+
+
+            <!-- =================================================
+                 UPPER ORBITAL BRACKETS
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 285 42
+                    L 300 42
+                    L 316 65
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 350 38
+                    L 360 54
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 400 20
+                    L 401 48
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 710 45
+                    L 695 62
+                    L 680 62
+                "
+            />
+
+
+            <!-- =================================================
+                 RIGHT ORBITAL ARC
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 795 155
+                    A 170 170 0 0 1 795 445
+                "
+            />
+
+
+            <!-- =================================================
+                 BOTTOM TECHNICAL MARKS
+                 ================================================= -->
+
+            <path
+                class="hud-fine"
+                d="
+                    M 345 540
+                    L 355 520
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 375 555
+                    L 384 535
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 650 535
+                    L 662 550
+                "
+            />
+
+
+            <path
+                class="hud-fine"
+                d="
+                    M 680 515
+                    L 696 535
+                "
+            />
+
+
+            <!-- =================================================
+                 CENTRAL RETICLE
+                 ================================================= -->
+
             <circle
-                class="hud-faint"
                 cx="500"
                 cy="300"
                 r="205"
-            />
-
-            <!-- CALIBRATION MARKS -->
-
-            <line
-                class="hud-tick"
-                x1="500"
-                y1="88"
-                x2="500"
-                y2="105"
-            />
-
-            <line
-                class="hud-tick"
-                x1="500"
-                y1="495"
-                x2="500"
-                y2="512"
-            />
-
-            <line
-                class="hud-tick"
-                x1="288"
-                y1="300"
-                x2="305"
-                y2="300"
-            />
-
-            <line
-                class="hud-tick"
-                x1="695"
-                y1="300"
-                x2="712"
-                y2="300"
+                class="hud-faint-line"
             />
 
 
-            <!-- DYNAMIC MARKER CONNECTOR -->
+            <circle
+                cx="500"
+                cy="300"
+                r="218"
+                class="hud-faint-line"
+                stroke-dasharray="2 12"
+            />
+
+
+            <!-- =================================================
+                 SMALL CALIBRATION MARKS
+                 ================================================= -->
+
+            <path
+                class="hud-line"
+                d="M 500 65 L 500 85"
+            />
+
+
+            <path
+                class="hud-line"
+                d="M 500 515 L 500 535"
+            />
+
+
+            <path
+                class="hud-line"
+                d="M 265 300 L 285 300"
+            />
+
+
+            <path
+                class="hud-line"
+                d="M 715 300 L 735 300"
+            />
+
+
+            <!-- =================================================
+                 DYNAMIC MARKER CONNECTOR
+                 ================================================= -->
 
             <g
                 id="markerConnector"
@@ -653,25 +836,28 @@ canvas {
 
                 <circle
                     id="markerConnectorPoint"
-                    class="hud-dot"
                     cx="0"
                     cy="0"
                     r="3"
+                    fill="white"
                 />
+
 
                 <polyline
                     id="markerConnectorLine"
-                    class="hud-bright"
                     points=""
+                    class="hud-line"
+                    filter="url(#hudGlow)"
                 />
+
 
                 <line
                     id="markerConnectorTick"
-                    class="hud-bright"
                     x1="0"
                     y1="0"
                     x2="0"
                     y2="0"
+                    class="hud-line"
                 />
 
             </g>
@@ -679,98 +865,208 @@ canvas {
         </svg>
 
 
-        <!-- =================================================
+        <!-- =====================================================
              PLANET INFORMATION
-             ================================================= -->
+             ===================================================== -->
 
-        <div id="planetInfo">
+        <div class="planet-info">
 
-            <div id="hudProject"></div>
-
-            <div id="hudName"></div>
-
-            <div id="hudStatus"></div>
-
-            <div class="info-label">
-                RESEARCH FOCUS
+            <div
+                class="planet-info-project"
+                id="hudProject"
+            >
+                PROJECT
             </div>
 
-            <div id="hudFocus"></div>
 
-            <div class="info-label">
-                CENTRAL QUESTION
+            <div
+                class="planet-info-name"
+                id="hudName"
+            >
+                PLANET / PROJECT
             </div>
 
-            <div id="hudQuestion"></div>
+
+            <div class="planet-info-rule"></div>
+
+
+            <div class="planet-info-row">
+                STATUS //
+                <strong id="hudStatus">
+                    ACTIVE
+                </strong>
+            </div>
+
+
+            <div class="planet-info-row">
+                POINTS //
+                <strong id="hudPoints">
+                    000
+                </strong>
+            </div>
+
+
+            <div class="planet-info-row">
+                FOCUS //
+                <strong id="hudFocus">
+                    —
+                </strong>
+            </div>
+
+
+            <div class="planet-info-row">
+                MODE //
+                <strong>
+                    PLANETARY RESEARCH
+                </strong>
+            </div>
 
         </div>
 
 
-        <!-- =================================================
-             MEASUREMENT
-             ================================================= -->
+        <!-- =====================================================
+             QUESTION
+             ===================================================== -->
 
-        <div id="measurementScale"></div>
+        <div class="planet-question">
+
+            <div class="question-label">
+                PRIMARY QUESTION
+            </div>
 
 
-        <!-- =================================================
+            <div
+                class="question-text"
+                id="hudQuestion"
+            >
+                —
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             MEASUREMENT SCALE
+             ===================================================== -->
+
+        <div
+            class="measurement-scale"
+            id="measurementScale"
+        >
+
+            <div class="scale-line"></div>
+
+        </div>
+
+
+        <!-- =====================================================
              TECHNICAL READOUT
-             ================================================= -->
+             ===================================================== -->
 
-        <div id="technicalReadout">
+        <div class="technical-readout">
 
-            <div class="tech-line">
-                RESEARCH UNIVERSE
+            <div>
+                SURFACE // MAPPED
             </div>
 
-            <div class="tech-line">
-                SPATIAL INDEX / 01
+
+            <div>
+                ATMOSPHERE // DETECTED
             </div>
 
-            <div class="tech-line">
-                LAT · LONG / ACTIVE
+
+            <div>
+                RESEARCH GRID // ACTIVE
+            </div>
+
+
+            <div id="hudCoordinates">
+                LAT 00.000 // LON 00.000
             </div>
 
         </div>
 
 
-        <!-- =================================================
-             CORNERS
-             ================================================= -->
+        <!-- =====================================================
+             CORNER DETAILS
+             ===================================================== -->
 
-        <div class="corner tl"></div>
-        <div class="corner tr"></div>
-        <div class="corner bl"></div>
-        <div class="corner br"></div>
+        <div class="corner-detail top-left"></div>
+
+        <div class="corner-detail top-right"></div>
+
+        <div class="corner-detail bottom-left"></div>
+
+        <div class="corner-detail bottom-right"></div>
 
 
-        <!-- =================================================
-             MARKER CARD
-             ================================================= -->
+        <!-- =====================================================
+             SELECTED MARKER CARD
+             ===================================================== -->
 
-        <div id="markerCard">
+        <div
+            class="marker-card"
+            id="markerCard"
+        >
 
-            <div id="markerCountry"></div>
+            <div
+                class="marker-card-country"
+                id="markerCountry"
+            >
+                LOCATION
+            </div>
 
-            <div id="markerTitle"></div>
 
-            <div id="markerDescription"></div>
+            <div
+                class="marker-card-title"
+                id="markerTitle"
+            >
+                Research article
+            </div>
+
+
+            <div
+                class="marker-card-description"
+                id="markerDescription"
+            >
+                Selected research location.
+            </div>
+
 
             <a
+                class="marker-card-link"
                 id="markerLink"
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                OPEN RESEARCH
+                Read the full analysis →
             </a>
 
         </div>
 
+    </div>
 
+
+    <div
+        class="instructions"
+        id="instructions"
+    >
+        DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD
+    </div>
+
+
+    <div
+        class="loading"
+        id="loading"
+    >
+        Loading research universe
     </div>
 
 </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 
 <script>
@@ -796,13 +1092,13 @@ const POINTS_CSV =
 const APPEARANCE_CSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub?gid=603501729&single=true&output=csv";
 
-
 /* =========================================================
-   SCENE
+   THREE.JS
    ========================================================= */
 
 const scene =
     new THREE.Scene();
+
 
 scene.background =
     new THREE.Color(
@@ -837,7 +1133,9 @@ const cameraLookTarget =
 
 const renderer =
     new THREE.WebGLRenderer({
+
         antialias: true,
+
         alpha: false
     });
 
@@ -865,14 +1163,11 @@ document.body.appendChild(
    LIGHTING
    ========================================================= */
 
-const ambientLight =
+scene.add(
     new THREE.AmbientLight(
         0xffffff,
         1.1
-    );
-
-scene.add(
-    ambientLight
+    )
 );
 
 
@@ -882,11 +1177,13 @@ const directionalLight =
         1.8
     );
 
+
 directionalLight.position.set(
     5,
     4,
     8
 );
+
 
 scene.add(
     directionalLight
@@ -900,19 +1197,26 @@ scene.add(
 const starGeometry =
     new THREE.BufferGeometry();
 
-const starPositions = [];
+
+const starCount =
+    5000;
+
+
+const starPositions =
+    new Float32Array(
+        starCount * 3
+    );
 
 
 for (
     let i = 0;
-    i < 5000;
+    i < starCount;
     i++
 ) {
 
     const radius =
         70 +
-        Math.random() *
-        100;
+        Math.random() * 100;
 
 
     const theta =
@@ -929,30 +1233,27 @@ for (
         );
 
 
-    starPositions.push(
+    starPositions[i * 3] =
         radius *
         Math.sin(phi) *
-        Math.cos(theta)
-    );
+        Math.cos(theta);
 
 
-    starPositions.push(
+    starPositions[i * 3 + 1] =
         radius *
         Math.sin(phi) *
-        Math.sin(theta)
-    );
+        Math.sin(theta);
 
 
-    starPositions.push(
+    starPositions[i * 3 + 2] =
         radius *
-        Math.cos(phi)
-    );
+        Math.cos(phi);
 }
 
 
 starGeometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(
+    new THREE.BufferAttribute(
         starPositions,
         3
     )
@@ -961,22 +1262,22 @@ starGeometry.setAttribute(
 
 const starMaterial =
     new THREE.PointsMaterial({
+
         color: 0xffffff,
+
         size: 0.055,
+
         transparent: true,
+
         opacity: 0.65
     });
 
 
-const stars =
+scene.add(
     new THREE.Points(
         starGeometry,
         starMaterial
-    );
-
-
-scene.add(
-    stars
+    )
 );
 
 
@@ -1001,7 +1302,7 @@ const cloudTexture =
 
 
 /* =========================================================
-   STATE
+   DATA
    ========================================================= */
 
 let pointData = [];
@@ -1058,16 +1359,22 @@ let galaxyPitch = 0.10;
 
 let galaxyDistance = 20;
 
+
+/*
+   Planet camera remains fixed relative to the selected
+   planet's world position.
+
+   Zoom changes distance only.
+*/
+
 let planetDistance = 8;
 
 
 /* =========================================================
-   CSV PARSER
+   CSV
    ========================================================= */
 
-function parseCSV(
-    text
-) {
+function parseCSV(text) {
 
     const rows = [];
 
@@ -1084,15 +1391,14 @@ function parseCSV(
         i++
     ) {
 
-        const char =
-            text[i];
+        const char = text[i];
 
-        const next =
-            text[i + 1];
+        const next = text[i + 1];
 
 
         if (
             char === '"' &&
+            insideQuotes &&
             next === '"'
         ) {
 
@@ -1100,37 +1406,25 @@ function parseCSV(
 
             i++;
 
-            continue;
-        }
-
-
-        if (
+        } else if (
             char === '"'
         ) {
 
             insideQuotes =
                 !insideQuotes;
 
-            continue;
-        }
-
-
-        if (
+        } else if (
             char === "," &&
             !insideQuotes
         ) {
 
             row.push(
-                value
+                value.trim()
             );
 
             value = "";
 
-            continue;
-        }
-
-
-        if (
+        } else if (
             (
                 char === "\n" ||
                 char === "\r"
@@ -1142,14 +1436,14 @@ function parseCSV(
                 char === "\r" &&
                 next === "\n"
             ) {
-
                 i++;
             }
 
 
             row.push(
-                value
+                value.trim()
             );
+
 
             value = "";
 
@@ -1157,48 +1451,46 @@ function parseCSV(
             if (
                 row.some(
                     cell =>
-                        cell.trim() !== ""
+                        cell !== ""
                 )
             ) {
 
-                rows.push(
-                    row
-                );
+                rows.push(row);
             }
 
 
             row = [];
 
-            continue;
+        } else {
+
+            value += char;
         }
-
-
-        value +=
-            char;
     }
 
 
-    row.push(
-        value
-    );
-
-
     if (
-        row.some(
-            cell =>
-                cell.trim() !== ""
-        )
+        value.length ||
+        row.length
     ) {
 
-        rows.push(
-            row
+        row.push(
+            value.trim()
         );
+
+
+        if (
+            row.some(
+                cell =>
+                    cell !== ""
+            )
+        ) {
+
+            rows.push(row);
+        }
     }
 
 
-    if (
-        rows.length === 0
-    ) {
+    if (!rows.length) {
 
         return [];
     }
@@ -1206,39 +1498,35 @@ function parseCSV(
 
     const headers =
         rows[0].map(
-            header =>
-                header
+            h =>
+                h
                     .trim()
                     .toLowerCase()
-    );
+        );
 
 
     return rows
         .slice(1)
-        .map(
-            values => {
+        .map(row => {
 
-                const object = {};
-
-
-                headers.forEach(
-                    (
-                        header,
-                        index
-                    ) => {
-
-                        object[header] =
-                            (
-                                values[index] ||
-                                ""
-                            ).trim();
-                    }
-                );
+            const object = {};
 
 
-                return object;
-            }
-        );
+            headers.forEach(
+                (
+                    header,
+                    index
+                ) => {
+
+                    object[header] =
+                        row[index] ||
+                        "";
+                }
+            );
+
+
+            return object;
+        });
 }
 
 
@@ -1246,12 +1534,10 @@ function parseCSV(
    HELPERS
    ========================================================= */
 
-function clean(
-    value
-) {
+function clean(value) {
 
     return String(
-        value ?? ""
+        value || ""
     ).trim();
 }
 
@@ -1261,73 +1547,71 @@ function hexToNumber(
     fallback = 0xffffff
 ) {
 
-    const value =
-        clean(
-            hex
-        ).replace(
-            "#",
-            ""
-        );
+    if (!hex) {
 
-
-    if (
-        /^[0-9a-fA-F]{6}$/.test(
-            value
-        )
-    ) {
-
-        return parseInt(
-            value,
-            16
-        );
+        return fallback;
     }
 
 
+    let cleaned =
+        String(hex)
+            .trim()
+            .replace(
+                "#",
+                ""
+            );
+
+
     if (
-        /^[0-9a-fA-F]{3}$/.test(
-            value
-        )
+        cleaned.length === 3
     ) {
 
-        return parseInt(
-            value
-                .split("")
-                .map(
-                    char =>
-                        char + char
-                )
-                .join(""),
-            16
-        );
+        cleaned =
+            cleaned[0] +
+            cleaned[0] +
+            cleaned[1] +
+            cleaned[1] +
+            cleaned[2] +
+            cleaned[2];
     }
 
 
-    return fallback;
+    const number =
+        parseInt(
+            cleaned,
+            16
+        );
+
+
+    return Number.isNaN(number)
+        ? fallback
+        : number;
 }
 
 
-function sizeToRadius(
-    size
-) {
+function sizeToRadius(size) {
 
-    const value =
-        Number(
-            size
-        );
+    const n =
+        Number(size) ||
+        3;
 
 
-    if (value === 1) return 0.9;
+    const sizes = {
 
-    if (value === 2) return 1.25;
+        1: 0.9,
 
-    if (value === 3) return 1.7;
+        2: 1.25,
 
-    if (value === 4) return 2.25;
+        3: 1.7,
 
-    if (value === 5) return 3.0;
+        4: 2.25,
+
+        5: 3.0
+    };
 
 
-    return 1.7;
+    return sizes[n] ||
+        sizes[3];
 }
 
 
@@ -1379,7 +1663,7 @@ function latLonToVector3(
 
 
 /* =========================================================
-   LATITUDE / LONGITUDE GRID
+   PLANET GRID
    ========================================================= */
 
 function createLatitudeLongitudeGrid(
@@ -1393,50 +1677,77 @@ function createLatitudeLongitudeGrid(
         new THREE.Group();
 
 
-    let latitudeCount = 9;
+    let latitudeLines = 9;
 
-    let longitudeCount = 18;
+    let longitudeLines = 18;
 
 
     if (
         density === "light"
     ) {
 
-        latitudeCount = 5;
-        longitudeCount = 10;
+        latitudeLines = 5;
+
+        longitudeLines = 10;
 
     } else if (
         density === "dense"
     ) {
 
-        latitudeCount = 17;
-        longitudeCount = 36;
+        latitudeLines = 17;
+
+        longitudeLines = 36;
     }
 
 
     const material =
         new THREE.LineBasicMaterial({
+
             color: colour,
+
             transparent: true,
+
             opacity: opacity * 0.72,
+
             depthWrite: false,
+
             depthTest: true
         });
 
 
+    /*
+       LATITUDE LINES
+    */
+
     for (
         let i = 1;
-        i < latitudeCount;
+        i < latitudeLines;
         i++
     ) {
 
-        const latitude =
+        const lat =
             -90 +
             (
-                i /
-                latitudeCount
+                180 /
+                latitudeLines
             ) *
-            180;
+            i;
+
+
+        const phi =
+            THREE.MathUtils.degToRad(
+                90 - lat
+            );
+
+
+        const y =
+            radius *
+            Math.cos(phi);
+
+
+        const circleRadius =
+            radius *
+            Math.sin(phi);
 
 
         const points = [];
@@ -1448,53 +1759,66 @@ function createLatitudeLongitudeGrid(
             j++
         ) {
 
-            const longitude =
+            const theta =
                 (
-                    j /
-                    64
+                    j / 64
                 ) *
-                360 -
-                180;
+                Math.PI *
+                2;
 
 
             points.push(
-                latLonToVector3(
-                    latitude,
-                    longitude,
-                    radius * 1.006
+                new THREE.Vector3(
+                    circleRadius *
+                    Math.cos(theta),
+
+                    y,
+
+                    circleRadius *
+                    Math.sin(theta)
                 )
             );
         }
 
 
-        const geometry =
-            new THREE.BufferGeometry()
-                .setFromPoints(
-                    points
-                );
+        const line =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
+            );
+
+
+        line.renderOrder = 1;
 
 
         group.add(
-            new THREE.Line(
-                geometry,
-                material
-            )
+            line
         );
     }
 
 
+    /*
+       LONGITUDE LINES
+    */
+
     for (
         let i = 0;
-        i < longitudeCount;
+        i < longitudeLines;
         i++
     ) {
 
-        const longitude =
+        const theta =
             (
                 i /
-                longitudeCount
+                longitudeLines
             ) *
-            360;
+            Math.PI *
+            2;
 
 
         const points = [];
@@ -1506,37 +1830,48 @@ function createLatitudeLongitudeGrid(
             j++
         ) {
 
-            const latitude =
-                -90 +
+            const phi =
                 (
-                    j /
-                    64
+                    j / 64
                 ) *
-                180;
+                Math.PI;
 
 
             points.push(
-                latLonToVector3(
-                    latitude,
-                    longitude,
-                    radius * 1.006
+                new THREE.Vector3(
+
+                    radius *
+                    Math.sin(phi) *
+                    Math.cos(theta),
+
+                    radius *
+                    Math.cos(phi),
+
+                    radius *
+                    Math.sin(phi) *
+                    Math.sin(theta)
                 )
             );
         }
 
 
-        const geometry =
-            new THREE.BufferGeometry()
-                .setFromPoints(
-                    points
-                );
+        const line =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
+            );
+
+
+        line.renderOrder = 1;
 
 
         group.add(
-            new THREE.Line(
-                geometry,
-                material
-            )
+            line
         );
     }
 
@@ -1546,7 +1881,7 @@ function createLatitudeLongitudeGrid(
 
 
 /* =========================================================
-   3D RESEARCH MAP GRID
+   3D CARTOGRAPHIC RESEARCH GRID
    ========================================================= */
 
 function createResearchMapGrid(
@@ -1564,6 +1899,25 @@ function createResearchMapGrid(
         intensity;
 
 
+    const material =
+        new THREE.LineBasicMaterial({
+
+            color: colour,
+
+            transparent: true,
+
+            opacity: lineOpacity,
+
+            depthWrite: false,
+
+            depthTest: true
+        });
+
+
+    /*
+       EQUATORIAL NAVIGATION RINGS
+    */
+
     const ringScales = [
         1.018,
         1.045,
@@ -1577,19 +1931,10 @@ function createResearchMapGrid(
             const geometry =
                 new THREE.RingGeometry(
                     radius * scale,
-                    radius * scale + 0.004,
-                    96
+                    radius * scale +
+                    radius * 0.004,
+                    128
                 );
-
-
-            const material =
-                new THREE.MeshBasicMaterial({
-                    color: colour,
-                    transparent: true,
-                    opacity: lineOpacity,
-                    side: THREE.DoubleSide,
-                    depthWrite: false
-                });
 
 
             const ring =
@@ -1603,6 +1948,9 @@ function createResearchMapGrid(
                 Math.PI / 2;
 
 
+            ring.renderOrder = 2;
+
+
             group.add(
                 ring
             );
@@ -1610,14 +1958,36 @@ function createResearchMapGrid(
     );
 
 
-    const latitudeGuides = [
+    /*
+       LARGE-LATITUDE GUIDE RINGS
+    */
+
+    const latitudes = [
         35,
         -35
     ];
 
 
-    latitudeGuides.forEach(
-        latitude => {
+    latitudes.forEach(
+        lat => {
+
+            const phi =
+                THREE.MathUtils.degToRad(
+                    90 - lat
+                );
+
+
+            const y =
+                radius *
+                Math.cos(phi) *
+                1.022;
+
+
+            const circleRadius =
+                radius *
+                Math.sin(phi) *
+                1.022;
+
 
             const points = [];
 
@@ -1628,61 +1998,67 @@ function createResearchMapGrid(
                 i++
             ) {
 
-                const longitude =
-                    -180 +
+                const theta =
                     (
-                        i /
-                        96
+                        i / 96
                     ) *
-                    360;
+                    Math.PI *
+                    2;
 
 
                 points.push(
-                    latLonToVector3(
-                        latitude,
-                        longitude,
-                        radius * 1.021
+
+                    new THREE.Vector3(
+
+                        circleRadius *
+                        Math.cos(theta),
+
+                        y,
+
+                        circleRadius *
+                        Math.sin(theta)
+
                     )
                 );
             }
 
 
-            const geometry =
-                new THREE.BufferGeometry()
-                    .setFromPoints(
-                        points
-                    );
+            const line =
+                new THREE.Line(
+
+                    new THREE.BufferGeometry()
+                        .setFromPoints(
+                            points
+                        ),
+
+                    material
+                );
 
 
-            const material =
-                new THREE.LineBasicMaterial({
-                    color: colour,
-                    transparent: true,
-                    opacity: lineOpacity,
-                    depthWrite: false
-                });
+            line.renderOrder = 2;
 
 
             group.add(
-                new THREE.Line(
-                    geometry,
-                    material
-                )
+                line
             );
         }
     );
 
 
-    const greatCircleAngles = [
+    /*
+       LONGITUDINAL GREAT-CIRCLE GUIDES
+    */
+
+    const longitudes = [
         0,
         Math.PI / 2,
         Math.PI,
-        3 * Math.PI / 2
+        Math.PI * 1.5
     ];
 
 
-    greatCircleAngles.forEach(
-        angle => {
+    longitudes.forEach(
+        theta => {
 
             const points = [];
 
@@ -1693,65 +2069,61 @@ function createResearchMapGrid(
                 i++
             ) {
 
-                const latitude =
-                    -90 +
+                const phi =
                     (
-                        i /
-                        96
+                        i / 96
                     ) *
-                    180;
-
-
-                const longitude =
-                    THREE.MathUtils.radToDeg(
-                        angle
-                    );
+                    Math.PI;
 
 
                 points.push(
-                    latLonToVector3(
-                        latitude,
-                        longitude,
-                        radius * 1.022
+
+                    new THREE.Vector3(
+
+                        radius *
+                        1.022 *
+                        Math.sin(phi) *
+                        Math.cos(theta),
+
+                        radius *
+                        1.022 *
+                        Math.cos(phi),
+
+                        radius *
+                        1.022 *
+                        Math.sin(phi) *
+                        Math.sin(theta)
+
                     )
                 );
             }
 
 
-            const geometry =
-                new THREE.BufferGeometry()
-                    .setFromPoints(
-                        points
-                    );
+            const line =
+                new THREE.Line(
+
+                    new THREE.BufferGeometry()
+                        .setFromPoints(
+                            points
+                        ),
+
+                    material
+                );
 
 
-            const material =
-                new THREE.LineBasicMaterial({
-                    color: colour,
-                    transparent: true,
-                    opacity: lineOpacity,
-                    depthWrite: false
-                });
+            line.renderOrder = 2;
 
 
             group.add(
-                new THREE.Line(
-                    geometry,
-                    material
-                )
+                line
             );
         }
     );
 
 
-    const tickMaterial =
-        new THREE.LineBasicMaterial({
-            color: colour,
-            transparent: true,
-            opacity: lineOpacity * 1.8,
-            depthWrite: false
-        });
-
+    /*
+       RESEARCH AXIS MARKS
+    */
 
     for (
         let i = 0;
@@ -1759,54 +2131,67 @@ function createResearchMapGrid(
         i++
     ) {
 
-        const angle =
+        const theta =
             (
-                i /
-                12
+                i / 12
             ) *
             Math.PI *
             2;
 
 
-        const inner =
-            latLonToVector3(
-                0,
-                THREE.MathUtils.radToDeg(angle),
-                radius * 1.026
+        const innerRadius =
+            radius *
+            1.055;
+
+
+        const outerRadius =
+            radius *
+            1.095;
+
+
+        const y =
+            0;
+
+
+        const points = [
+
+            new THREE.Vector3(
+                innerRadius *
+                Math.cos(theta),
+                y,
+                innerRadius *
+                Math.sin(theta)
+            ),
+
+            new THREE.Vector3(
+                outerRadius *
+                Math.cos(theta),
+                y,
+                outerRadius *
+                Math.sin(theta)
+            )
+        ];
+
+
+        const tick =
+            new THREE.Line(
+
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    ),
+
+                material
             );
 
 
-        const outer =
-            latLonToVector3(
-                0,
-                THREE.MathUtils.radToDeg(angle),
-                radius * 1.075
-            );
-
-
-        const geometry =
-            new THREE.BufferGeometry()
-                .setFromPoints([
-                    inner,
-                    outer
-                ]);
+        tick.renderOrder = 3;
 
 
         group.add(
-            new THREE.Line(
-                geometry,
-                tickMaterial
-            )
+            tick
         );
     }
-
-
-    group.name =
-        "3D Research Grid";
-
-
-    group.renderOrder =
-        8;
 
 
     return group;
@@ -1840,28 +2225,34 @@ function createAtmosphere(
     }
 
 
-    const geometry =
-        new THREE.SphereGeometry(
-            radius * 1.06,
-            48,
-            48
+    const atmosphere =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * 1.06,
+                64,
+                64
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity: opacity,
+
+                side: THREE.BackSide,
+
+                depthWrite: false
+            })
         );
 
 
-    const material =
-        new THREE.MeshBasicMaterial({
-            color: colour,
-            transparent: true,
-            opacity: opacity,
-            side: THREE.BackSide,
-            depthWrite: false
-        });
+    atmosphere.renderOrder = 4;
 
 
-    return new THREE.Mesh(
-        geometry,
-        material
-    );
+    return atmosphere;
 }
 
 
@@ -1885,6 +2276,7 @@ function createGlow(
     ) {
 
         scale = 1.14;
+
         opacity = 0.11;
 
     } else if (
@@ -1892,37 +2284,44 @@ function createGlow(
     ) {
 
         scale = 1.19;
+
         opacity = 0.15;
     }
 
 
-    const geometry =
-        new THREE.SphereGeometry(
-            radius * scale,
-            32,
-            32
+    const glow =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius * scale,
+                48,
+                48
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity: opacity,
+
+                side: THREE.BackSide,
+
+                depthWrite: false
+            })
         );
 
 
-    const material =
-        new THREE.MeshBasicMaterial({
-            color: colour,
-            transparent: true,
-            opacity: opacity,
-            side: THREE.BackSide,
-            depthWrite: false
-        });
+    glow.renderOrder = 0;
 
 
-    return new THREE.Mesh(
-        geometry,
-        material
-    );
+    return glow;
 }
 
 
 /* =========================================================
-   PLANET RINGS
+   RINGS
    ========================================================= */
 
 function createPlanetRings(
@@ -1936,82 +2335,82 @@ function createPlanetRings(
         new THREE.Group();
 
 
-    const ringType =
-        clean(
-            type
-        ).toLowerCase();
-
-
     if (
-        ringType === "none" ||
-        !ringType
+        !type ||
+        type === "none"
     ) {
 
         return group;
     }
 
 
-    let count = 2;
+    let ringCount = 1;
 
 
     if (
-        ringType === "complex"
+        type === "double"
     ) {
 
-        count = 4;
+        ringCount = 2;
     }
 
 
-    const numericDensity =
-        Number(
-            density
-        );
+    if (
+        type === "complex"
+    ) {
+
+        ringCount = 4;
+    }
 
 
     if (
-        numericDensity &&
-        numericDensity > count
+        density &&
+        Number(density) > 0
     ) {
 
-        count =
-            Math.min(
-                numericDensity,
-                8
+        ringCount =
+            Math.max(
+                ringCount,
+                Number(density)
             );
     }
 
 
     for (
         let i = 0;
-        i < count;
+        i < ringCount;
         i++
     ) {
 
+        const scale =
+            1.35 +
+            i * 0.12;
+
+
         const geometry =
             new THREE.RingGeometry(
-                radius *
-                (
-                    1.35 +
-                    i * 0.12
-                ),
-                radius *
-                (
-                    1.355 +
-                    i * 0.12
-                ),
+                radius * scale,
+                radius * scale +
+                radius * 0.012,
                 96
             );
 
 
         const material =
             new THREE.MeshBasicMaterial({
+
                 color: colour,
+
                 transparent: true,
+
                 opacity:
-                    ringType === "complex"
+                    type === "complex"
                         ? 0.25
                         : 0.18,
-                side: THREE.DoubleSide,
+
+                side:
+                    THREE.DoubleSide,
+
                 depthWrite: false
             });
 
@@ -2024,7 +2423,17 @@ function createPlanetRings(
 
 
         ring.rotation.x =
-            Math.PI / 2;
+            THREE.MathUtils.degToRad(
+                65 +
+                i * 7
+            );
+
+
+        ring.rotation.z =
+            i * 0.25;
+
+
+        ring.renderOrder = 2;
 
 
         group.add(
@@ -2051,15 +2460,9 @@ function createScanLines(
         new THREE.Group();
 
 
-    const value =
-        clean(
-            intensity
-        ).toLowerCase();
-
-
     if (
-        value === "none" ||
-        !value
+        !intensity ||
+        intensity === "none"
     ) {
 
         return group;
@@ -2067,7 +2470,7 @@ function createScanLines(
 
 
     const count =
-        value === "high"
+        intensity === "high"
             ? 5
             : 3;
 
@@ -2078,45 +2481,44 @@ function createScanLines(
         i++
     ) {
 
-        const geometry =
-            new THREE.RingGeometry(
-                radius * 1.025,
-                radius * 1.032,
-                96
-            );
-
-
-        const material =
-            new THREE.MeshBasicMaterial({
-                color: colour,
-                transparent: true,
-                opacity: 0.08,
-                side: THREE.DoubleSide,
-                depthWrite: false
-            });
-
-
-        const ring =
+        const line =
             new THREE.Mesh(
-                geometry,
-                material
+
+                new THREE.RingGeometry(
+                    radius * 1.025,
+                    radius * 1.032,
+                    96
+                ),
+
+                new THREE.MeshBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity: 0.08,
+
+                    side:
+                        THREE.DoubleSide,
+
+                    depthWrite: false
+                })
             );
 
 
-        ring.rotation.x =
+        line.rotation.x =
             Math.PI / 2;
 
 
-        ring.rotation.z =
-            (
-                i /
-                count
-            ) *
-            Math.PI;
+        line.userData.offset =
+            i / count;
+
+
+        line.renderOrder = 2;
 
 
         group.add(
-            ring
+            line
         );
     }
 
@@ -2139,15 +2541,9 @@ function createParticles(
         new THREE.Group();
 
 
-    const value =
-        clean(
-            density
-        ).toLowerCase();
-
-
     if (
-        value === "none" ||
-        !value
+        !density ||
+        density === "none"
     ) {
 
         return group;
@@ -2158,20 +2554,27 @@ function createParticles(
 
 
     if (
-        value === "medium"
+        density === "medium"
     ) {
 
         count = 40;
 
     } else if (
-        value === "high"
+        density === "high"
     ) {
 
         count = 75;
     }
 
 
-    const positions = [];
+    const geometry =
+        new THREE.BufferGeometry();
+
+
+    const positions =
+        new Float32Array(
+            count * 3
+        );
 
 
     for (
@@ -2203,54 +2606,53 @@ function createParticles(
             );
 
 
-        positions.push(
+        positions[i * 3] =
             r *
             Math.sin(phi) *
-            Math.cos(theta)
-        );
+            Math.cos(theta);
 
 
-        positions.push(
+        positions[i * 3 + 1] =
+            r *
+            Math.cos(phi);
+
+
+        positions[i * 3 + 2] =
             r *
             Math.sin(phi) *
-            Math.sin(theta)
-        );
-
-
-        positions.push(
-            r *
-            Math.cos(phi)
-        );
+            Math.sin(theta);
     }
-
-
-    const geometry =
-        new THREE.BufferGeometry();
 
 
     geometry.setAttribute(
         "position",
-        new THREE.Float32BufferAttribute(
+        new THREE.BufferAttribute(
             positions,
             3
         )
     );
 
 
-    const material =
-        new THREE.PointsMaterial({
-            color: colour,
-            size: 0.025,
-            transparent: true,
-            opacity: 0.55,
-            depthWrite: false
-        });
-
-
     group.add(
+
         new THREE.Points(
+
             geometry,
-            material
+
+            new THREE.PointsMaterial({
+
+                color: colour,
+
+                size:
+                    radius *
+                    0.018,
+
+                transparent: true,
+
+                opacity: 0.65,
+
+                depthWrite: false
+            })
         )
     );
 
@@ -2260,7 +2662,7 @@ function createParticles(
 
 
 /* =========================================================
-   CLOUD LAYER
+   CLOUDS
    ========================================================= */
 
 function createCloudLayer(
@@ -2271,18 +2673,10 @@ function createCloudLayer(
     cloudDensity
 ) {
 
-    const value =
-        clean(
-            enabled
-        ).toLowerCase();
-
-
     if (
-        !(
-            value === "yes" ||
-            value === "true" ||
-            value === "1"
-        )
+        enabled !== "yes" &&
+        enabled !== "true" &&
+        enabled !== "1"
     ) {
 
         return null;
@@ -2296,12 +2690,10 @@ function createCloudLayer(
 
 
     if (
-        !Number.isFinite(
-            opacity
-        )
+        Number.isNaN(opacity)
     ) {
 
-        opacity = 0.35;
+        opacity = 0.4;
     }
 
 
@@ -2333,31 +2725,33 @@ function createCloudLayer(
         );
 
 
-    const geometry =
-        new THREE.SphereGeometry(
-            radius * 1.014,
-            48,
-            48
-        );
-
-
-    const material =
-        new THREE.MeshPhongMaterial({
-            map: cloudTexture,
-            color: hexToNumber(
-                cloudColour,
-                0xffffff
-            ),
-            transparent: true,
-            opacity: opacity,
-            depthWrite: false
-        });
-
-
     const clouds =
         new THREE.Mesh(
-            geometry,
-            material
+
+            new THREE.SphereGeometry(
+                radius * 1.014,
+                64,
+                64
+            ),
+
+            new THREE.MeshPhongMaterial({
+
+                map: cloudTexture,
+
+                color:
+                    hexToNumber(
+                        cloudColour,
+                        0xffffff
+                    ),
+
+                transparent: true,
+
+                opacity: opacity,
+
+                depthWrite: false,
+
+                shininess: 0
+            })
         );
 
 
@@ -2365,8 +2759,7 @@ function createCloudLayer(
         true;
 
 
-    clouds.renderOrder =
-        5;
+    clouds.renderOrder = 5;
 
 
     return clouds;
@@ -2390,8 +2783,7 @@ function createResearchPin(
 
     group.userData = {
 
-        type:
-            "research",
+        type: "research",
 
         country:
             clean(
@@ -2409,41 +2801,35 @@ function createResearchPin(
             ),
 
         lat:
-            Number(
-                row.lat
-            ),
+            Number(row.lat),
 
         lon:
-            Number(
-                row.long
-            )
+            Number(row.long),
 
+        pulse:
+            pointStyle === "pulse"
+                ? Math.random() *
+                  Math.PI *
+                  2
+                : undefined
     };
-
-
-    if (
-        clean(
-            pointStyle
-        ).toLowerCase() ===
-        "pulse"
-    ) {
-
-        group.userData.pulse =
-            Math.random() *
-            Math.PI *
-            2;
-    }
 
 
     const normal =
         latLonToVector3(
-            group.userData.lat,
-            group.userData.lon,
+            Number(row.lat),
+            Number(row.long),
             1
         ).normalize();
 
 
+    /*
+       Push the marker slightly farther from
+       the surface so it remains visible.
+    */
+
     group.position.copy(
+
         normal
             .clone()
             .multiplyScalar(
@@ -2452,84 +2838,89 @@ function createResearchPin(
     );
 
 
+    /*
+       Keep the marker oriented relative to the
+       planet surface.
+    */
+
     group.quaternion.setFromUnitVectors(
+
         new THREE.Vector3(
             0,
             0,
             1
         ),
+
         normal
     );
 
 
     /*
-       Visible marker ring
+       VISIBLE HOLOGRAPHIC MARKER
     */
 
-    const markerGeometry =
-        new THREE.RingGeometry(
-            radius * 0.055,
-            radius * 0.075,
-            24
-        );
-
-
-    const markerMaterial =
-        new THREE.MeshBasicMaterial({
-            color: colour,
-            transparent: true,
-            opacity: 0.78,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-            depthTest: true
-        });
-
-
-    const marker =
+    const ring =
         new THREE.Mesh(
-            markerGeometry,
-            markerMaterial
+
+            new THREE.RingGeometry(
+                radius * 0.055,
+                radius * 0.075,
+                48
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity: 0.78,
+
+                side:
+                    THREE.DoubleSide,
+
+                depthWrite: false,
+
+                depthTest: true
+            })
         );
 
 
-    marker.userData.isResearchMarker =
+    ring.userData.isResearchMarker =
         true;
 
 
-    marker.renderOrder =
-        10;
+    ring.renderOrder = 10;
 
 
     group.add(
-        marker
+        ring
     );
 
 
     /*
-       Invisible larger hit area
+       LARGE INVISIBLE CLICK AREA
     */
-
-    const hitGeometry =
-        new THREE.SphereGeometry(
-            radius * 0.19,
-            16,
-            16
-        );
-
-
-    const hitMaterial =
-        new THREE.MeshBasicMaterial({
-            transparent: true,
-            opacity: 0,
-            depthTest: false,
-            depthWrite: false
-        });
-
 
     const hit =
         new THREE.Mesh(
-            hitGeometry,
-            hitMaterial
+
+            new THREE.SphereGeometry(
+                radius * 0.19,
+                16,
+                16
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                transparent: true,
+
+                opacity: 0,
+
+                depthWrite: false,
+
+                depthTest: false
+            })
         );
 
 
@@ -2537,8 +2928,7 @@ function createResearchPin(
         true;
 
 
-    hit.renderOrder =
-        20;
+    hit.renderOrder = 20;
 
 
     group.add(
@@ -2547,60 +2937,77 @@ function createResearchPin(
 
 
     /*
-       Crosshair style
+       CROSSHAIR POINT STYLE
     */
 
     if (
-        clean(
-            pointStyle
-        ).toLowerCase() ===
+        pointStyle ===
         "crosshair"
     ) {
 
-        const crossGeometry =
-            new THREE.BufferGeometry();
+        const size =
+            radius * 0.11;
 
 
-        crossGeometry.setAttribute(
-            "position",
-            new THREE.Float32BufferAttribute(
-                [
-                    -radius * 0.11, 0, 0,
-                     radius * 0.11, 0, 0,
-                    0, -radius * 0.11, 0,
-                    0,  radius * 0.11, 0
-                ],
-                3
-            )
-        );
+        const geometry =
+            new THREE.BufferGeometry()
+                .setFromPoints([
+
+                    new THREE.Vector3(
+                        -size,
+                        0,
+                        0
+                    ),
+
+                    new THREE.Vector3(
+                        size,
+                        0,
+                        0
+                    ),
+
+                    new THREE.Vector3(
+                        0,
+                        -size,
+                        0
+                    ),
+
+                    new THREE.Vector3(
+                        0,
+                        size,
+                        0
+                    )
+                ]);
 
 
-        const crossMaterial =
-            new THREE.LineBasicMaterial({
-                color: colour,
-                transparent: true,
-                opacity: 0.8,
-                depthWrite: false
-            });
-
-
-        const cross =
+        const crosshair =
             new THREE.LineSegments(
-                crossGeometry,
-                crossMaterial
+
+                geometry,
+
+                new THREE.LineBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity: 0.8,
+
+                    depthWrite: false,
+
+                    depthTest: true
+                })
             );
 
 
-        cross.userData.isResearchMarker =
+        crosshair.userData.isResearchMarker =
             true;
 
 
-        cross.renderOrder =
-            11;
+        crosshair.renderOrder = 11;
 
 
         group.add(
-            cross
+            crosshair
         );
     }
 
@@ -2610,7 +3017,7 @@ function createResearchPin(
 
 
 /* =========================================================
-   PROJECT PLANET
+   CREATE PLANET
    ========================================================= */
 
 function createProjectPlanet(
@@ -2627,13 +3034,14 @@ function createProjectPlanet(
     const name =
         clean(
             appearance.name
-        );
+        ) ||
+        project;
 
 
     const colour =
         hexToNumber(
             appearance.colour,
-            0x44ff88
+            0x35d07f
         );
 
 
@@ -2654,20 +3062,15 @@ function createProjectPlanet(
 
     planet.userData = {
 
-        type:
-            "planet",
+        type: "planet",
 
-        project:
-            project,
+        project: project,
 
-        name:
-            name,
+        name: name,
 
-        radius:
-            radius,
+        radius: radius,
 
-        colour:
-            colour,
+        colour: colour,
 
         spin:
             clean(
@@ -2676,98 +3079,87 @@ function createProjectPlanet(
 
         pointStyle:
             clean(
-                appearance["point style"]
+                appearance[
+                    "point style"
+                ]
             ).toLowerCase(),
 
         appearance:
             appearance
-
     };
 
 
     /*
-       Glow
+       GLOW FIRST
     */
 
-    const glowValue =
+    const glow =
         clean(
             appearance.glow
         ).toLowerCase();
 
 
     if (
-        glowValue &&
-        glowValue !== "none"
+        glow &&
+        glow !== "none"
     ) {
 
-        const glow =
-            createGlow(
-                radius,
-                colour,
-                glowValue
-            );
-
-
         planet.add(
-            glow
+
+            createGlow(
+
+                radius,
+
+                colour,
+
+                glow
+            )
         );
     }
 
 
     /*
-       Surface
+       SURFACE
     */
-
-    const surfaceOpacity =
-        Number(
-            appearance["surface opacity"]
-        ) ||
-        0.9;
-
-
-    const surfaceGeometry =
-        new THREE.SphereGeometry(
-            radius,
-            64,
-            64
-        );
-
-
-    const surfaceMaterial =
-        new THREE.MeshPhongMaterial({
-
-            map:
-                earthTexture,
-
-            color:
-                colour,
-
-            transparent:
-                true,
-
-            opacity:
-                surfaceOpacity,
-
-            shininess:
-                8,
-
-            depthWrite:
-                true,
-
-            depthTest:
-                true
-        });
-
 
     const surface =
         new THREE.Mesh(
-            surfaceGeometry,
-            surfaceMaterial
+
+            new THREE.SphereGeometry(
+                radius,
+                64,
+                64
+            ),
+
+            new THREE.MeshPhongMaterial({
+
+                map: earthTexture,
+
+                color: colour,
+
+                transparent: true,
+
+                opacity:
+                    Number(
+                        appearance[
+                            "surface opacity"
+                        ]
+                    ) || 0.9,
+
+                shininess: 8,
+
+                depthWrite: true,
+
+                depthTest: true
+            })
         );
 
 
-    surface.renderOrder =
-        6;
+    surface.userData.isPlanetSurface =
+        true;
+
+
+    surface.renderOrder = 6;
 
 
     planet.add(
@@ -2776,100 +3168,98 @@ function createProjectPlanet(
 
 
     /*
-       Colour wash
+       COLOUR WASH
     */
 
-    const washGeometry =
-        new THREE.SphereGeometry(
-            radius * 1.003,
-            48,
-            48
-        );
-
-
-    const washMaterial =
-        new THREE.MeshBasicMaterial({
-
-            color:
-                colour,
-
-            transparent:
-                true,
-
-            opacity:
-                clean(
-                    appearance.surface
-                ) === "Earth"
-                    ? 0.18
-                    : 0.28,
-
-            depthWrite:
-                false,
-
-            depthTest:
-                true
-        });
-
-
-    const wash =
+    const colourWash =
         new THREE.Mesh(
-            washGeometry,
-            washMaterial
+
+            new THREE.SphereGeometry(
+                radius * 1.003,
+                64,
+                64
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: colour,
+
+                transparent: true,
+
+                opacity:
+                    appearance.surface ===
+                    "Earth"
+                        ? 0.18
+                        : 0.28,
+
+                depthWrite: false,
+
+                depthTest: true
+            })
         );
 
 
-    wash.renderOrder =
-        7;
+    colourWash.renderOrder = 7;
 
 
     planet.add(
-        wash
+        colourWash
     );
 
 
     /*
-       Standard grid
+       STANDARD LAT/LON GRID
     */
 
-    const gridOpacity =
-        Number(
-            appearance["grid opacity"]
-        ) ||
-        0;
+    const standardGrid =
+        createLatitudeLongitudeGrid(
 
+            radius * 1.005,
 
-    const grid =
-        clean(
-            appearance.grid
-        ).toLowerCase();
+            colour,
 
+            Number(
+                appearance[
+                    "grid opacity"
+                ]
+            ) || 0.35,
 
-    if (
-        gridOpacity > 0 &&
-        grid !== "none"
-    ) {
-
-        planet.add(
-            createLatitudeLongitudeGrid(
-                radius,
-                colour,
-                gridOpacity,
-                grid
-            )
+            clean(
+                appearance.grid
+            ).toLowerCase()
         );
-    }
+
+
+    standardGrid.renderOrder = 3;
+
+
+    planet.add(
+        standardGrid
+    );
 
 
     /*
-       3D research navigation grid
+       3D RESEARCH / NAVIGATION GRID
+       (remains ON THE PLANETS themselves)
     */
 
     const researchGrid =
         createResearchMapGrid(
+
             radius,
+
             colour,
-            1
+
+            clean(
+                appearance.grid
+            ).toLowerCase() === "dense"
+                ? 1.25
+                : 1
         );
+
+
+    researchGrid.name =
+        "3D Research Grid";
 
 
     planet.add(
@@ -2878,24 +3268,28 @@ function createProjectPlanet(
 
 
     /*
-       Atmosphere
+       ATMOSPHERE
     */
 
-    const atmosphereValue =
+    const atmosphere =
         clean(
             appearance.atmosphere
         ).toLowerCase();
 
 
     if (
-        atmosphereValue &&
-        atmosphereValue !== "none"
+        atmosphere &&
+        atmosphere !== "none"
     ) {
 
         planet.add(
+
             createAtmosphere(
+
                 radius,
+
                 colour,
+
                 clean(
                     appearance.glow
                 ).toLowerCase()
@@ -2905,22 +3299,31 @@ function createProjectPlanet(
 
 
     /*
-       Clouds
+       CLOUDS
     */
 
     const clouds =
         createCloudLayer(
+
             radius,
+
             "yes",
-            appearance["cloud colour"],
-            appearance["cloud opacity"],
-            appearance["cloud density"]
+
+            appearance[
+                "cloud colour"
+            ],
+
+            appearance[
+                "cloud opacity"
+            ],
+
+            appearance[
+                "cloud density"
+            ]
         );
 
 
-    if (
-        clouds
-    ) {
+    if (clouds) {
 
         planet.add(
             clouds
@@ -2929,48 +3332,71 @@ function createProjectPlanet(
 
 
     /*
-       Rings
+       RINGS
     */
 
-    const rings =
+    planet.add(
+
         createPlanetRings(
+
             radius,
+
             hexToNumber(
-                appearance["ring colour"],
+
+                appearance[
+                    "ring colour"
+                ],
+
                 colour
             ),
-            appearance.rings,
-            appearance["ring density"]
-        );
 
+            clean(
+                appearance.rings
+            ).toLowerCase(),
 
-    planet.add(
-        rings
-    );
-
-
-    /*
-       Scan lines
-    */
-
-    planet.add(
-        createScanLines(
-            radius,
-            colour,
-            appearance["scan lines"]
+            appearance[
+                "ring density"
+            ]
         )
     );
 
 
     /*
-       Particles
+       SCAN LINES
     */
 
     planet.add(
-        createParticles(
+
+        createScanLines(
+
             radius,
+
             colour,
-            appearance.particles
+
+            clean(
+                appearance[
+                    "scan lines"
+                ]
+            ).toLowerCase()
+        )
+    );
+
+
+    /*
+       PARTICLES
+    */
+
+    planet.add(
+
+        createParticles(
+
+            radius,
+
+            colour,
+
+            clean(
+                appearance.particles
+            ).toLowerCase()
         )
     );
 
@@ -3045,6 +3471,7 @@ function attachResearchPoints() {
 
             const pointsGroup =
                 planet.children.find(
+
                     child =>
                         child.name ===
                         "Research Points"
@@ -3058,10 +3485,15 @@ function attachResearchPoints() {
 
 
             pointsGroup.add(
+
                 createResearchPin(
+
                     row,
+
                     planet.userData.radius,
+
                     planet.userData.colour,
+
                     planet.userData.pointStyle
                 )
             );
@@ -3101,8 +3533,10 @@ function buildGalaxy() {
 
     const activeAppearances =
         appearanceData.filter(
+
             appearance =>
                 projectsWithPoints.has(
+
                     clean(
                         appearance.project
                     )
@@ -3157,13 +3591,16 @@ function buildGalaxy() {
 
 
     activeAppearances.forEach(
+
         (
             appearance,
             index
         ) => {
 
             createProjectPlanet(
+
                 appearance,
+
                 positions[
                     index %
                     positions.length
@@ -3232,9 +3669,7 @@ function updateCameraAnimation(
     now
 ) {
 
-    if (
-        !cameraAnimating
-    ) {
+    if (!cameraAnimating) {
 
         return;
     }
@@ -3247,8 +3682,10 @@ function updateCameraAnimation(
 
     const t =
         Math.min(
+
             elapsed /
             cameraAnimationDuration,
+
             1
         );
 
@@ -3262,15 +3699,21 @@ function updateCameraAnimation(
 
 
     camera.position.lerpVectors(
+
         cameraStartPosition,
+
         cameraTargetPosition,
+
         eased
     );
 
 
     cameraLookTarget.lerpVectors(
+
         cameraStartLookTarget,
+
         cameraEndLookTarget,
+
         eased
     );
 
@@ -3362,9 +3805,20 @@ function updatePlanetCamera() {
     );
 
 
+    /*
+       Fixed front-facing view.
+
+       No camera orbit.
+
+       The globe itself can be rotated by dragging.
+    */
+
     camera.position.set(
+
         position.x,
+
         position.y,
+
         position.z +
         planetDistance
     );
@@ -3407,6 +3861,11 @@ function enterPlanet(
         planet.userData.project;
 
 
+    /*
+       Remove the galaxy hover heading immediately
+       when the planet is selected.
+    */
+
     hoveredPlanet =
         null;
 
@@ -3447,24 +3906,32 @@ function enterPlanet(
 
     planetDistance =
         Math.max(
+
             planet.userData.radius *
             3.8,
+
             7
         );
 
 
     const targetCamera =
         new THREE.Vector3(
+
             worldPosition.x,
+
             worldPosition.y,
+
             worldPosition.z +
             planetDistance
         );
 
 
     startCameraAnimation(
+
         targetCamera,
+
         worldPosition,
+
         1500
     );
 
@@ -3498,9 +3965,7 @@ function enterPlanet(
 
 function exitPlanet() {
 
-    if (
-        !planetMode
-    ) {
+    if (!planetMode) {
 
         return;
     }
@@ -3529,6 +3994,7 @@ function exitPlanet() {
     hideMarkerCard();
 
     hideMarkerConnector();
+
 
     hidePlanetHUD();
 
@@ -3560,16 +4026,19 @@ function exitPlanet() {
 
 
     startCameraAnimation(
+
         new THREE.Vector3(
             0,
             2,
             20
         ),
+
         new THREE.Vector3(
             0,
             0,
             0
         ),
+
         1200
     );
 }
@@ -3619,6 +4088,7 @@ function showPlanetHUD(
 
     const points =
         pointData.filter(
+
             row =>
                 clean(
                     row.project
@@ -3656,9 +4126,7 @@ function showPlanetHUD(
             "hudPoints"
         )
         .textContent =
-        String(
-            points
-        ).padStart(
+        String(points).padStart(
             3,
             "0"
         );
@@ -3799,6 +4267,11 @@ function createMeasurementScale(
     }
 
 
+    /*
+       Point-count indicator remains inside
+       the shortened measurement area.
+    */
+
     const label =
         document.createElement(
             "div"
@@ -3830,12 +4303,7 @@ function createMeasurementScale(
 
 
     label.textContent =
-        `PTS ${String(
-            pointCount
-        ).padStart(
-            3,
-            "0"
-        )}`;
+        `PTS ${String(pointCount).padStart(3,"0")}`;
 
 
     scale.appendChild(
@@ -3873,15 +4341,7 @@ function showMarkerCard(
             "markerDescription"
         )
         .textContent =
-        `LAT ${Number(
-            marker.lat
-        ).toFixed(
-            2
-        )} · LON ${Number(
-            marker.lon
-        ).toFixed(
-            2
-        )}`;
+        `LAT ${Number(marker.lat).toFixed(2)} · LON ${Number(marker.lon).toFixed(2)}`;
 
 
     const link =
@@ -3947,6 +4407,11 @@ function hideMarkerConnector() {
 }
 
 
+/*
+   Convert Three.js world coordinates into
+   the fixed SVG HUD coordinate system.
+*/
+
 function projectToHUD(
     worldPosition
 ) {
@@ -3976,7 +4441,6 @@ function projectToHUD(
                 0.5
             ) *
             600
-
     };
 }
 
@@ -4004,6 +4468,12 @@ function updateMarkerConnector() {
     );
 
 
+    /*
+       Move the projected connector point down
+       slightly to give the marker more breathing room
+       from the planet title/central geometry.
+    */
+
     const point =
         projectToHUD(
             markerWorld
@@ -4012,6 +4482,10 @@ function updateMarkerConnector() {
 
     point.y += 4;
 
+
+    /*
+       Fixed right/left callout.
+    */
 
     const cardOnRight =
         point.x < 570;
@@ -4044,9 +4518,7 @@ function updateMarkerConnector() {
             `${point.x},${point.y}`,
             `${elbowX},${point.y}`,
             `${targetX},${targetY}`
-        ].join(
-            " "
-        );
+        ].join(" ");
 
 
     document
@@ -4162,16 +4634,19 @@ renderer.domElement.addEventListener(
         }
 
 
-        isPointerDown =
-            true;
+        /*
+           Both galaxy mode and planet mode accept
+           pointer dragging.
 
+           In galaxy mode, drag = camera orbit.
+           In planet mode, drag = globe rotation.
+        */
 
-        isDragging =
-            false;
+        isPointerDown = true;
 
+        isDragging = false;
 
-        didDrag =
-            false;
+        didDrag = false;
 
 
         pointerStartX =
@@ -4190,9 +4665,11 @@ renderer.domElement.addEventListener(
             event.clientY;
 
 
-        if (
-            !planetMode
-        ) {
+        /*
+           Galaxy camera stores its spherical state.
+        */
+
+        if (!planetMode) {
 
             const x =
                 camera.position.x;
@@ -4250,12 +4727,17 @@ renderer.domElement.addEventListener(
     event => {
 
         /*
+           -------------------------------------------------
            PLANET MODE
+           -------------------------------------------------
+
+           Dragging rotates the selected planet itself.
+
+           This keeps the camera fixed while allowing
+           exploration of the surface.
         */
 
-        if (
-            planetMode
-        ) {
+        if (planetMode) {
 
             if (
                 !isPointerDown ||
@@ -4289,18 +4771,13 @@ renderer.domElement.addEventListener(
                 DRAG_THRESHOLD
             ) {
 
-                isDragging =
-                    true;
+                isDragging = true;
 
-
-                didDrag =
-                    true;
+                didDrag = true;
             }
 
 
-            if (
-                !isDragging
-            ) {
+            if (!isDragging) {
 
                 return;
             }
@@ -4324,6 +4801,14 @@ renderer.domElement.addEventListener(
                 event.clientY;
 
 
+            /*
+               Horizontal drag rotates around the
+               planet's vertical axis.
+
+               Vertical drag rotates around its
+               horizontal axis.
+            */
+
             selectedPlanet.rotation.y +=
                 movementX *
                 0.0045;
@@ -4334,6 +4819,11 @@ renderer.domElement.addEventListener(
                 0.0045;
 
 
+            /*
+               Prevent the planet being flipped
+               completely upside down.
+            */
+
             selectedPlanet.rotation.x =
                 THREE.MathUtils.clamp(
                     selectedPlanet.rotation.x,
@@ -4341,6 +4831,11 @@ renderer.domElement.addEventListener(
                     1.25
                 );
 
+
+            /*
+               Keep any active research connector
+               attached to the moving marker.
+            */
 
             if (
                 activeMarker
@@ -4355,12 +4850,12 @@ renderer.domElement.addEventListener(
 
 
         /*
+           -------------------------------------------------
            GALAXY MODE HOVER
+           -------------------------------------------------
         */
 
-        if (
-            !isPointerDown
-        ) {
+        if (!isPointerDown) {
 
             mouse.x =
                 (
@@ -4438,7 +4933,9 @@ renderer.domElement.addEventListener(
 
 
         /*
+           -------------------------------------------------
            GALAXY MODE DRAG
+           -------------------------------------------------
         */
 
         const dx =
@@ -4464,18 +4961,13 @@ renderer.domElement.addEventListener(
             DRAG_THRESHOLD
         ) {
 
-            isDragging =
-                true;
+            isDragging = true;
 
-
-            didDrag =
-                true;
+            didDrag = true;
         }
 
 
-        if (
-            !isDragging
-        ) {
+        if (!isDragging) {
 
             return;
         }
@@ -4561,14 +5053,17 @@ renderer.domElement.addEventListener(
                 event.pointerId
             );
 
-        } catch (
-            error
-        ) {}
+        } catch (error) {}
 
 
-        if (
-            planetMode
-        ) {
+        /*
+           PLANET MODE
+
+           A drag rotates the globe.
+           A click selects a research point.
+        */
+
+        if (planetMode) {
 
             didDrag =
                 false;
@@ -4586,10 +5081,13 @@ renderer.domElement.addEventListener(
                 event
             );
 
-
             return;
         }
 
+
+        /*
+           GALAXY MODE
+        */
 
         if (
             wasDragging
@@ -4649,9 +5147,7 @@ function handleClick(
        GALAXY MODE
     */
 
-    if (
-        !planetMode
-    ) {
+    if (!planetMode) {
 
         const intersects =
             raycaster.intersectObjects(
@@ -4702,6 +5198,9 @@ function handleClick(
 
     /*
        PLANET MODE
+
+       Research points are the only interactive
+       elements on the planetary surface.
     */
 
     if (
@@ -4714,19 +5213,23 @@ function handleClick(
 
     const pointsGroup =
         selectedPlanet.children.find(
+
             child =>
                 child.name ===
                 "Research Points"
         );
 
 
-    if (
-        !pointsGroup
-    ) {
+    if (!pointsGroup) {
 
         return;
     }
 
+
+    /*
+       Invisible hit geometry remains
+       depth-independent.
+    */
 
     const intersects =
         raycaster.intersectObjects(
@@ -4781,7 +5284,7 @@ function handleClick(
 
 
 /* =========================================================
-   GALAXY / PLANET ZOOM
+   GALAXY ZOOM / PLANET ZOOM
    ========================================================= */
 
 renderer.domElement.addEventListener(
@@ -4799,9 +5302,7 @@ renderer.domElement.addEventListener(
         }
 
 
-        if (
-            !planetMode
-        ) {
+        if (!planetMode) {
 
             galaxyDistance +=
                 event.deltaY *
@@ -4821,6 +5322,15 @@ renderer.domElement.addEventListener(
             return;
         }
 
+
+        /*
+           PLANET MODE:
+
+           Zoom only along the camera's
+           viewing axis.
+
+           No camera yaw or pitch is introduced.
+        */
 
         planetDistance +=
             event.deltaY *
@@ -4948,9 +5458,7 @@ let lastTime =
     performance.now();
 
 
-function animate(
-    now
-) {
+function animate(now) {
 
     requestAnimationFrame(
         animate
@@ -4978,6 +5486,9 @@ function animate(
 
     /*
        Galaxy planets rotate.
+
+       Focused planets STOP rotating so the user
+       can manually explore them.
     */
 
     if (
@@ -5020,7 +5531,7 @@ function animate(
 
 
     /*
-       Clouds
+       Clouds can still move subtly.
     */
 
     planets.forEach(
@@ -5045,7 +5556,8 @@ function animate(
 
 
     /*
-       3D research grid
+       Very subtle motion on the 3D research
+       navigation grid attached to each planet.
     */
 
     planets.forEach(
@@ -5053,6 +5565,7 @@ function animate(
 
             const researchGrid =
                 planet.children.find(
+
                     child =>
                         child.name ===
                         "3D Research Grid"
@@ -5073,7 +5586,9 @@ function animate(
 
 
     /*
-       Pulse markers
+       Pulse markers.
+
+       Invisible hit geometry NEVER scales.
     */
 
     planets.forEach(
@@ -5081,15 +5596,14 @@ function animate(
 
             const pointsGroup =
                 planet.children.find(
+
                     child =>
                         child.name ===
                         "Research Points"
                 );
 
 
-            if (
-                !pointsGroup
-            ) {
+            if (!pointsGroup) {
 
                 return;
             }
@@ -5150,7 +5664,8 @@ function animate(
 
 
     /*
-       Keep connector aligned
+       Keep selected marker connector aligned
+       during zoom, planet rotation and camera animation.
     */
 
     if (
@@ -5288,9 +5803,7 @@ async function loadData() {
             );
 
 
-    } catch (
-        error
-    ) {
+    } catch (error) {
 
         console.error(
             error
@@ -5320,5 +5833,4 @@ animate(
 </script>
 
 </body>
-
 </html>
