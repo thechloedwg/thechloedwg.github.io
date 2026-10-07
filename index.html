@@ -2999,7 +2999,7 @@ function createProjectPlanet(
     );
 
 
-   planet.userData = {
+planet.userData = {
 
     type: "planet",
 
@@ -3026,18 +3026,14 @@ function createProjectPlanet(
     appearance:
         appearance,
 
-    flicker:
-        0.82 +
-        Math.random() * 0.36,
+    flickerTimer:
+        Math.random() * 2,
 
-    flickerSpeed:
-        0.7 +
-        Math.random() * 1.1,
+    flickerDuration:
+        0,
 
-    flickerPhase:
-        Math.random() *
-        Math.PI *
-        2
+    flickerStrength:
+        0
 
 };
 
@@ -3073,8 +3069,11 @@ function createProjectPlanet(
         );
 
 
-    surface.userData.isPlanetSurface =
-        true;
+ surface.userData.isPlanetSurface =
+    true;
+
+surface.name =
+    "Planet Surface";
 
 
     planet.add(
@@ -5994,42 +5993,77 @@ function animate(
     );
 
 
-    /* =====================================================
-       INDIVIDUAL PLANET FLICKER
-       ===================================================== */
+  /* =====================================================
+   INDIVIDUAL PLANET HOLOGRAM BREAKUP
+   ===================================================== */
 
-    planets.forEach(
-        planet => {
+planets.forEach(
+    planet => {
 
-            const flicker =
-                planet.userData.flicker;
-
-            const speed =
-                planet.userData.flickerSpeed;
-
-            const phase =
-                planet.userData.flickerPhase;
+        const data =
+            planet.userData;
 
 
-            const wave =
-                Math.sin(
-                    now * 0.001 *
-                    speed +
-                    phase
-                ) * 0.055 +
+        /* ---------------------------------------------
+           COUNT DOWN TO NEXT GLITCH
+           --------------------------------------------- */
 
-                Math.sin(
-                    now * 0.001 *
-                    speed * 2.37 +
-                    phase * 1.7
-                ) * 0.025;
+        data.flickerTimer -= delta;
 
 
-            const intensity =
-                THREE.MathUtils.clamp(
-                    flicker + wave,
-                    0.72,
-                    1.22
+        if (
+            data.flickerTimer <= 0
+        ) {
+
+            /*
+               Short, irregular bursts.
+            */
+
+            data.flickerDuration =
+                0.045 +
+                Math.random() * 0.12;
+
+
+            data.flickerStrength =
+                0.25 +
+                Math.random() * 0.55;
+
+
+            /*
+               Wait a random amount before
+               the next breakup.
+            */
+
+            data.flickerTimer =
+                0.7 +
+                Math.random() * 2.8;
+
+        }
+
+
+        /* ---------------------------------------------
+           ACTIVE GLITCH
+           --------------------------------------------- */
+
+        if (
+            data.flickerDuration > 0
+        ) {
+
+            data.flickerDuration -=
+                delta;
+
+
+            const strength =
+                data.flickerStrength;
+
+
+            /*
+               Find the visual layers.
+            */
+
+            const surface =
+                planet.getObjectByName(
+                    "Planet Surface"
                 );
 
 
@@ -6038,10 +6072,41 @@ function animate(
                     "Atmosphere"
                 );
 
+
             const glow =
                 planet.getObjectByName(
                     "Glow"
                 );
+
+
+            /*
+               Sudden digital-looking variation.
+            */
+
+            const breakup =
+                1 -
+                Math.random() *
+                strength;
+
+
+            if (surface) {
+
+                if (
+                    surface.userData.baseOpacity ===
+                    undefined
+                ) {
+
+                    surface.userData.baseOpacity =
+                        surface.material.opacity;
+
+                }
+
+
+                surface.material.opacity =
+                    surface.userData.baseOpacity *
+                    breakup;
+
+            }
 
 
             if (atmosphere) {
@@ -6059,7 +6124,10 @@ function animate(
 
                 atmosphere.material.opacity =
                     atmosphere.userData.baseOpacity *
-                    intensity;
+                    (
+                        0.45 +
+                        Math.random() * 0.8
+                    );
 
             }
 
@@ -6079,12 +6147,66 @@ function animate(
 
                 glow.material.opacity =
                     glow.userData.baseOpacity *
-                    intensity;
+                    (
+                        0.35 +
+                        Math.random() * 1.8
+                    );
 
             }
 
         }
-    );
+
+        else {
+
+            /*
+               Return everything cleanly to normal.
+            */
+
+            const surface =
+                planet.getObjectByName(
+                    "Planet Surface"
+                );
+
+
+            const atmosphere =
+                planet.getObjectByName(
+                    "Atmosphere"
+                );
+
+
+            const glow =
+                planet.getObjectByName(
+                    "Glow"
+                );
+
+
+            if (surface) {
+
+                surface.material.opacity =
+                    surface.userData.baseOpacity;
+
+            }
+
+
+            if (atmosphere) {
+
+                atmosphere.material.opacity =
+                    atmosphere.userData.baseOpacity;
+
+            }
+
+
+            if (glow) {
+
+                glow.material.opacity =
+                    glow.userData.baseOpacity;
+
+            }
+
+        }
+
+    }
+);
 
     /* =========================================================
    MARKER ROTATION ANIMATION
