@@ -6,7 +6,7 @@
     name="viewport"
     content="width=device-width, initial-scale=1.0"
 >
-<title>Chloe DWG — Research Universe</title>
+<title>Pop Culture as Parable — Universe</title>
 
 <style>
 
@@ -27,6 +27,7 @@ body {
 
 body {
     cursor: grab;
+    touch-action: none;
 }
 
 body.dragging {
@@ -35,6 +36,7 @@ body.dragging {
 
 canvas {
     display: block;
+    touch-action: none;
 }
 
 
@@ -300,8 +302,15 @@ canvas {
 .measurement-scale {
     position: absolute;
     right: 7.2%;
-    top: 28%;
-    bottom: 12%;
+
+    /*
+       Raised slightly and shortened so the scale
+       sits centrally between the return button
+       and the technical readout.
+    */
+    top: 31%;
+    bottom: 34%;
+
     width: 50px;
 }
 
@@ -512,6 +521,12 @@ canvas {
         display: none;
     }
 
+    .measurement-scale {
+        right: 6%;
+        top: 30%;
+        bottom: 35%;
+    }
+
     .instructions {
         font-size: 8px;
     }
@@ -525,14 +540,14 @@ canvas {
 <div class="ui">
 
     <div class="title">
-        CHLOE DWG — RESEARCH UNIVERSE
+        POP CULTURE AS PARABLE — UNIVERSE
     </div>
 
     <button
         class="back-button"
         id="backButton"
     >
-        ← Change research
+        ← Return to galaxy
     </button>
 
     <div
@@ -541,7 +556,9 @@ canvas {
     ></div>
 
 
-    <!-- PLANET HUD -->
+    <!-- =====================================================
+         PLANET HUD
+         ===================================================== -->
 
     <div
         class="planet-hud"
@@ -581,15 +598,27 @@ canvas {
             </defs>
 
 
-            <!-- LEFT PLANET CONNECTOR -->
+            <!-- =================================================
+                 LEFT UPPER GEOMETRIC POINTER
+
+                 Replaces the previous curved line.
+                 It sits slightly above the lower-left
+                 straight technical line.
+                 ================================================= -->
 
             <path
                 class="hud-line"
-                d="M 52 156 A 330 330 0 0 1 365 205"
+                d="
+                    M 52 145
+                    L 225 145
+                    L 285 185
+                "
             />
 
 
-            <!-- LEFT LOWER TECHNICAL BRACKET -->
+            <!-- =================================================
+                 LEFT LOWER TECHNICAL BRACKET
+                 ================================================= -->
 
             <path
                 class="hud-line"
@@ -601,7 +630,9 @@ canvas {
             />
 
 
-            <!-- UPPER ORBITAL BRACKETS -->
+            <!-- =================================================
+                 UPPER ORBITAL BRACKETS
+                 ================================================= -->
 
             <path
                 class="hud-fine"
@@ -638,7 +669,9 @@ canvas {
             />
 
 
-            <!-- RIGHT ORBITAL ARC -->
+            <!-- =================================================
+                 RIGHT ORBITAL ARC
+                 ================================================= -->
 
             <path
                 class="hud-line"
@@ -649,7 +682,9 @@ canvas {
             />
 
 
-            <!-- BOTTOM TECHNICAL MARKS -->
+            <!-- =================================================
+                 BOTTOM TECHNICAL MARKS
+                 ================================================= -->
 
             <path
                 class="hud-fine"
@@ -684,7 +719,9 @@ canvas {
             />
 
 
-            <!-- CENTRAL RETICLE -->
+            <!-- =================================================
+                 CENTRAL RETICLE
+                 ================================================= -->
 
             <circle
                 cx="500"
@@ -702,7 +739,9 @@ canvas {
             />
 
 
-            <!-- SMALL CALIBRATION MARKS -->
+            <!-- =================================================
+                 SMALL CALIBRATION MARKS
+                 ================================================= -->
 
             <path
                 class="hud-line"
@@ -725,7 +764,9 @@ canvas {
             />
 
 
-            <!-- DYNAMIC MARKER CONNECTOR -->
+            <!-- =================================================
+                 DYNAMIC MARKER CONNECTOR
+                 ================================================= -->
 
             <g
                 id="markerConnector"
@@ -761,7 +802,9 @@ canvas {
         </svg>
 
 
-        <!-- PLANET INFORMATION -->
+        <!-- =====================================================
+             PLANET INFORMATION
+             ===================================================== -->
 
         <div class="planet-info">
 
@@ -777,7 +820,6 @@ canvas {
                 id="hudProject"
             ></div>
 
-
             <div
                 class="planet-info-name"
                 id="hudName"
@@ -785,9 +827,7 @@ canvas {
                 PLANET / PROJECT
             </div>
 
-
             <div class="planet-info-rule"></div>
-
 
             <div class="planet-info-row">
 
@@ -801,7 +841,6 @@ canvas {
 
             </div>
 
-
             <div class="planet-info-row">
 
                 <span id="hudPointsLabel">
@@ -814,7 +853,6 @@ canvas {
 
             </div>
 
-
             <div class="planet-info-row">
 
                 <span id="hudFocusLabel">
@@ -826,7 +864,6 @@ canvas {
                 </strong>
 
             </div>
-
 
             <div class="planet-info-row">
 
@@ -843,7 +880,9 @@ canvas {
         </div>
 
 
-        <!-- PRIMARY QUESTION -->
+        <!-- =====================================================
+             PRIMARY QUESTION
+             ===================================================== -->
 
         <div class="planet-question">
 
@@ -864,7 +903,9 @@ canvas {
         </div>
 
 
-        <!-- MEASUREMENT SCALE -->
+        <!-- =====================================================
+             MEASUREMENT SCALE
+             ===================================================== -->
 
         <div
             class="measurement-scale"
@@ -876,7 +917,9 @@ canvas {
         </div>
 
 
-        <!-- TECHNICAL READOUT -->
+        <!-- =====================================================
+             TECHNICAL READOUT
+             ===================================================== -->
 
         <div class="technical-readout">
 
@@ -905,7 +948,9 @@ canvas {
         <div class="corner-detail bottom-right"></div>
 
 
-        <!-- MARKER CARD -->
+        <!-- =====================================================
+             MARKER CARD
+             ===================================================== -->
 
         <div
             class="marker-card"
@@ -976,6 +1021,10 @@ const APPEARANCE_CSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ23GJgYn3S8flelPGL3HDWtEOisQZJYHt6-Yt90P8mEYladNlO2N4xCEx9Zj03Z3GQNCNG0PihZYlN/pub?gid=603501729&single=true&output=csv";
 
 
+/* =========================================================
+   THREE.JS SETUP
+   ========================================================= */
+
 const scene =
     new THREE.Scene();
 
@@ -1026,6 +1075,9 @@ renderer.setSize(
     window.innerWidth,
     window.innerHeight
 );
+
+renderer.domElement.style.touchAction =
+    "none";
 
 document.body.appendChild(
     renderer.domElement
@@ -1211,16 +1263,6 @@ let galaxyPitch = 0.10;
 
 let galaxyDistance = 20;
 
-
-/*
-   PLANET CAMERA
-
-   The camera is deliberately fixed relative
-   to the selected planet.
-
-   Dragging rotates the planet itself.
-   This means the HUD never moves with the globe.
-*/
 
 let planetDistance = 8;
 
@@ -2354,11 +2396,6 @@ function createResearchPin(
     );
 
 
-    /*
-       Flat holographic locator ring.
-       There is NO visible sphere.
-    */
-
     const ring =
         new THREE.Mesh(
 
@@ -2407,12 +2444,6 @@ function createResearchPin(
         ring
     );
 
-
-    /*
-       Invisible hit target.
-       This makes the centre of the marker clickable
-       without displaying a sphere.
-    */
 
     const hit =
         new THREE.Mesh(
@@ -2855,6 +2886,11 @@ function createProjectPlanet(
         "Research Points";
 
 
+    /*
+       Markers are deliberately kept as children
+       of the planet so they rotate with the globe.
+    */
+
     planet.add(
         pointsGroup
     );
@@ -3269,14 +3305,6 @@ function updatePlanetCamera() {
     );
 
 
-    /*
-       The camera remains directly in front
-       of the selected planet.
-
-       The planet itself rotates underneath
-       the fixed HUD.
-    */
-
     camera.position.set(
 
         position.x,
@@ -3339,12 +3367,6 @@ function enterPlanet(
         null;
 
 
-    /*
-       Explicitly remove the galaxy
-       hover heading as soon as a planet
-       is selected.
-    */
-
     document
         .getElementById(
             "planetLabel"
@@ -3358,10 +3380,6 @@ function enterPlanet(
 
     hideMarkerConnector();
 
-
-    /*
-       Only the selected planet remains visible.
-    */
 
     planets.forEach(
         other => {
@@ -3392,11 +3410,6 @@ function enterPlanet(
 
         );
 
-
-    /*
-       Preserve the current visual rotation
-       of the planet when entering focus mode.
-    */
 
     planetRotationY =
         selectedPlanet.rotation.y;
@@ -3597,14 +3610,6 @@ function showPlanetHUD(
         );
 
 
-    /*
-       Any HUD field can now be controlled
-       directly from the Appearance sheet.
-
-       The fallback keeps the current spreadsheet
-       working if the column has not been added yet.
-    */
-
     const textValue =
         (
             key,
@@ -3641,11 +3646,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud project label",
-
             "PROJECT"
-
         );
 
 
@@ -3656,11 +3658,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud project text",
-
             project
-
         );
 
 
@@ -3671,11 +3670,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud name",
-
             name
-
         );
 
 
@@ -3686,11 +3682,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud status label",
-
             "STATUS //"
-
         );
 
 
@@ -3701,11 +3694,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud status",
-
             status
-
         );
 
 
@@ -3716,11 +3706,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud points label",
-
             "POINTS //"
-
         );
 
 
@@ -3731,14 +3718,11 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud points",
-
             String(points).padStart(
                 3,
                 "0"
             )
-
         );
 
 
@@ -3749,11 +3733,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud focus label",
-
             "FOCUS //"
-
         );
 
 
@@ -3764,11 +3745,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud focus",
-
             focus
-
         );
 
 
@@ -3779,11 +3757,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud mode label",
-
             "MODE //"
-
         );
 
 
@@ -3794,11 +3769,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud mode text",
-
             "PLANETARY RESEARCH"
-
         );
 
 
@@ -3809,11 +3781,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud question label",
-
             "PRIMARY QUESTION"
-
         );
 
 
@@ -3824,11 +3793,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud question",
-
             question
-
         );
 
 
@@ -3839,11 +3805,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud technical 1",
-
             "SURFACE // MAPPED"
-
         );
 
 
@@ -3854,11 +3817,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud technical 2",
-
             "ATMOSPHERE // DETECTED"
-
         );
 
 
@@ -3869,11 +3829,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud technical 3",
-
             "RESEARCH GRID // ACTIVE"
-
         );
 
 
@@ -3884,11 +3841,8 @@ function showPlanetHUD(
         .textContent =
 
         textValue(
-
             "hud technical 4",
-
             "LAT 00.000 // LON 00.000"
-
         );
 
 
@@ -4403,6 +4357,9 @@ renderer.domElement.addEventListener(
         }
 
 
+        event.preventDefault();
+
+
         isPointerDown = true;
 
         isDragging = false;
@@ -4423,14 +4380,6 @@ renderer.domElement.addEventListener(
         previousPointerY =
             event.clientY;
 
-
-        /*
-           Galaxy mode needs the current camera
-           converted back into orbit state.
-
-           Planet mode deliberately does NOT do this,
-           because the camera must remain fixed.
-        */
 
         if (
             !planetMode
@@ -4479,6 +4428,10 @@ renderer.domElement.addEventListener(
             "dragging"
         );
 
+    },
+
+    {
+        passive: false
     }
 
 );
@@ -4494,133 +4447,18 @@ renderer.domElement.addEventListener(
 
     event => {
 
-
-        /*
-           PLANET MODE
-
-           The camera stays fixed.
-           The planet rotates beneath it.
-        */
-
-        if (
-            planetMode
-        ) {
-
-            if (
-                !isPointerDown ||
-                !selectedPlanet
-            ) {
-
-                return;
-
-            }
-
-
-            const dx =
-                event.clientX -
-                previousPointerX;
-
-
-            const dy =
-                event.clientY -
-                previousPointerY;
-
-
-            const totalDx =
-                event.clientX -
-                pointerStartX;
-
-
-            const totalDy =
-                event.clientY -
-                pointerStartY;
-
-
-            const distance =
-                Math.sqrt(
-                    totalDx *
-                    totalDx +
-                    totalDy *
-                    totalDy
-                );
-
-
-            if (
-                !isDragging &&
-                distance >
-                DRAG_THRESHOLD
-            ) {
-
-                isDragging =
-                    true;
-
-                didDrag =
-                    true;
-
-            }
-
-
-            if (
-                !isDragging
-            ) {
-
-                return;
-
-            }
-
-
-            previousPointerX =
-                event.clientX;
-
-            previousPointerY =
-                event.clientY;
-
-
-            planetRotationY +=
-                dx *
-                planetDragSensitivity;
-
-
-            planetRotationX +=
-                dy *
-                planetPitchSensitivity;
-
-
-            planetRotationX =
-                THREE.MathUtils.clamp(
-
-                    planetRotationX,
-
-                    -0.9,
-
-                    0.9
-
-                );
-
-
-            selectedPlanet.rotation.y =
-                planetRotationY;
-
-
-            selectedPlanet.rotation.x =
-                planetRotationX;
-
-
-            updateMarkerConnector();
-
-
-            return;
-
-        }
-
-
-        /*
-           GALAXY MODE HOVER
-        */
-
         if (
             !isPointerDown
         ) {
+
+            if (
+                planetMode
+            ) {
+
+                return;
+
+            }
+
 
             mouse.x =
                 (
@@ -4702,23 +4540,38 @@ renderer.domElement.addEventListener(
 
 
         /*
-           GALAXY DRAG
+           Calculate movement from the immediately
+           previous pointer position.
+
+           This allows rotation in BOTH directions.
         */
 
-        const dx =
+        const movementX =
+            event.clientX -
+            previousPointerX;
+
+
+        const movementY =
+            event.clientY -
+            previousPointerY;
+
+
+        const totalDx =
             event.clientX -
             pointerStartX;
 
 
-        const dy =
+        const totalDy =
             event.clientY -
             pointerStartY;
 
 
         const distance =
             Math.sqrt(
-                dx * dx +
-                dy * dy
+                totalDx *
+                totalDx +
+                totalDy *
+                totalDy
             );
 
 
@@ -4746,23 +4599,81 @@ renderer.domElement.addEventListener(
         }
 
 
-        const movementX =
-            event.clientX -
-            previousPointerX;
-
-
-        const movementY =
-            event.clientY -
-            previousPointerY;
-
-
         previousPointerX =
             event.clientX;
-
 
         previousPointerY =
             event.clientY;
 
+
+        /*
+           PLANET MODE
+
+           Horizontal movement:
+           left = one direction
+           right = opposite direction
+
+           Vertical movement:
+           up/down changes pitch.
+        */
+
+        if (
+            planetMode
+        ) {
+
+            if (
+                !selectedPlanet
+            ) {
+
+                return;
+
+            }
+
+
+            planetRotationY +=
+                movementX *
+                planetDragSensitivity;
+
+
+            planetRotationX +=
+                movementY *
+                planetPitchSensitivity;
+
+
+            planetRotationX =
+                THREE.MathUtils.clamp(
+
+                    planetRotationX,
+
+                    -0.9,
+
+                    0.9
+
+                );
+
+
+            selectedPlanet.rotation.y =
+                planetRotationY;
+
+
+            selectedPlanet.rotation.x =
+                planetRotationX;
+
+
+            updateMarkerConnector();
+
+
+            return;
+
+        }
+
+
+        /*
+           GALAXY MODE
+
+           Both positive and negative horizontal
+           movement are preserved.
+        */
 
         galaxyYaw -=
             movementX *
@@ -4788,6 +4699,10 @@ renderer.domElement.addEventListener(
 
         updateGalaxyCamera();
 
+    },
+
+    {
+        passive: false
     }
 
 );
@@ -4803,65 +4718,8 @@ renderer.domElement.addEventListener(
 
     event => {
 
-
-        if (
-            planetMode
-        ) {
-
-            const wasDragging =
-                didDrag;
-
-
-            isPointerDown =
-                false;
-
-
-            isDragging =
-                false;
-
-
-            document.body.classList.remove(
-                "dragging"
-            );
-
-
-            try {
-
-                renderer.domElement.releasePointerCapture(
-                    event.pointerId
-                );
-
-            } catch (
-                error
-            ) {}
-
-
-            if (
-                wasDragging
-            ) {
-
-                didDrag =
-                    false;
-
-                return;
-
-            }
-
-
-            if (
-                !cameraAnimating
-            ) {
-
-                handleClick(
-                    event
-                );
-
-            }
-
-
-            return;
-
-        }
+        const wasDragging =
+            didDrag;
 
 
         isPointerDown =
@@ -4889,7 +4747,7 @@ renderer.domElement.addEventListener(
 
 
         if (
-            didDrag
+            wasDragging
         ) {
 
             didDrag =
@@ -4912,6 +4770,45 @@ renderer.domElement.addEventListener(
         handleClick(
             event
         );
+
+    }
+
+);
+
+
+/* =========================================================
+   POINTER CANCEL
+   ========================================================= */
+
+renderer.domElement.addEventListener(
+
+    "pointercancel",
+
+    event => {
+
+        isPointerDown =
+            false;
+
+        isDragging =
+            false;
+
+        didDrag =
+            false;
+
+        document.body.classList.remove(
+            "dragging"
+        );
+
+
+        try {
+
+            renderer.domElement.releasePointerCapture(
+                event.pointerId
+            );
+
+        } catch (
+            error
+        ) {}
 
     }
 
@@ -4952,9 +4849,6 @@ function handleClick(
 
     /*
        GALAXY MODE
-
-       Only planets can be selected.
-       Research markers are not interactive here.
     */
 
     if (
@@ -5014,8 +4908,6 @@ function handleClick(
 
     /*
        PLANET MODE
-
-       Only research points are interactive.
     */
 
     if (
@@ -5156,11 +5048,6 @@ renderer.domElement.addEventListener(
         }
 
 
-        /*
-           Planet mode zooms the fixed camera
-           straight toward / away from the globe.
-        */
-
         planetDistance +=
             event.deltaY *
             0.008;
@@ -5200,11 +5087,6 @@ function updatePlanetLabel() {
             "planetLabel"
         );
 
-
-    /*
-       The hover heading is ONLY allowed
-       in galaxy mode.
-    */
 
     if (
         !hoveredPlanet ||
@@ -5338,9 +5220,6 @@ function animate(
 
     /*
        Galaxy planets rotate automatically.
-
-       Focused planets stop auto-rotating.
-       Their rotation is controlled by dragging.
     */
 
     if (
@@ -5421,9 +5300,6 @@ function animate(
 
     /*
        Pulse markers.
-
-       Only visible marker geometry scales.
-       Invisible click geometry never scales.
     */
 
     planets.forEach(
@@ -5517,11 +5393,6 @@ function animate(
 
     );
 
-
-    /*
-       Keep marker connector attached
-       to the actual rotating point.
-    */
 
     if (
         planetMode &&
