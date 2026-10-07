@@ -6014,7 +6014,7 @@ async function loadData() {
         loading.textContent = "Loading research data";
 
         console.log("Loading points sheet...");
-        console.log(POINTS_CSV);
+        console.log(MARKERS_CSV);
 
         const pointsResponse = await fetch(
             MARKERS_CSV + "&cache=" + Date.now()
