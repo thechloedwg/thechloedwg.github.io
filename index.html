@@ -28,7 +28,7 @@
     margin: 0;
     overflow: hidden;
     background: var(--background);
-    color: var(--white);
+    colour: var(--white);
     font-family:
       Arial,
       Helvetica,
@@ -105,7 +105,7 @@
     left: 32px;
     font-size: 9px;
     letter-spacing: .14em;
-    color: var(--muted);
+    colour: var(--muted);
     text-transform: uppercase;
   }
 
@@ -132,7 +132,7 @@
     padding: 0;
     border: 0;
     background: transparent;
-    color: var(--white);
+    colour: var(--white);
     font-family: inherit;
     font-size: 10px;
     letter-spacing: .14em;
@@ -155,7 +155,7 @@
   #planet-project {
     font-size: 8px;
     letter-spacing: .18em;
-    color: var(--muted);
+    colour: var(--muted);
     margin-bottom: 6px;
     text-transform: uppercase;
   }
@@ -187,11 +187,11 @@
   }
 
   .meta-label {
-    color: var(--muted);
+    colour: var(--muted);
   }
 
   .meta-value {
-    color: var(--white);
+    colour: var(--white);
   }
 
   /* Primary question */
@@ -204,7 +204,7 @@
   #planet-question-label {
     font-size: 8px;
     letter-spacing: .17em;
-    color: var(--muted);
+    colour: var(--muted);
     margin-bottom: 7px;
     text-transform: uppercase;
   }
@@ -227,12 +227,12 @@
     font-size: 7px;
     line-height: 1.7;
     letter-spacing: .13em;
-    color: var(--muted);
+    colour: var(--muted);
     text-transform: uppercase;
   }
 
   #technical-readout .technical-value {
-    color: var(--white);
+    colour: var(--white);
   }
 
   /* Measurement */
@@ -273,7 +273,7 @@
     writing-mode: vertical-rl;
     font-size: 7px;
     letter-spacing: .15em;
-    color: var(--muted);
+    colour: var(--muted);
     white-space: nowrap;
   }
 
@@ -305,7 +305,7 @@
   #marker-card-country {
     font-size: 8px;
     letter-spacing: .18em;
-    color: var(--muted);
+    colour: var(--muted);
     margin-bottom: 7px;
     text-transform: uppercase;
   }
@@ -321,14 +321,14 @@
     font-size: 8px;
     line-height: 1.45;
     letter-spacing: .07em;
-    color: var(--muted);
+    colour: var(--muted);
     margin-bottom: 13px;
     text-transform: uppercase;
   }
 
   #marker-card-link {
     display: inline-block;
-    color: var(--white);
+    colour: var(--white);
     font-size: 8px;
     letter-spacing: .13em;
     text-decoration: none;
@@ -1768,7 +1768,7 @@ function initThree() {
   );
 
 
-  renderer.setClearColor(
+  renderer.setClearcolour(
     hexToNumber(
       globalData.background_colour
     ),
@@ -1918,7 +1918,7 @@ function createStars() {
   const material =
     new THREE.PointsMaterial({
 
-      color:
+      colour:
         0xffffff,
 
       size:
@@ -2008,7 +2008,7 @@ function createProjectPlanet(
 
   const materialOptions = {
 
-    color:
+    colour:
       colour,
 
     transparent:
@@ -2051,11 +2051,11 @@ function createProjectPlanet(
       texture => {
 
         if (
-          "colorSpace" in texture
+          "colourSpace" in texture
         ) {
 
-          texture.colorSpace =
-            THREE.SRGBColorSpace;
+          texture.colourSpace =
+            THREE.SRGBcolourSpace;
 
         }
 
@@ -2283,7 +2283,7 @@ function createPlanetGrid(
   const material =
     new THREE.LineBasicMaterial({
 
-      color:
+     colour:
         hexToNumber(
           planet.colour
         ),
@@ -2515,7 +2515,7 @@ function createAtmosphere(
   const material =
     new THREE.MeshBasicMaterial({
 
-      color:
+      colour:
         hexToNumber(
           planet.colour
         ),
@@ -2597,7 +2597,7 @@ function createGlow(
   const material =
     new THREE.MeshBasicMaterial({
 
-      color:
+      colour:
         hexToNumber(
           planet.colour
         ),
@@ -2714,7 +2714,7 @@ function createRings(
     const material =
       new THREE.MeshBasicMaterial({
 
-        color:
+        colour:
 
           colour,
 
@@ -2790,7 +2790,7 @@ function createCloudLayer(
   const material =
     new THREE.MeshPhongMaterial({
 
-      color:
+      colour:
         hexToNumber(
           planet.cloud_colour
         ),
@@ -2837,11 +2837,11 @@ function createCloudLayer(
       texture => {
 
         if (
-          "colorSpace" in texture
+          "colourSpace" in texture
         ) {
 
-          texture.colorSpace =
-            THREE.SRGBColorSpace;
+          texture.colourSpace =
+            THREE.SRGBcolourSpace;
 
         }
 
@@ -2919,7 +2919,7 @@ function createScanLines(
   const material =
     new THREE.LineBasicMaterial({
 
-      color:
+      colour:
         hexToNumber(
           planet.colour
         ),
@@ -3146,7 +3146,7 @@ function createPlanetParticles(
   const material =
     new THREE.PointsMaterial({
 
-      color:
+      colour:
         hexToNumber(
           planet.colour
         ),
@@ -3287,7 +3287,7 @@ function createResearchPin(
     const material =
       new THREE.MeshBasicMaterial({
 
-        color,
+       colour,
 
         transparent:
           true,
@@ -3321,7 +3321,7 @@ function createResearchPin(
     const pulseMaterial =
       new THREE.MeshBasicMaterial({
 
-        color,
+        colour,
 
         transparent:
           true,
@@ -3358,7 +3358,7 @@ function createResearchPin(
     const material =
       new THREE.LineBasicMaterial({
 
-        color,
+        colour,
 
         transparent:
           true,
