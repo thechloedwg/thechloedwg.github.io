@@ -4597,6 +4597,55 @@ function createGalaxyPlayfield() {
     galaxyPlayfield.name =
         "Galaxy Holotable";
 
+    function updateGalaxyPlayfield() {
+
+    if (
+        !galaxyPlayfield ||
+        !planets.length
+    ) {
+
+        return;
+
+    }
+
+    let furthestDistance = 0;
+
+    planets.forEach(
+        planet => {
+
+            const position =
+                planet.position;
+
+            const horizontalDistance =
+                Math.sqrt(
+                    position.x * position.x +
+                    position.z * position.z
+                );
+
+            const distance =
+                horizontalDistance +
+                planet.userData.radius;
+
+            furthestDistance =
+                Math.max(
+                    furthestDistance,
+                    distance
+                );
+
+        }
+    );
+
+    const playfieldRadius =
+        furthestDistance + 2.5;
+
+    galaxyPlayfield.scale.set(
+        playfieldRadius / 10.5,
+        1,
+        playfieldRadius / 10.5
+    );
+
+}
+
 
     /* =====================================================
        RESPONSIVE SIZE
@@ -4648,7 +4697,7 @@ function createGalaxyPlayfield() {
         -Math.PI / 2;
 
     field.position.y =
-        -3.2;
+        0;
 
     galaxyPlayfield.add(
         field
@@ -4685,7 +4734,7 @@ function createGalaxyPlayfield() {
         -Math.PI / 2;
 
     outerRing.position.y =
-        -3.18;
+        0;
 
     galaxyPlayfield.add(
         outerRing
@@ -4722,7 +4771,7 @@ function createGalaxyPlayfield() {
                 -Math.PI / 2;
 
             ring.position.y =
-                -3.17;
+                0;
 
             galaxyPlayfield.add(
                 ring
@@ -4763,14 +4812,14 @@ function createGalaxyPlayfield() {
 
             new THREE.Vector3(
                 0,
-                -3.15,
+                0,
                 0
             ),
 
             new THREE.Vector3(
                 Math.cos(angle) *
                 playfieldRadius,
-                -3.15,
+                0,
                 Math.sin(angle) *
                 playfieldRadius
             )
@@ -4800,11 +4849,67 @@ function createGalaxyPlayfield() {
        ADD TO SCENE
        ===================================================== */
 
-    scene.add(
-        galaxyPlayfield
+ galaxyPlayfield.position.y =
+    -8;
+
+scene.add(
+    galaxyPlayfield
+);
+
+    
+
+    /* =========================================================
+   RESPONSIVE GALAXY REFLOW
+   ========================================================= */
+
+function reflowGalaxy() {
+
+    if (!planets.length) {
+        return;
+    }
+
+    planets.forEach(
+        (planet, index) => {
+
+            const radius =
+                planet.userData.radius;
+
+            const position =
+                getGalaxyPosition(
+                    index,
+                    radius
+                );
+
+            planet.position.copy(
+                position
+            );
+
+        }
     );
 
+    resolveGalaxySpacing();
+
+    updateGalaxyPlayfield();
+
 }
+
+    window.addEventListener(
+    "resize",
+    () => {
+
+        reflowGalaxy();
+
+        if (
+            !planetMode &&
+            !cameraAnimating
+        ) {
+
+            updateGalaxyCamera();
+
+        }
+
+    }
+);
     
 /* =========================================================
    CAMERA
