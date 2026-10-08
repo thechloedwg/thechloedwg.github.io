@@ -4325,7 +4325,7 @@ const heightFactor =
 
 function resolveGalaxySpacing() {
 
-    const minimumGap = 1.2;
+    const minimumGap = 2.0;
 
     const maxIterations = 12;
 
@@ -4564,7 +4564,6 @@ function buildGalaxy() {
 
 let galaxyPlayfield = null;
 
-
 function createGalaxyPlayfield() {
 
     if (galaxyPlayfield) {
@@ -4575,16 +4574,218 @@ function createGalaxyPlayfield() {
 
     }
 
-
     galaxyPlayfield =
         new THREE.Group();
-
 
     galaxyPlayfield.name =
         "Galaxy Holotable";
 
 
-    // We'll build the visual playfield here.
+    /* =====================================================
+       RESPONSIVE SIZE
+       ===================================================== */
+
+    const isMobile =
+        window.innerWidth <= 700;
+
+    const screenRatio =
+        THREE.MathUtils.clamp(
+            window.innerWidth /
+            window.innerHeight,
+            0.65,
+            1.8
+        );
+
+    const playfieldRadius =
+        isMobile
+            ? 7.0
+            : 10.5;
+
+
+    /* =====================================================
+       MAIN CIRCULAR FIELD
+       ===================================================== */
+
+    const fieldGeometry =
+        new THREE.CircleGeometry(
+            playfieldRadius,
+            96
+        );
+
+    const fieldMaterial =
+        new THREE.MeshBasicMaterial({
+            color: 0x16202a,
+            transparent: true,
+            opacity: 0.16,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        });
+
+    const field =
+        new THREE.Mesh(
+            fieldGeometry,
+            fieldMaterial
+        );
+
+    field.rotation.x =
+        -Math.PI / 2;
+
+    field.position.y =
+        -3.2;
+
+    galaxyPlayfield.add(
+        field
+    );
+
+
+    /* =====================================================
+       OUTER RING
+       ===================================================== */
+
+    const ringGeometry =
+        new THREE.RingGeometry(
+            playfieldRadius * 0.96,
+            playfieldRadius,
+            96
+        );
+
+    const ringMaterial =
+        new THREE.MeshBasicMaterial({
+            color: 0x4f6b7a,
+            transparent: true,
+            opacity: 0.45,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        });
+
+    const outerRing =
+        new THREE.Mesh(
+            ringGeometry,
+            ringMaterial
+        );
+
+    outerRing.rotation.x =
+        -Math.PI / 2;
+
+    outerRing.position.y =
+        -3.18;
+
+    galaxyPlayfield.add(
+        outerRing
+    );
+
+
+    /* =====================================================
+       INNER CONCENTRIC RINGS
+       ===================================================== */
+
+    [0.72, 0.48, 0.25].forEach(
+        scale => {
+
+            const geometry =
+                new THREE.RingGeometry(
+                    playfieldRadius * scale,
+                    playfieldRadius * scale + 0.015,
+                    96
+                );
+
+            const ring =
+                new THREE.Mesh(
+                    geometry,
+                    new THREE.MeshBasicMaterial({
+                        color: 0x4f6b7a,
+                        transparent: true,
+                        opacity: 0.22,
+                        side: THREE.DoubleSide,
+                        depthWrite: false
+                    })
+                );
+
+            ring.rotation.x =
+                -Math.PI / 2;
+
+            ring.position.y =
+                -3.17;
+
+            galaxyPlayfield.add(
+                ring
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       RADIAL LINES
+       ===================================================== */
+
+    const radialMaterial =
+        new THREE.LineBasicMaterial({
+            color: 0x4f6b7a,
+            transparent: true,
+            opacity: 0.16
+        });
+
+    const radialCount = 24;
+
+    for (
+        let i = 0;
+        i < radialCount;
+        i++
+    ) {
+
+        const angle =
+            (
+                i /
+                radialCount
+            ) *
+            Math.PI *
+            2;
+
+        const points = [
+
+            new THREE.Vector3(
+                0,
+                -3.15,
+                0
+            ),
+
+            new THREE.Vector3(
+                Math.cos(angle) *
+                playfieldRadius,
+                -3.15,
+                Math.sin(angle) *
+                playfieldRadius
+            )
+
+        ];
+
+        const geometry =
+            new THREE.BufferGeometry()
+                .setFromPoints(
+                    points
+                );
+
+        const line =
+            new THREE.Line(
+                geometry,
+                radialMaterial
+            );
+
+        galaxyPlayfield.add(
+            line
+        );
+
+    }
+
+
+    /* =====================================================
+       ADD TO SCENE
+       ===================================================== */
+
+    scene.add(
+        galaxyPlayfield
+    );
 
 }
     
@@ -7704,8 +7905,8 @@ async function loadData() {
         );
 
 
-        buildGalaxy();
-
+createGalaxyPlayfield();
+buildGalaxy();
 
         updateGalaxyCamera();
 
