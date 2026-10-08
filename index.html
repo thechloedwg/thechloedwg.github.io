@@ -3714,6 +3714,10 @@ planet.userData = {
     // A planet exists if it is in the Appearance sheet.
     // Its discovery state is determined by whether it has markers.
     discovered: hasPoints,
+
+    // Original position before the spacing system
+    // makes any small adjustments.
+    layoutPosition: position.clone()
 };
 
 
@@ -4194,6 +4198,248 @@ function attachResearchPoints() {
 
 }
 
+/* =========================================================
+   RESPONSIVE GALAXY CONSTELLATION
+   ========================================================= */
+
+const galaxySlots = [
+
+    // 1 — central anchor
+    { x:  0.00, y:  0.00, z:  0.00 },
+
+    // 2 — upper right
+    { x:  0.58, y:  0.18, z: -0.25 },
+
+    // 3 — upper left
+    { x: -0.62, y:  0.20, z: -0.15 },
+
+    // 4 — lower left
+    { x: -0.48, y: -0.40, z:  0.30 },
+
+    // 5 — lower right
+    { x:  0.48, y: -0.38, z:  0.25 },
+
+    // 6 — high rear
+    { x: -0.08, y:  0.52, z: -0.40 },
+
+    // 7 — low front
+    { x:  0.12, y: -0.58, z:  0.35 },
+
+    // 8 — further left
+    { x: -0.82, y: -0.05, z:  0.15 },
+
+    // 9 — further right
+    { x:  0.82, y:  0.05, z: -0.10 },
+
+    // 10 — rear upper
+    { x:  0.30, y:  0.65, z: -0.45 },
+
+    // 11 — rear lower
+    { x: -0.30, y: -0.68, z:  0.40 }
+
+];
+
+
+function getGalaxyPosition(index, radius) {
+
+    const slot =
+        galaxySlots[
+            index % galaxySlots.length
+        ];
+
+
+    const baseWidth = 8.5;
+    const baseHeight = 6.5;
+
+
+    const widthFactor =
+        THREE.MathUtils.clamp(
+            window.innerWidth / 1400,
+            0.48,
+            1
+        );
+
+
+    const heightFactor =
+        THREE.MathUtils.clamp(
+            window.innerHeight / 900,
+            0.58,
+            1
+        );
+
+
+    let x =
+        slot.x *
+        baseWidth *
+        widthFactor;
+
+
+    let y =
+        slot.y *
+        baseHeight *
+        heightFactor;
+
+
+    let z =
+        slot.z *
+        4.0;
+
+
+    const scaleBuffer =
+        Math.max(
+            0,
+            radius - 1
+        ) * 0.35;
+
+
+    if (Math.abs(x) > 0.01) {
+
+        x +=
+            Math.sign(x) *
+            scaleBuffer;
+
+    }
+
+
+    if (Math.abs(y) > 0.01) {
+
+        y +=
+            Math.sign(y) *
+            scaleBuffer *
+            0.65;
+
+    }
+
+
+    return new THREE.Vector3(
+        x,
+        y,
+        z
+    );
+
+}
+
+
+/* =========================================================
+   GALAXY SPACING / COLLISION
+   ========================================================= */
+
+function resolveGalaxySpacing() {
+
+    const minimumGap = 1.2;
+
+    const maxIterations = 12;
+
+
+    for (
+        let iteration = 0;
+        iteration < maxIterations;
+        iteration++
+    ) {
+
+        let changed = false;
+
+
+        for (
+            let i = 0;
+            i < planets.length;
+            i++
+        ) {
+
+            const a =
+                planets[i];
+
+
+            for (
+                let j = i + 1;
+                j < planets.length;
+                j++
+            ) {
+
+                const b =
+                    planets[j];
+
+
+                const delta =
+                    new THREE.Vector3()
+                        .subVectors(
+                            b.position,
+                            a.position
+                        );
+
+
+                let distance =
+                    delta.length();
+
+
+                const requiredDistance =
+                    a.userData.radius +
+                    b.userData.radius +
+                    minimumGap;
+
+
+                if (
+                    distance >=
+                    requiredDistance
+                ) {
+
+                    continue;
+
+                }
+
+
+                if (distance < 0.001) {
+
+                    delta.set(
+                        1,
+                        0,
+                        0
+                    );
+
+                    distance = 1;
+
+                }
+
+
+                delta.normalize();
+
+
+                const push =
+                    (
+                        requiredDistance -
+                        distance
+                    ) * 0.5;
+
+
+                a.position.addScaledVector(
+                    delta,
+                    -push
+                );
+
+
+                b.position.addScaledVector(
+                    delta,
+                    push
+                );
+
+
+                changed = true;
+
+            }
+
+        }
+
+
+        if (!changed) {
+
+            break;
+
+        }
+
+    }
+
+}
+
 
 /* =========================================================
    BUILD GALAXY
@@ -4205,46 +4451,144 @@ function buildGalaxy() {
     const projectsWithPoints = new Set();
 
     pointData.forEach(row => {
-        const project = clean(row.project);
+
+        const project =
+            clean(row.project);
 
         if (project) {
-            projectsWithPoints.add(project);
+
+            projectsWithPoints.add(
+                project
+            );
+
         }
+
     });
 
-    const positions = [
-        new THREE.Vector3(-6.2, 1.7, -1),
-        new THREE.Vector3(0.2, -1.3, -3),
-        new THREE.Vector3(6.0, 1.0, -1.5),
-        new THREE.Vector3(-2.7, -3.2, -5),
-        new THREE.Vector3(3.1, 3.4, -5.5),
-        new THREE.Vector3(8, -2, -7),
-        new THREE.Vector3(-8, -2, -6)
-    ];
 
-    // Every project in the Appearance sheet gets a planet.
-    // The Points sheet only determines whether that planet
-    // is discovered or undiscovered.
-    appearanceData.forEach((appearance, index) => {
+    /*
+     * Only enabled projects appear in
+     * the galaxy.
+     */
 
-        const project = clean(appearance.project);
-
-        if (!project) return;
-
-        const hasPoints = projectsWithPoints.has(project);
-
-        createProjectPlanet(
-            appearance,
-            positions[index % positions.length].clone(),
-            hasPoints
+    const enabledProjects =
+        appearanceData.filter(
+            appearance =>
+                clean(
+                    appearance.enabled
+                ).toLowerCase() === "yes"
         );
-    });
 
-    // Add research markers to planets that have them
+
+    /*
+     * Use ORDER to determine the
+     * constellation slot.
+     */
+
+    enabledProjects.sort(
+        (a, b) => {
+
+            return (
+                Number(a.order) || 999
+            ) -
+            (
+                Number(b.order) || 999
+            );
+
+        }
+    );
+
+
+    /*
+     * Create every enabled planet.
+     */
+
+    enabledProjects.forEach(
+        (appearance, index) => {
+
+            const project =
+                clean(
+                    appearance.project
+                );
+
+            if (!project) return;
+
+
+            const hasPoints =
+                projectsWithPoints.has(
+                    project
+                );
+
+
+            const radius =
+                sizeToRadius(
+                    appearance.size
+                );
+
+
+            const position =
+                getGalaxyPosition(
+                    index,
+                    radius
+                );
+
+
+            createProjectPlanet(
+                appearance,
+                position,
+                hasPoints
+            );
+
+        }
+    );
+
+
+    /*
+     * Add research markers.
+     */
+
     attachResearchPoints();
+
+
+    /*
+     * Finally make sure planets don't
+     * overlap.
+     */
+
+    resolveGalaxySpacing();
+
 }
 
+    /* =========================================================
+   HOLOTABLE / GALAXY PLAYFIELD
+   ========================================================= */
 
+let galaxyPlayfield = null;
+
+
+function createGalaxyPlayfield() {
+
+    if (galaxyPlayfield) {
+
+        scene.remove(
+            galaxyPlayfield
+        );
+
+    }
+
+
+    galaxyPlayfield =
+        new THREE.Group();
+
+
+    galaxyPlayfield.name =
+        "Galaxy Holotable";
+
+
+    // We'll build the visual playfield here.
+
+}
+    
 /* =========================================================
    CAMERA
    ========================================================= */
