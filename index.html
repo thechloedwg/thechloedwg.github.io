@@ -2959,10 +2959,7 @@ function createResearchPin(
    PLANET
    ========================================================= */
 
-function createProjectPlanet(
-    appearance,
-    position
-) {
+function createProjectPlanet(appearance, position, hasPoints = true) {
 
     const project =
         clean(
@@ -3000,32 +2997,18 @@ function createProjectPlanet(
 
 
 planet.userData = {
-
     type: "planet",
-
     project: project,
-
     name: name,
-
     radius: radius,
-
     colour: colour,
+    spin: clean(appearance.spin).toLowerCase(),
+    pointStyle: clean(appearance["point style"]).toLowerCase(),
+    appearance: appearance,
 
-    spin:
-        clean(
-            appearance.spin
-        ).toLowerCase(),
-
-    pointStyle:
-        clean(
-            appearance[
-                "point style"
-            ]
-        ).toLowerCase(),
-
-    appearance:
-        appearance,
-
+    // A planet exists if it is in the Appearance sheet.
+    // Its discovery state is determined by whether it has markers.
+    discovered: hasPoints,
 };
 
 
@@ -3520,116 +3503,46 @@ function attachResearchPoints() {
 
 function buildGalaxy() {
 
-    const projectsWithPoints =
-        new Set();
+    // Projects that currently have at least one research point
+    const projectsWithPoints = new Set();
 
+    pointData.forEach(row => {
+        const project = clean(row.project);
 
-    pointData.forEach(
-        row => {
-
-            const project =
-                clean(
-                    row.project
-                );
-
-
-            if (project) {
-
-                projectsWithPoints.add(
-                    project
-                );
-
-            }
-
+        if (project) {
+            projectsWithPoints.add(project);
         }
-    );
-
-
-    const activeAppearances =
-        appearanceData.filter(
-
-            appearance =>
-                projectsWithPoints.has(
-
-                    clean(
-                        appearance.project
-                    )
-
-                )
-
-        );
-
+    });
 
     const positions = [
-
-        new THREE.Vector3(
-            -6.2,
-            1.7,
-            -1
-        ),
-
-        new THREE.Vector3(
-            0.2,
-            -1.3,
-            -3
-        ),
-
-        new THREE.Vector3(
-            6.0,
-            1.0,
-            -1.5
-        ),
-
-        new THREE.Vector3(
-            -2.7,
-            -3.2,
-            -5
-        ),
-
-        new THREE.Vector3(
-            3.1,
-            3.4,
-            -5.5
-        ),
-
-        new THREE.Vector3(
-            8,
-            -2,
-            -7
-        ),
-
-        new THREE.Vector3(
-            -8,
-            -2,
-            -6
-        )
-
+        new THREE.Vector3(-6.2, 1.7, -1),
+        new THREE.Vector3(0.2, -1.3, -3),
+        new THREE.Vector3(6.0, 1.0, -1.5),
+        new THREE.Vector3(-2.7, -3.2, -5),
+        new THREE.Vector3(3.1, 3.4, -5.5),
+        new THREE.Vector3(8, -2, -7),
+        new THREE.Vector3(-8, -2, -6)
     ];
 
+    // Every project in the Appearance sheet gets a planet.
+    // The Points sheet only determines whether that planet
+    // is discovered or undiscovered.
+    appearanceData.forEach((appearance, index) => {
 
-    activeAppearances.forEach(
+        const project = clean(appearance.project);
 
-        (
+        if (!project) return;
+
+        const hasPoints = projectsWithPoints.has(project);
+
+        createProjectPlanet(
             appearance,
-            index
-        ) => {
+            positions[index % positions.length].clone(),
+            hasPoints
+        );
+    });
 
-            createProjectPlanet(
-
-                appearance,
-
-                positions[
-                    index %
-                    positions.length
-                ].clone()
-
-            );
-
-        }
-
-    );
-
-
+    // Add research markers to planets that have them
     attachResearchPoints();
 }
 
@@ -3867,6 +3780,12 @@ function updatePlanetCamera() {
 function enterPlanet(
     planet
 ) {
+
+        // Undiscovered planets can be hovered,
+    // but cannot be entered.
+    if (!planet.userData.discovered) {
+        return;
+    }
 
     if (
         planetMode ||
@@ -6033,8 +5952,9 @@ function updatePlanetLabel() {
         `${y - 20}px`;
 
 
-    label.textContent =
-        hoveredPlanet.userData.name;
+    label.textContent = hoveredPlanet.userData.discovered
+    ? hoveredPlanet.userData.name
+    : `UPCOMING PROJECT // ${hoveredPlanet.userData.name}`;
 
 
     label.classList.add(
