@@ -2961,24 +2961,60 @@ function createResearchPin(
 
     function applyUndiscoveredStyle(planet) {
 
-    const ghostColour = new THREE.Color(0x8a8a8a);
+    const ghostColour =
+        new THREE.Color(0x9a9a9a);
 
     planet.traverse(object => {
 
         if (!object.material) return;
 
-        const materials = Array.isArray(object.material)
-            ? object.material
-            : [object.material];
+        const materials =
+            Array.isArray(object.material)
+                ? object.material
+                : [object.material];
 
         materials.forEach(material => {
 
-            if (material.color) {
-                material.color.copy(ghostColour);
+            /*
+             * PLANET SURFACE
+             *
+             * Remove the Earth texture completely.
+             * This is what stops undiscovered planets
+             * looking like blue/brown Earths.
+             */
+            if (object.userData.isPlanetSurface) {
+
+                material.map = null;
+
+                if (material.color) {
+                    material.color.set(0x777777);
+                }
+
+                material.opacity = 0.38;
+                material.transparent = true;
             }
 
-            if (typeof material.opacity === "number") {
-                material.opacity *= 0.55;
+            /*
+             * EVERYTHING ELSE
+             *
+             * Keep the geometry and appearance settings
+             * from the Appearance sheet, but make them
+             * neutral grey.
+             */
+            else {
+
+                if (material.color) {
+                    material.color.copy(
+                        ghostColour
+                    );
+                }
+
+                if (
+                    typeof material.opacity === "number"
+                ) {
+                    material.opacity *= 0.55;
+                }
+
                 material.transparent = true;
             }
 
