@@ -1718,10 +1718,12 @@ let activeMarker = null;
    ========================================================= */
 
 let galaxyYaw = 0;
-
 let galaxyPitch = 0;
 
-let galaxyDistance = 18;
+let galaxyBaseDistance = 26;
+let galaxyDistance = 26;
+
+let galaxyZoom = 1;
 
 let planetDistance = 8;
 
@@ -4256,8 +4258,8 @@ function getGalaxyPosition(index, radius) {
      * DESKTOP = expanded layout
      */
 
-    const desktopWidth = 13.0;
-    const desktopHeight = 10.0;
+   const desktopWidth = 15.0;
+const desktopHeight = 11.5;
 
 
     /*
@@ -4800,104 +4802,97 @@ function updateCameraAnimation(
 function updateGalaxyCamera() {
 
     /*
-     * Find the actual bounds of the galaxy.
+     * How much larger the screen is than
+     * the minimum phone layout.
      */
 
-    let maxDistance = 0;
-
-    planets.forEach(
-        planet => {
-
-            const distance =
-                planet.position.length() +
-                planet.userData.radius;
-
-            maxDistance =
-                Math.max(
-                    maxDistance,
-                    distance
-                );
-
-        }
-    );
-
-
-    /*
-     * Add some breathing room around
-     * the outermost planet.
-     */
-
-    maxDistance *= 1.20;
-
-
-    /*
-     * Work out how much distance the
-     * camera needs to see the galaxy.
-     */
-
-    const verticalFOV =
-        THREE.MathUtils.degToRad(
-            camera.fov
+    const widthProgress =
+        THREE.MathUtils.clamp(
+            (
+                window.innerWidth - 390
+            ) /
+            (
+                1400 - 390
+            ),
+            0,
+            1
         );
 
-    const horizontalFOV =
-        2 *
-        Math.atan(
-            Math.tan(verticalFOV / 2) *
-            camera.aspect
+
+    const heightProgress =
+        THREE.MathUtils.clamp(
+            (
+                window.innerHeight - 700
+            ) /
+            (
+                900 - 700
+            ),
+            0,
+            1
         );
 
 
     /*
-     * Use the narrower viewing angle.
-     * This prevents cropping on either
-     * portrait or landscape screens.
+     * Use the larger dimension progress.
      */
 
-    const usableFOV =
-        Math.min(
-            verticalFOV,
-            horizontalFOV
+    const screenProgress =
+        Math.max(
+            widthProgress,
+            heightProgress
         );
 
 
     /*
-     * Calculate the camera distance needed
-     * to contain the entire constellation.
+     * Base framing.
+
+       PHONE:
+       camera = 26
+
+       DESKTOP:
+       camera = 20
+
+       The planets expand while the camera
+       moves slightly closer.
      */
 
-    const requiredDistance =
-        maxDistance /
-        Math.tan(
-            usableFOV / 2
+    galaxyBaseDistance =
+        THREE.MathUtils.lerp(
+            26,
+            20,
+            screenProgress
         );
 
 
     /*
-     * Keep the camera from getting
-     * unnecessarily far away on phones.
+     * Apply user-controlled zoom.
      */
 
     galaxyDistance =
-        Math.max(
-            requiredDistance,
-            18
-        );
+        galaxyBaseDistance *
+        galaxyZoom;
 
+
+    /*
+     * Calculate camera position.
+     */
 
     const x =
         galaxyDistance *
         Math.cos(galaxyPitch) *
         Math.sin(galaxyYaw);
 
+
     const y =
         galaxyDistance *
         Math.sin(galaxyPitch);
+
 
     const z =
         galaxyDistance *
         Math.cos(galaxyPitch) *
         Math.cos(galaxyYaw);
+
 
     camera.position.set(
         x,
@@ -4905,16 +4900,17 @@ function updateGalaxyCamera() {
         z
     );
 
+
     cameraLookTarget.set(
         0,
         0,
         0
     );
 
+
     updateCameraLook();
 
 }
-
 
 /* =========================================================
    FIXED PLANET CAMERA
@@ -5188,24 +5184,82 @@ function exitPlanet() {
         "DRAG TO EXPLORE · SCROLL TO ZOOM · SELECT A WORLD";
 
 
-    startCameraAnimation(
-
-        new THREE.Vector3(
-            0,
-            2,
-            20
+const widthProgress =
+    THREE.MathUtils.clamp(
+        (
+            window.innerWidth - 390
+        ) /
+        (
+            1400 - 390
         ),
-
-        new THREE.Vector3(
-            0,
-            0,
-            0
-        ),
-
-        1200
-
+        0,
+        1
     );
 
+
+const heightProgress =
+    THREE.MathUtils.clamp(
+        (
+            window.innerHeight - 700
+        ) /
+        (
+            900 - 700
+        ),
+        0,
+        1
+    );
+
+
+const screenProgress =
+    Math.max(
+        widthProgress,
+        heightProgress
+    );
+
+
+const returnDistance =
+    THREE.MathUtils.lerp(
+        26,
+        20,
+        screenProgress
+    ) *
+    galaxyZoom;
+
+
+const returnX =
+    returnDistance *
+    Math.cos(galaxyPitch) *
+    Math.sin(galaxyYaw);
+
+
+const returnY =
+    returnDistance *
+    Math.sin(galaxyPitch);
+
+
+const returnZ =
+    returnDistance *
+    Math.cos(galaxyPitch) *
+    Math.cos(galaxyYaw);
+
+
+startCameraAnimation(
+
+    new THREE.Vector3(
+        returnX,
+        returnY,
+        returnZ
+    ),
+
+    new THREE.Vector3(
+        0,
+        0,
+        0
+    ),
+
+    1200
+
+);
 }
 
 
@@ -6196,42 +6250,34 @@ renderer.domElement.addEventListener(
             event.clientY;
 
 
-        if (
-            !planetMode
-        ) {
+      if (
+    !planetMode
+) {
 
-            const x =
-                camera.position.x;
+    const x =
+        camera.position.x;
 
-            const y =
-                camera.position.y;
+    const y =
+        camera.position.y;
 
-            const z =
-                camera.position.z;
-
-
-            galaxyDistance =
-                Math.sqrt(
-                    x * x +
-                    y * y +
-                    z * z
-                );
+    const z =
+        camera.position.z;
 
 
-            galaxyYaw =
-                Math.atan2(
-                    x,
-                    z
-                );
+    galaxyYaw =
+        Math.atan2(
+            x,
+            z
+        );
 
 
-            galaxyPitch =
-                Math.asin(
-                    y /
-                    galaxyDistance
-                );
+    galaxyPitch =
+        Math.asin(
+            y /
+            galaxyDistance
+        );
 
-        }
+}
 
 
         renderer.domElement.setPointerCapture(
@@ -6344,19 +6390,20 @@ renderer.domElement.addEventListener(
                     !planetMode
                 ) {
 
-                    galaxyDistance +=
-                        delta * 0.025;
+                   galaxyZoom +=
+    event.deltaY *
+    0.00045;
 
 
-                    galaxyDistance =
-                        THREE.MathUtils.clamp(
-                            galaxyDistance,
-                            8,
-                            45
-                        );
+galaxyZoom =
+    THREE.MathUtils.clamp(
+        galaxyZoom,
+        0.45,
+        1.8
+    );
 
 
-                    updateGalaxyCamera();
+updateGalaxyCamera();
 
                 } else {
 
@@ -7818,6 +7865,7 @@ async function loadData() {
 
 
 buildGalaxy();
+updateGalaxyCamera();
 
   
 
