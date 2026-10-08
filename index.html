@@ -1568,8 +1568,7 @@ scene.add(
     directionalLight
 );
 
-
-/* =========================================================
+    /* =========================================================
    STARS
    ========================================================= */
 
@@ -1577,12 +1576,23 @@ const starGeometry =
     new THREE.BufferGeometry();
 
 const starCount =
-    5000;
+    30000;
 
 const starPositions =
     new Float32Array(
         starCount * 3
     );
+
+const starBrightness =
+    new Float32Array(
+        starCount
+    );
+
+const starSize =
+    new Float32Array(
+        starCount
+    );
+
 
 for (
     let i = 0;
@@ -1590,9 +1600,38 @@ for (
     i++
 ) {
 
-    const radius =
-        70 +
-        Math.random() * 100;
+    /*
+       DEPTH
+       Most stars are distant.
+       A smaller number sit closer,
+       creating a layered 3D field.
+    */
+
+    const depth =
+        Math.random();
+
+    let radius;
+
+    if (depth < 0.70) {
+
+        radius =
+            110 +
+            Math.random() * 70;
+
+    } else if (depth < 0.94) {
+
+        radius =
+            85 +
+            Math.random() * 35;
+
+    } else {
+
+        radius =
+            65 +
+            Math.random() * 20;
+
+    }
+
 
     const theta =
         Math.random() *
@@ -1605,6 +1644,7 @@ for (
             Math.random() -
             1
         );
+
 
     starPositions[i * 3] =
         radius *
@@ -1619,7 +1659,55 @@ for (
     starPositions[i * 3 + 2] =
         radius *
         Math.cos(phi);
+
+
+    /*
+       BRIGHTNESS
+       Most stars remain very faint.
+       A small percentage become visible.
+    */
+
+    const brightness =
+        Math.random();
+
+    if (brightness < 0.88) {
+
+        starBrightness[i] =
+            0.12 +
+            Math.random() * 0.18;
+
+        starSize[i] =
+            0.018 +
+            Math.random() * 0.018;
+
+    } else if (brightness < 0.985) {
+
+        starBrightness[i] =
+            0.35 +
+            Math.random() * 0.30;
+
+        starSize[i] =
+            0.035 +
+            Math.random() * 0.030;
+
+    } else {
+
+        /*
+           Rare bright stars
+        */
+
+        starBrightness[i] =
+            0.75 +
+            Math.random() * 0.25;
+
+        starSize[i] =
+            0.065 +
+            Math.random() * 0.055;
+
+    }
+
 }
+
 
 starGeometry.setAttribute(
     "position",
@@ -1629,21 +1717,151 @@ starGeometry.setAttribute(
     )
 );
 
+starGeometry.setAttribute(
+    "aBrightness",
+    new THREE.BufferAttribute(
+        starBrightness,
+        1
+    )
+);
+
+starGeometry.setAttribute(
+    "aSize",
+    new THREE.BufferAttribute(
+        starSize,
+        1
+    )
+);
+
+
+/* =========================================================
+   STAR SHADER
+   ========================================================= */
 
 const starMaterial =
-    new THREE.PointsMaterial({
-        color: 0xffffff,
-        size: 0.055,
+    new THREE.ShaderMaterial({
+
         transparent: true,
-        opacity: 0.65
+
+        depthWrite: false,
+
+        blending:
+            THREE.AdditiveBlending,
+
+        vertexShader: `
+
+            attribute float aBrightness;
+            attribute float aSize;
+
+            varying float vBrightness;
+
+            void main() {
+
+                vBrightness =
+                    aBrightness;
+
+                vec4 mvPosition =
+                    modelViewMatrix *
+                    vec4(
+                        position,
+                        1.0
+                    );
+
+                gl_Position =
+                    projectionMatrix *
+                    mvPosition;
+
+                /*
+                   Perspective sizing:
+                   nearby stars appear slightly larger.
+                */
+
+                gl_PointSize =
+                    aSize *
+                    (180.0 / -mvPosition.z);
+
+            }
+
+        `,
+
+        fragmentShader: `
+
+            varying float vBrightness;
+
+            void main() {
+
+                /*
+                   Soft circular star
+                */
+
+                vec2 uv =
+                    gl_PointCoord -
+                    vec2(0.5);
+
+                float distance =
+                    length(uv);
+
+                float glow =
+                    1.0 -
+                    smoothstep(
+                        0.0,
+                        0.5,
+                        distance
+                    );
+
+                /*
+                   Very subtle bright centre
+                */
+
+                float core =
+                    1.0 -
+                    smoothstep(
+                        0.0,
+                        0.18,
+                        distance
+                    );
+
+                float alpha =
+                    glow *
+                    vBrightness;
+
+                vec3 colour =
+                    vec3(
+                        1.0,
+                        1.0,
+                        1.0
+                    );
+
+                /*
+                   Slightly brighter centre
+                */
+
+                colour +=
+                    core *
+                    0.12;
+
+                gl_FragColor =
+                    vec4(
+                        colour,
+                        alpha
+                    );
+
+            }
+
+        `
+
     });
 
 
-scene.add(
+const starField =
     new THREE.Points(
         starGeometry,
         starMaterial
-    )
+    );
+
+
+scene.add(
+    starField
 );
 
 
