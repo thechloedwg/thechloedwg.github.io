@@ -4247,37 +4247,54 @@ function getGalaxyPosition(index, radius) {
             index % galaxySlots.length
         ];
 
+    /*
+     * Mobile is our compact reference layout.
+     * Desktop expands outward from the centre.
+     */
 
-    const baseWidth = 11.5;
-const baseHeight = 8.5;
+    const mobileWidth = 7.5;
+    const mobileHeight = 5.8;
 
+    const desktopWidth = 13.5;
+    const desktopHeight = 10.5;
 
-   const widthFactor =
-    THREE.MathUtils.clamp(
-        window.innerWidth / 1400,
-        0.42,
-        1
-    );
+    const widthProgress =
+        THREE.MathUtils.clamp(
+            (window.innerWidth - 390) /
+            (1400 - 390),
+            0,
+            1
+        );
 
-const heightFactor =
-    THREE.MathUtils.clamp(
-        window.innerHeight / 900,
-        0.50,
-        1
-    );
+    const heightProgress =
+        THREE.MathUtils.clamp(
+            (window.innerHeight - 700) /
+            (900 - 700),
+            0,
+            1
+        );
 
+    const baseWidth =
+        THREE.MathUtils.lerp(
+            mobileWidth,
+            desktopWidth,
+            widthProgress
+        );
+
+    const baseHeight =
+        THREE.MathUtils.lerp(
+            mobileHeight,
+            desktopHeight,
+            heightProgress
+        );
 
     let x =
         slot.x *
-        baseWidth *
-        widthFactor;
-
+        baseWidth;
 
     let y =
         slot.y *
-        baseHeight *
-        heightFactor;
-
+        baseHeight;
 
     let z =
         slot.z *
