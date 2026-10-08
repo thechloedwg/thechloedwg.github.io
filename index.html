@@ -1758,116 +1758,97 @@ const starMaterial =
         blending:
             THREE.AdditiveBlending,
 
-        vertexShader: `
+       vertexShader: `
 
-            attribute float aBrightness;
-            attribute float aSize;
+    attribute float aBrightness;
+    attribute float aSize;
 
-            varying float vBrightness;
+    varying float vBrightness;
 
-            void main() {
+    void main() {
 
-                vBrightness =
-                    aBrightness;
+        vBrightness =
+            aBrightness;
 
-                vec4 mvPosition =
-                    modelViewMatrix *
-                    vec4(
-                        position,
-                        1.0
-                    );
+        vec4 mvPosition =
+            modelViewMatrix *
+            vec4(
+                position,
+                1.0
+            );
 
-                gl_Position =
-                    projectionMatrix *
-                    mvPosition;
+        gl_Position =
+            projectionMatrix *
+            mvPosition;
 
-                /*
-                   Perspective sizing:
-                   nearby stars appear larger.
-                */
+        gl_PointSize =
+            aSize *
+            (280.0 / -mvPosition.z);
 
-                gl_PointSize =
-                    aSize *
-                    (280.0 / -mvPosition.z);
+    }
 
-            }
+`,
 
-        `,
+fragmentShader: `
 
-        fragmentShader: `
+    varying float vBrightness;
 
-            varying float vBrightness;
+    void main() {
 
-            void main() {
+        vec2 uv =
+            gl_PointCoord -
+            vec2(0.5);
 
-                /*
-                   Soft circular star
-                */
+        float distance =
+            length(uv);
 
-                vec2 uv =
-                    gl_PointCoord -
-                    vec2(0.5);
+        float glow =
+            1.0 -
+            smoothstep(
+                0.0,
+                0.5,
+                distance
+            );
 
-                float distance =
-                    length(uv);
+        float core =
+            1.0 -
+            smoothstep(
+                0.0,
+                0.18,
+                distance
+            );
 
-                float glow =
-                    1.0 -
-                    smoothstep(
-                        0.0,
-                        0.5,
-                        distance
-                    );
+        float alpha =
+            glow *
+            vBrightness *
+            1.35;
 
-                /*
-                   Bright central core
-                */
+        alpha =
+            min(
+                alpha,
+                1.0
+            );
 
-                float core =
-                    1.0 -
-                    smoothstep(
-                        0.0,
-                        0.18,
-                        distance
-                    );
+        vec3 colour =
+            vec3(
+                1.0,
+                1.0,
+                1.0
+            );
 
-                /*
-                   Increase overall visibility
-                */
+        colour +=
+            core *
+            0.12;
 
-                float alpha =
-                    glow *
-                    vBrightness *
-                    1.35;
+        gl_FragColor =
+            vec4(
+                colour,
+                alpha
+            );
 
-                alpha =
-                    min(
-                        alpha,
-                        1.0
-                    );
+    }
 
-                vec3 colour =
-                    vec3(
-                        1.0,
-                        1.0,
-                        1.0
-                    );
-
-                /*
-                   Slightly brighter centre
-                */
-
-                colour +=
-                    core *
-                    0.12;
-
-                gl_FragColor =
-                    vec4(
-                        colour,
-                        alpha
-                    );
-
-            }
+`
 
         `
 
