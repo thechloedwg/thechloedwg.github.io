@@ -3099,11 +3099,11 @@ for (
         Math.PI;
 
 
-    const thetaLength =
-        THREE.MathUtils.degToRad(
-            2 +
-            Math.random() * 7
-        );
+ const thetaLength =
+    THREE.MathUtils.degToRad(
+        5 +
+        Math.random() * 10
+    );
 
 
     const geometry =
@@ -3162,9 +3162,10 @@ for (
         active:
             false,
 
-        timer:
-            Math.random() *
-            3,
+    timer:
+    1.5 +
+    Math.random() *
+    3.5,
 
         duration:
             0,
@@ -6103,7 +6104,7 @@ function animate(
         now
     );
 
-    /* =====================================================
+/* =====================================================
    INDIVIDUAL PLANET HOLOGRAM GLITCH
    ===================================================== */
 
@@ -6124,6 +6125,14 @@ planets.forEach(
 
         }
 
+
+        /*
+           Keep each planet's glitch behaviour
+           independent.
+
+           Only a small number of slices are
+           active at any one time.
+        */
 
         glitchGroup.children.forEach(
             slice => {
@@ -6148,16 +6157,21 @@ planets.forEach(
                         true;
 
 
+                    /*
+                       Longer, slower hologram breakup.
+
+                       The effect should feel like a
+                       transmission briefly losing
+                       coherence — not flashing.
+                    */
+
                     data.duration =
-                        0.035 +
-                        Math.random() * 0.09;
+                        0.12 +
+                        Math.random() * 0.10;
 
 
                     /*
-                       Small horizontal displacement.
-
-                       The slices move mostly sideways,
-                       like a broken holographic signal.
+                       Larger horizontal displacement.
                     */
 
                     data.baseX =
@@ -6166,7 +6180,7 @@ planets.forEach(
                             0.5
                         ) *
                         planet.userData.radius *
-                        0.28;
+                        0.34;
 
 
                     data.baseY =
@@ -6175,11 +6189,11 @@ planets.forEach(
                             0.5
                         ) *
                         planet.userData.radius *
-                        0.025;
+                        0.018;
 
 
                     /*
-                       Reset the slice.
+                       Put the slice into position.
                     */
 
                     slice.position.set(
@@ -6190,13 +6204,14 @@ planets.forEach(
 
 
                     /*
-                       Make the slice visible.
+                       Make the glitch more visible
+                       without making it bright.
                     */
 
                     slice.material.opacity =
-                        0.18 +
+                        0.22 +
                         Math.random() *
-                        0.35;
+                        0.22;
 
                 }
 
@@ -6214,57 +6229,46 @@ planets.forEach(
 
 
                     /*
-                       Rapidly change the slice
-                       position while active.
+                       Slow, deliberate horizontal
+                       movement.
 
-                       This produces the digital
-                       "jumping" effect.
+                       Much less random than before.
                     */
+
+                    const movement =
+                        Math.sin(
+                            (
+                                data.duration +
+                                data.timer
+                            ) *
+                            38
+                        );
+
 
                     slice.position.x =
                         data.baseX +
-                        (
-                            Math.random() -
-                            0.5
-                        ) *
+                        movement *
                         planet.userData.radius *
-                        0.08;
+                        0.045;
 
 
                     slice.position.y =
-                        data.baseY +
-                        (
-                            Math.random() -
-                            0.5
-                        ) *
-                        planet.userData.radius *
-                        0.025;
+                        data.baseY;
 
 
                     /*
-                       Irregular opacity makes it
-                       flicker in and out rather than
-                       looking like a solid band.
+                       Keep opacity relatively stable.
+
+                       This is important: we don't want
+                       the effect to look like flashing.
                     */
 
                     slice.material.opacity =
-                        Math.random() *
-                        0.5;
-
-
-                    /*
-                       Occasionally make the slice
-                       disappear for a single frame.
-                    */
-
-                    if (
-                        Math.random() < 0.12
-                    ) {
-
-                        slice.material.opacity =
-                            0;
-
-                    }
+                        0.25 +
+                        Math.abs(
+                            movement
+                        ) *
+                        0.16;
 
 
                     /* -------------------------------------
@@ -6291,14 +6295,14 @@ planets.forEach(
 
 
                         /*
-                           Give this slice a new
-                           random delay.
+                           Much longer pause before this
+                           particular slice can glitch again.
                         */
 
                         data.timer =
-                            0.4 +
+                            1.8 +
                             Math.random() *
-                            2.4;
+                            3.5;
 
                     }
 
