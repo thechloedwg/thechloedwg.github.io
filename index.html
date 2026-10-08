@@ -4584,6 +4584,31 @@ window.addEventListener(
     "resize",
     () => {
 
+        /*
+         * Update renderer to the new window size
+         */
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+
+        /*
+         * Update camera projection
+         */
+
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+
+        /*
+         * Recalculate planet positions
+         */
+
         planets.forEach(
             (planet, index) => {
 
@@ -4600,7 +4625,17 @@ window.addEventListener(
             }
         );
 
-                resolveGalaxySpacing();
+
+        /*
+         * Keep planets separated
+         */
+
+        resolveGalaxySpacing();
+
+
+        /*
+         * Reframe the camera
+         */
 
         updateGalaxyCamera();
 
@@ -4764,38 +4799,89 @@ function updateCameraAnimation(
 
 function updateGalaxyCamera() {
 
-    const widthProgress =
-        THREE.MathUtils.clamp(
-            (window.innerWidth - 390) /
-            (1400 - 390),
-            0,
-            1
-        );
-
-    const heightProgress =
-        THREE.MathUtils.clamp(
-            (window.innerHeight - 700) /
-            (900 - 700),
-            0,
-            1
-        );
-
     /*
-     * As the constellation expands,
-     * pull the camera back to keep it inside frame.
+     * Find the actual bounds of the galaxy.
      */
 
-    const layoutScale =
-        Math.max(
-            widthProgress,
-            heightProgress
+    let maxDistance = 0;
+
+    planets.forEach(
+        planet => {
+
+            const distance =
+                planet.position.length() +
+                planet.userData.radius;
+
+            maxDistance =
+                Math.max(
+                    maxDistance,
+                    distance
+                );
+
+        }
+    );
+
+
+    /*
+     * Add some breathing room around
+     * the outermost planet.
+     */
+
+    maxDistance *= 1.20;
+
+
+    /*
+     * Work out how much distance the
+     * camera needs to see the galaxy.
+     */
+
+    const verticalFOV =
+        THREE.MathUtils.degToRad(
+            camera.fov
         );
 
+    const horizontalFOV =
+        2 *
+        Math.atan(
+            Math.tan(verticalFOV / 2) *
+            camera.aspect
+        );
+
+
+    /*
+     * Use the narrower viewing angle.
+     * This prevents cropping on either
+     * portrait or landscape screens.
+     */
+
+    const usableFOV =
+        Math.min(
+            verticalFOV,
+            horizontalFOV
+        );
+
+
+    /*
+     * Calculate the camera distance needed
+     * to contain the entire constellation.
+     */
+
+    const requiredDistance =
+        maxDistance /
+        Math.tan(
+            usableFOV / 2
+        );
+
+
+    /*
+     * Keep the camera from getting
+     * unnecessarily far away on phones.
+     */
+
     galaxyDistance =
-        THREE.MathUtils.lerp(
-            18,
-            28,
-            layoutScale
+        Math.max(
+            requiredDistance,
+            18
         );
 
 
@@ -4813,11 +4899,20 @@ function updateGalaxyCamera() {
         Math.cos(galaxyPitch) *
         Math.cos(galaxyYaw);
 
-    camera.position.set(x, y, z);
+    camera.position.set(
+        x,
+        y,
+        z
+    );
 
-    cameraLookTarget.set(0, 0, 0);
+    cameraLookTarget.set(
+        0,
+        0,
+        0
+    );
 
     updateCameraLook();
+
 }
 
 
