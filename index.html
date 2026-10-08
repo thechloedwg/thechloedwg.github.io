@@ -4600,7 +4600,9 @@ window.addEventListener(
             }
         );
 
-        resolveGalaxySpacing();
+                resolveGalaxySpacing();
+
+        updateGalaxyCamera();
 
     }
 );
@@ -4762,46 +4764,58 @@ function updateCameraAnimation(
 
 function updateGalaxyCamera() {
 
-    const x =
-        galaxyDistance *
-        Math.cos(
-            galaxyPitch
-        ) *
-        Math.sin(
-            galaxyYaw
+    const widthProgress =
+        THREE.MathUtils.clamp(
+            (window.innerWidth - 390) /
+            (1400 - 390),
+            0,
+            1
         );
 
+    const heightProgress =
+        THREE.MathUtils.clamp(
+            (window.innerHeight - 700) /
+            (900 - 700),
+            0,
+            1
+        );
+
+    /*
+     * As the constellation expands,
+     * pull the camera back to keep it inside frame.
+     */
+
+    const layoutScale =
+        Math.max(
+            widthProgress,
+            heightProgress
+        );
+
+    galaxyDistance =
+        THREE.MathUtils.lerp(
+            18,
+            28,
+            layoutScale
+        );
+
+
+    const x =
+        galaxyDistance *
+        Math.cos(galaxyPitch) *
+        Math.sin(galaxyYaw);
 
     const y =
         galaxyDistance *
-        Math.sin(
-            galaxyPitch
-        );
-
+        Math.sin(galaxyPitch);
 
     const z =
         galaxyDistance *
-        Math.cos(
-            galaxyPitch
-        ) *
-        Math.cos(
-            galaxyYaw
-        );
+        Math.cos(galaxyPitch) *
+        Math.cos(galaxyYaw);
 
+    camera.position.set(x, y, z);
 
-    camera.position.set(
-        x,
-        y,
-        z
-    );
-
-
-    cameraLookTarget.set(
-        0,
-        0,
-        0
-    );
-
+    cameraLookTarget.set(0, 0, 0);
 
     updateCameraLook();
 }
