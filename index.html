@@ -2959,10 +2959,23 @@ function createResearchPin(
    PLANET
    ========================================================= */
 
-    function applyUndiscoveredStyle(planet) {
+   function applyUndiscoveredStyle(planet) {
 
     const ghostColour =
-        new THREE.Color(0x9a9a9a);
+        new THREE.Color(0xb8b8b8);
+
+    const radius =
+        planet.userData.radius;
+
+
+    /*
+     * ============================================
+     * EXISTING PLANET
+     * ============================================
+     *
+     * Keep everything that Appearance created,
+     * but neutralise it into the ghost palette.
+     */
 
     planet.traverse(object => {
 
@@ -2976,30 +2989,25 @@ function createResearchPin(
         materials.forEach(material => {
 
             /*
-             * PLANET SURFACE
-             *
-             * Remove the Earth texture completely.
-             * This is what stops undiscovered planets
-             * looking like blue/brown Earths.
+             * Remove the Earth texture from
+             * the main planet surface.
              */
             if (object.userData.isPlanetSurface) {
 
                 material.map = null;
 
-                if (material.color) {
-                    material.color.set(0x777777);
-                }
+                material.color.set(
+                    0x777777
+                );
 
-                material.opacity = 0.38;
+                material.opacity = 0.42;
+
                 material.transparent = true;
             }
 
             /*
-             * EVERYTHING ELSE
-             *
-             * Keep the geometry and appearance settings
-             * from the Appearance sheet, but make them
-             * neutral grey.
+             * Everything else keeps its
+             * geometry but becomes grey.
              */
             else {
 
@@ -3012,7 +3020,7 @@ function createResearchPin(
                 if (
                     typeof material.opacity === "number"
                 ) {
-                    material.opacity *= 0.55;
+                    material.opacity *= 0.65;
                 }
 
                 material.transparent = true;
@@ -3021,6 +3029,98 @@ function createResearchPin(
             material.needsUpdate = true;
         });
     });
+
+
+    /*
+     * ============================================
+     * FORCED GHOST GRID
+     * ============================================
+     *
+     * Every undiscovered planet gets one,
+     * regardless of the Appearance sheet.
+     */
+
+    const gridDensity =
+        8 + Math.floor(Math.random() * 7);
+
+    const ghostGrid =
+        createLatitudeLongitudeGrid(
+            radius * 1.015,
+            0xbdbdbd,
+            0.42,
+            gridDensity
+        );
+
+    ghostGrid.name =
+        "Undiscovered Grid";
+
+    planet.add(
+        ghostGrid
+    );
+
+
+    /*
+     * ============================================
+     * FORCED GHOST GLOW
+     * ============================================
+     */
+
+    const ghostGlow =
+        createGlow(
+            radius * 1.08,
+            0xd0d0d0,
+            0.22
+        );
+
+    ghostGlow.name =
+        "Undiscovered Glow";
+
+    planet.add(
+        ghostGlow
+    );
+
+
+    /*
+     * ============================================
+     * FORCED GHOST RINGS
+     * ============================================
+     */
+
+    const ghostRings =
+        createPlanetRings(
+            radius * 1.12,
+            0xb8b8b8,
+            "default",
+            2
+        );
+
+    ghostRings.name =
+        "Undiscovered Rings";
+
+    planet.add(
+        ghostRings
+    );
+
+
+    /*
+     * ============================================
+     * FORCED GHOST PARTICLES
+     * ============================================
+     */
+
+    const ghostParticles =
+        createParticles(
+            radius,
+            0xc5c5c5,
+            12
+        );
+
+    ghostParticles.name =
+        "Undiscovered Particles";
+
+    planet.add(
+        ghostParticles
+    );
 }
     
 function createProjectPlanet(appearance, position, hasPoints = true) {
