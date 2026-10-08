@@ -6331,7 +6331,7 @@ renderer.domElement.addEventListener(
 
 }
 
-/* =========================================================
+    /* =========================================================
    POINTER MOVE
    ========================================================= */
 
@@ -6357,6 +6357,10 @@ renderer.domElement.addEventListener(
 
         }
 
+
+        /* =================================================
+           PINCH ZOOM
+           ================================================= */
 
         if (
             pinchActive &&
@@ -6386,26 +6390,47 @@ renderer.domElement.addEventListener(
                 }
 
 
+                /*
+                 * GALAXY MODE
+                 *
+                 * Pinch controls galaxyZoom.
+                 */
+
                 if (
                     !planetMode
                 ) {
 
-                   galaxyZoom +=
-    event.deltaY *
-    0.00045;
+                    galaxyZoom +=
+                        delta * 0.001;
 
 
-galaxyZoom =
-    THREE.MathUtils.clamp(
-        galaxyZoom,
-        0.45,
-        1.8
-    );
+                    galaxyZoom =
+                        THREE.MathUtils.clamp(
+                            galaxyZoom,
+                            0.45,
+                            1.8
+                        );
 
 
-updateGalaxyCamera();
+                    updateGalaxyCamera();
 
-                } else {
+
+                    previousPinchDistance =
+                        currentDistance;
+
+
+                    return;
+
+                }
+
+
+                /*
+                 * PLANET MODE
+                 *
+                 * Keep the existing planet zoom.
+                 */
+
+                else {
 
                     planetDistance +=
                         delta * 0.018;
@@ -6435,9 +6460,17 @@ updateGalaxyCamera();
         }
 
 
+        /* =================================================
+           HOVER
+           ================================================= */
+
         if (
             !isPointerDown
         ) {
+
+            /*
+             * Planet mode does not use hover.
+             */
 
             if (
                 planetMode
@@ -6522,10 +6555,15 @@ updateGalaxyCamera();
 
             updatePlanetLabel();
 
+
             return;
 
         }
 
+
+        /* =================================================
+           DRAG DETECTION
+           ================================================= */
 
         const movementX =
             event.clientX -
@@ -6556,35 +6594,65 @@ updateGalaxyCamera();
             );
 
 
+        /*
+         * A small movement is still a tap.
+         *
+         * Once the threshold is crossed,
+         * this becomes a real drag.
+         */
+
         if (
-    !isDragging &&
-    distance >
-    DRAG_THRESHOLD
-) {
+            !isDragging &&
+            distance >
+            DRAG_THRESHOLD
+        ) {
 
-    isDragging =
-        true;
-
-    didDrag =
-        true;
+            isDragging =
+                true;
 
 
-    /*
-       Starting a real drag means the user is
-       navigating the planet rather than reading
-       the selected marker.
-    */
+            didDrag =
+                true;
 
-    if (
-        planetMode &&
-        activeMarker
-    ) {
 
-        closeMarker();
+            /*
+             * PLANET MODE
+             *
+             * Dragging closes an open research
+             * marker, just as before.
+             */
 
-    }
+            if (
+                planetMode &&
+                activeMarker
+            ) {
 
-}
+                closeMarker();
+
+            }
+
+
+            /*
+             * GALAXY MODE
+             *
+             * Dragging dismisses a selected
+             * ghost-planet label.
+             */
+
+            if (
+                !planetMode &&
+                hoveredPlanet
+            ) {
+
+                hoveredPlanet =
+                    null;
+
+
+                updatePlanetLabel();
+
+            }
+
+        }
 
 
         if (
@@ -6599,9 +6667,14 @@ updateGalaxyCamera();
         previousPointerX =
             event.clientX;
 
+
         previousPointerY =
             event.clientY;
 
+
+        /* =================================================
+           PLANET MODE DRAG
+           ================================================= */
 
         if (
             planetMode
@@ -6654,6 +6727,10 @@ updateGalaxyCamera();
         }
 
 
+        /* =================================================
+           GALAXY MODE DRAG
+           ================================================= */
+
         galaxyYaw -=
             movementX *
             DRAG_SENSITIVITY;
@@ -6702,6 +6779,10 @@ renderer.domElement.addEventListener(
         );
 
 
+        /* =================================================
+           END PINCH
+           ================================================= */
+
         if (
             pinchActive
         ) {
@@ -6718,15 +6799,25 @@ renderer.domElement.addEventListener(
             }
 
 
-            pinchActive = false;
+            pinchActive =
+                false;
 
-            previousPinchDistance = null;
 
-            isPointerDown = false;
+            previousPinchDistance =
+                null;
 
-            isDragging = false;
 
-            didDrag = false;
+            isPointerDown =
+                false;
+
+
+            isDragging =
+                false;
+
+
+            didDrag =
+                false;
+
 
             document.body.classList.remove(
                 "dragging"
@@ -6737,7 +6828,8 @@ renderer.domElement.addEventListener(
                 activePointers.size === 0
             ) {
 
-                didPinch = false;
+                didPinch =
+                    false;
 
             }
 
@@ -6747,11 +6839,16 @@ renderer.domElement.addEventListener(
         }
 
 
+        /* =================================================
+           END PINCH GESTURE
+           ================================================= */
+
         if (
             didPinch
         ) {
 
-            didPinch = false;
+            didPinch =
+                false;
 
             return;
 
@@ -6786,6 +6883,10 @@ renderer.domElement.addEventListener(
         ) {}
 
 
+        /*
+         * A real drag should NOT become a click.
+         */
+
         if (
             wasDragging
         ) {
@@ -6797,6 +6898,11 @@ renderer.domElement.addEventListener(
 
         }
 
+
+        /*
+         * Don't click while the camera is
+         * moving between galaxy and planet.
+         */
 
         if (
             cameraAnimating
@@ -6824,24 +6930,32 @@ renderer.domElement.addEventListener(
 
     "pointercancel",
 
-event => {
+    event => {
 
-    activePointers.delete(
-        event.pointerId
-    );
+        activePointers.delete(
+            event.pointerId
+        );
 
-    pinchActive = false;
 
-    previousPinchDistance = null;
+        pinchActive =
+            false;
 
-    isPointerDown =
-        false;
+
+        previousPinchDistance =
+            null;
+
+
+        isPointerDown =
+            false;
+
 
         isDragging =
             false;
 
+
         didDrag =
             false;
+
 
         document.body.classList.remove(
             "dragging"
@@ -6895,6 +7009,10 @@ function handleClick(
     );
 
 
+    /* =====================================================
+       GALAXY MODE
+       ===================================================== */
+
     if (
         !planetMode
     ) {
@@ -6916,6 +7034,11 @@ function handleClick(
                 intersects[i].object;
 
 
+            /*
+             * Walk back up the hierarchy until
+             * we reach the actual planet.
+             */
+
             while (
                 object &&
                 object.userData.type !==
@@ -6934,9 +7057,42 @@ function handleClick(
                 "planet"
             ) {
 
+                /* =========================================
+                   UNDISCOVERED / GHOST PLANET
+                   ========================================= */
+
+                if (
+                    !object.userData.discovered
+                ) {
+
+                    /*
+                     * Tapping a ghost planet does NOT
+                     * enter planet mode.
+                     *
+                     * It simply selects the planet
+                     * so its tag becomes visible.
+                     */
+
+                    hoveredPlanet =
+                        object;
+
+
+                    updatePlanetLabel();
+
+
+                    return;
+
+                }
+
+
+                /* =========================================
+                   DISCOVERED PLANET
+                   ========================================= */
+
                 enterPlanet(
                     object
                 );
+
 
                 return;
 
@@ -6945,10 +7101,27 @@ function handleClick(
         }
 
 
+        /*
+         * Nothing was tapped.
+         *
+         * Dismiss any ghost-planet label.
+         */
+
+        hoveredPlanet =
+            null;
+
+
+        updatePlanetLabel();
+
+
         return;
 
     }
 
+
+    /* =====================================================
+       PLANET MODE
+       ===================================================== */
 
     if (
         !selectedPlanet
@@ -7016,24 +7189,24 @@ function handleClick(
             "research"
         ) {
 
-          activeMarker =
-    object;
+            activeMarker =
+                object;
 
 
-showMarkerCard(
-    object.userData
-);
+            showMarkerCard(
+                object.userData
+            );
 
 
-updateMarkerConnector();
+            updateMarkerConnector();
 
 
-rotatePlanetToMarker(
-    object
-);
+            rotatePlanetToMarker(
+                object
+            );
 
 
-return;
+            return;
 
         }
 
@@ -7064,23 +7237,27 @@ renderer.domElement.addEventListener(
         }
 
 
+        /* =================================================
+           GALAXY MODE ZOOM
+           ================================================= */
+
         if (
             !planetMode
         ) {
 
-            galaxyDistance +=
+            galaxyZoom +=
                 event.deltaY *
-                0.012;
+                0.00045;
 
 
-            galaxyDistance =
+            galaxyZoom =
                 THREE.MathUtils.clamp(
 
-                    galaxyDistance,
+                    galaxyZoom,
 
-                    8,
+                    0.45,
 
-                    45
+                    1.8
 
                 );
 
@@ -7092,6 +7269,10 @@ renderer.domElement.addEventListener(
 
         }
 
+
+        /* =================================================
+           PLANET MODE ZOOM
+           ================================================= */
 
         planetDistance +=
             event.deltaY *
