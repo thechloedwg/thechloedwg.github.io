@@ -115,31 +115,94 @@ canvas {
     transform: translateX(-2px);
 }
 
-
 /* =========================================================
    GALAXY HOVER LABEL
    ========================================================= */
 
 .planet-label {
     position: absolute;
+
     transform: translate(-50%, -100%);
-    padding: 7px 10px;
-    border: 1px solid rgba(255,255,255,0.25);
-    background: rgba(2,4,10,0.65);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+
+    padding: 0;
+
+    border: none;
+    background: transparent;
+    box-shadow: none;
+
     font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
+
     white-space: nowrap;
+
+    text-align: center;
+
+    pointer-events: none;
+
     opacity: 0;
-    transition: opacity 0.15s ease;
+
+    transition:
+        opacity 0.15s ease;
 }
+
+
+/* =========================================================
+   DISCOVERED PLANET
+   ========================================================= */
+
+.planet-label-name {
+    display: block;
+
+    font-weight: 700;
+
+    letter-spacing: 0.16em;
+}
+
+
+/* =========================================================
+   UNDISCOVERED PLANET
+   ========================================================= */
+
+.planet-label-status {
+    display: block;
+
+    font-size: 8px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.20em;
+
+    opacity: 0.65;
+
+    margin-bottom: 3px;
+}
+
+
+.planet-label-subtitle {
+    display: block;
+
+    font-size: 8px;
+
+    font-style: italic;
+
+    letter-spacing: 0.08em;
+
+    text-transform: none;
+
+    opacity: 0.55;
+
+    margin-top: 3px;
+}
+
+
+/* =========================================================
+   VISIBILITY
+   ========================================================= */
 
 .planet-label.visible {
     opacity: 1;
 }
-
 
 /* =========================================================
    PLANET HUD
@@ -6039,7 +6102,6 @@ renderer.domElement.addEventListener(
 
 );
 
-
 /* =========================================================
    PLANET LABEL
    ========================================================= */
@@ -6109,9 +6171,49 @@ function updatePlanetLabel() {
         `${y - 20}px`;
 
 
-    label.textContent = hoveredPlanet.userData.discovered
-    ? hoveredPlanet.userData.name
-    : `UPCOMING PROJECT // ${hoveredPlanet.userData.name}`;
+    /*
+     * DISCOVERED PLANET
+     *
+     * Just show the planet name.
+     */
+
+    if (
+        hoveredPlanet.userData.discovered
+    ) {
+
+        label.innerHTML = `
+            <span class="planet-label-name">
+                ${hoveredPlanet.userData.name}
+            </span>
+        `;
+
+    }
+
+
+    /*
+     * UNDISCOVERED PLANET
+     *
+     * Show status, name and a small
+     * description underneath.
+     */
+
+    else {
+
+        label.innerHTML = `
+            <span class="planet-label-status">
+                UNDISCOVERED
+            </span>
+
+            <span class="planet-label-name">
+                ${hoveredPlanet.userData.name}
+            </span>
+
+            <span class="planet-label-subtitle">
+                Upcoming project
+            </span>
+        `;
+
+    }
 
 
     label.classList.add(
@@ -6119,7 +6221,6 @@ function updatePlanetLabel() {
     );
 
 }
-
 
 /* =========================================================
    BACK BUTTON
