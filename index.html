@@ -2355,108 +2355,576 @@ function createPlanetRings(
     }
 
 
-    let ringCount = 1;
+    const ringType =
+        clean(type).toLowerCase();
 
 
-    if (
-        type === "double"
-    ) {
-
-        ringCount = 2;
-
-    }
-
-
-    if (
-        type === "complex"
-    ) {
-
-        ringCount = 4;
-
-    }
-
+    /*
+     * =====================================================
+     * SINGLE
+     * A small family of clearly separated rings.
+     * Different sizes + slightly different orientations.
+     * =====================================================
+     */
 
     if (
-        density &&
-        Number(density) > 0
+        ringType === "single"
     ) {
 
-        ringCount =
+        const ringCount =
             Math.max(
-                ringCount,
-                Number(density)
+                3,
+                Number(density) || 3
             );
+
+
+        for (
+            let i = 0;
+            i < ringCount;
+            i++
+        ) {
+
+            const scale =
+                1.28 +
+                i * 0.14;
+
+
+            const thickness =
+                radius * 0.014;
+
+
+            const geometry =
+                new THREE.RingGeometry(
+                    radius * scale,
+                    radius * scale + thickness,
+                    128
+                );
+
+
+            const material =
+                new THREE.MeshBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity:
+                        0.42 -
+                        i * 0.035,
+
+                    side:
+                        THREE.DoubleSide,
+
+                    depthWrite: false
+
+                });
+
+
+            const ring =
+                new THREE.Mesh(
+                    geometry,
+                    material
+                );
+
+
+            ring.rotation.x =
+                THREE.MathUtils.degToRad(
+                    58 +
+                    i * 9
+                );
+
+
+            ring.rotation.z =
+                THREE.MathUtils.degToRad(
+                    -18 +
+                    i * 14
+                );
+
+
+            group.add(
+                ring
+            );
+
+        }
 
     }
 
 
-    for (
-        let i = 0;
-        i < ringCount;
-        i++
+    /*
+     * =====================================================
+     * DOUBLE
+     * Two stronger ring systems, each containing
+     * several rings.
+     * =====================================================
+     */
+
+    else if (
+        ringType === "double"
     ) {
 
-        const scale =
-            1.35 +
-            i * 0.12;
-
-
-        const geometry =
-            new THREE.RingGeometry(
-                radius * scale,
-                radius * scale +
-                radius * 0.012,
-                96
+        const ringCount =
+            Math.max(
+                6,
+                Number(density) || 6
             );
 
 
-        const material =
-            new THREE.MeshBasicMaterial({
+        for (
+            let i = 0;
+            i < ringCount;
+            i++
+        ) {
+
+            const scale =
+                1.22 +
+                i * 0.115;
+
+
+            const thickness =
+                radius * 0.015;
+
+
+            const geometry =
+                new THREE.RingGeometry(
+                    radius * scale,
+                    radius * scale + thickness,
+                    128
+                );
+
+
+            const material =
+                new THREE.MeshBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity:
+                        i % 2 === 0
+                            ? 0.48
+                            : 0.28,
+
+                    side:
+                        THREE.DoubleSide,
+
+                    depthWrite: false
+
+                });
+
+
+            const ring =
+                new THREE.Mesh(
+                    geometry,
+                    material
+                );
+
+
+            /*
+             * First half and second half
+             * form two slightly different
+             * ring planes.
+             */
+
+            if (
+                i <
+                ringCount / 2
+            ) {
+
+                ring.rotation.x =
+                    THREE.MathUtils.degToRad(
+                        62
+                    );
+
+                ring.rotation.z =
+                    THREE.MathUtils.degToRad(
+                        -12 +
+                        i * 5
+                    );
+
+            }
+
+            else {
+
+                ring.rotation.x =
+                    THREE.MathUtils.degToRad(
+                        72
+                    );
+
+                ring.rotation.z =
+                    THREE.MathUtils.degToRad(
+                        12 +
+                        i * 5
+                    );
+
+            }
+
+
+            group.add(
+                ring
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =====================================================
+     * COMPLEX
+     *
+     * Broad Saturn-style belt.
+     *
+     * Lots of tightly packed rings + gaps +
+     * a particle field extending well beyond
+     * the planet.
+     * =====================================================
+     */
+
+    else if (
+        ringType === "complex"
+    ) {
+
+        const ringCount =
+            Math.max(
+                24,
+                Number(density) || 24
+            );
+
+
+        /*
+         * -------------------------------------------------
+         * MAIN RING BELT
+         * -------------------------------------------------
+         */
+
+        for (
+            let i = 0;
+            i < ringCount;
+            i++
+        ) {
+
+            const scale =
+                1.18 +
+                i * 0.055;
+
+
+            /*
+             * Some rings are slightly thicker,
+             * creating visible bands rather than
+             * one uniform disc.
+             */
+
+            const thickness =
+                radius *
+                (
+                    0.008 +
+                    (
+                        i % 5 === 0
+                            ? 0.018
+                            : 0
+                    )
+                );
+
+
+            const geometry =
+                new THREE.RingGeometry(
+                    radius * scale,
+                    radius * scale + thickness,
+                    160
+                );
+
+
+            /*
+             * Alternating opacity creates
+             * natural-looking gaps and bands.
+             */
+
+            let opacity =
+                0.16;
+
+
+            if (
+                i % 5 === 0
+            ) {
+
+                opacity =
+                    0.42;
+
+            }
+
+            else if (
+                i % 3 === 0
+            ) {
+
+                opacity =
+                    0.27;
+
+            }
+
+
+            const material =
+                new THREE.MeshBasicMaterial({
+
+                    color: colour,
+
+                    transparent: true,
+
+                    opacity: opacity,
+
+                    side:
+                        THREE.DoubleSide,
+
+                    depthWrite: false
+
+                });
+
+
+            const ring =
+                new THREE.Mesh(
+                    geometry,
+                    material
+                );
+
+
+            /*
+             * Keep the entire belt broadly
+             * Saturn-like, but introduce tiny
+             * variations so it isn't perfectly
+             * mechanical.
+             */
+
+            ring.rotation.x =
+                THREE.MathUtils.degToRad(
+                    66 +
+                    Math.sin(i * 0.7) * 2
+                );
+
+
+            ring.rotation.z =
+                THREE.MathUtils.degToRad(
+                    Math.sin(i * 0.45) * 2
+                );
+
+
+            group.add(
+                ring
+            );
+
+        }
+
+
+        /*
+         * -------------------------------------------------
+         * STRONGER OUTER RINGS
+         * -------------------------------------------------
+         *
+         * These make the overall silhouette
+         * of the belt much more obvious.
+         */
+
+        const outerScales = [
+            1.30,
+            1.58,
+            1.88,
+            2.18
+        ];
+
+
+        outerScales.forEach(
+            (scale, index) => {
+
+                const geometry =
+                    new THREE.RingGeometry(
+                        radius * scale,
+                        radius * scale +
+                        radius * 0.025,
+                        160
+                    );
+
+
+                const material =
+                    new THREE.MeshBasicMaterial({
+
+                        color: colour,
+
+                        transparent: true,
+
+                        opacity:
+                            0.42 -
+                            index * 0.06,
+
+                        side:
+                            THREE.DoubleSide,
+
+                        depthWrite: false
+
+                    });
+
+
+                const ring =
+                    new THREE.Mesh(
+                        geometry,
+                        material
+                    );
+
+
+                ring.rotation.x =
+                    THREE.MathUtils.degToRad(
+                        66
+                    );
+
+
+                group.add(
+                    ring
+                );
+
+            }
+        );
+
+
+        /*
+         * -------------------------------------------------
+         * PARTICLE BELT
+         * -------------------------------------------------
+         *
+         * This fills the space between the rings,
+         * making the complex system read as a
+         * genuine particulate belt.
+         */
+
+        const particleCount =
+            Math.max(
+                900,
+                ringCount * 40
+            );
+
+
+        const positions =
+            new Float32Array(
+                particleCount * 3
+            );
+
+
+        for (
+            let i = 0;
+            i < particleCount;
+            i++
+        ) {
+
+            /*
+             * Distribute particles across
+             * a broad annulus.
+             */
+
+            const distance =
+                radius *
+                (
+                    1.25 +
+                    Math.random() *
+                    1.05
+                );
+
+
+            const angle =
+                Math.random() *
+                Math.PI *
+                2;
+
+
+            /*
+             * Slight vertical thickness gives
+             * the belt some physical presence.
+             */
+
+            const verticalSpread =
+                radius *
+                (
+                    Math.random() - 0.5
+                ) *
+                0.055;
+
+
+            positions[
+                i * 3
+            ] =
+                Math.cos(angle) *
+                distance;
+
+
+            positions[
+                i * 3 + 1
+            ] =
+                verticalSpread;
+
+
+            positions[
+                i * 3 + 2
+            ] =
+                Math.sin(angle) *
+                distance;
+
+        }
+
+
+        const particleGeometry =
+            new THREE.BufferGeometry();
+
+
+        particleGeometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(
+                positions,
+                3
+            )
+        );
+
+
+        const particleMaterial =
+            new THREE.PointsMaterial({
 
                 color: colour,
 
+                size:
+                    radius * 0.018,
+
                 transparent: true,
 
-                opacity:
-                    type === "complex"
-                        ? 0.25
-                        : 0.18,
+                opacity: 0.45,
 
-                side:
-                    THREE.DoubleSide,
+                depthWrite: false,
 
-                depthWrite: false
+                sizeAttenuation: true
 
             });
 
 
-        const ring =
-            new THREE.Mesh(
-                geometry,
-                material
+        const particles =
+            new THREE.Points(
+                particleGeometry,
+                particleMaterial
             );
 
 
-        ring.rotation.x =
+        particles.rotation.x =
             THREE.MathUtils.degToRad(
-                65 +
-                i * 7
+                66
             );
 
-        ring.rotation.z =
-            i * 0.25;
+
+        particles.name =
+            "Ring Particles";
 
 
         group.add(
-            ring
+            particles
         );
 
     }
 
 
     return group;
-}
 
+}
 
 /* =========================================================
    SCAN LINES
