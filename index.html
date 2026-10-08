@@ -4889,27 +4889,7 @@ function reflowGalaxy() {
 
     resolveGalaxySpacing();
 
-    updateGalaxyPlayfield();
-
 }
-
-    window.addEventListener(
-    "resize",
-    () => {
-
-        reflowGalaxy();
-
-        if (
-            !planetMode &&
-            !cameraAnimating
-        ) {
-
-            updateGalaxyCamera();
-
-        }
-
-    }
-);
     
 /* =========================================================
    CAMERA
