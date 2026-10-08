@@ -3617,13 +3617,23 @@ function createResearchPin(
      * ============================================
      */
 
-    const ghostRings =
-        createPlanetRings(
-            radius * 1.12,
-            0xb8b8b8,
-            "default",
-            2
-        );
+ const ringType =
+    clean(
+        planet.userData.appearance.rings
+    ).toLowerCase();
+
+const ringDensity =
+    Number(
+        planet.userData.appearance["ring density"]
+    ) || 0;
+
+const ghostRings =
+    createPlanetRings(
+        radius,
+        0xb8b8b8,
+        ringType,
+        ringDensity
+    );
 
     ghostRings.name =
         "Undiscovered Rings";
