@@ -1719,12 +1719,9 @@ let activeMarker = null;
 
 let galaxyYaw = 0;
 
-let galaxyPitch = 0.10;
+let galaxyPitch = 0;
 
-let galaxyDistance =
-    window.innerWidth <= 700
-        ? 26
-        : 18;
+let galaxyDistance = 18;
 
 let planetDistance = 8;
 
@@ -4248,83 +4245,87 @@ function getGalaxyPosition(index, radius) {
         ];
 
     /*
-     * Mobile is our compact reference layout.
-     * Desktop expands outward from the centre.
+     * PHONE = canonical / minimum layout
      */
 
-    const mobileWidth = 7.5;
-    const mobileHeight = 5.8;
+    const phoneWidth = 7.5;
+    const phoneHeight = 5.8;
 
-    const desktopWidth = 13.5;
-    const desktopHeight = 10.5;
+
+    /*
+     * DESKTOP = expanded layout
+     */
+
+    const desktopWidth = 13.0;
+    const desktopHeight = 10.0;
+
+
+    /*
+     * How far between phone and desktop
+     * we currently are.
+     */
 
     const widthProgress =
         THREE.MathUtils.clamp(
-            (window.innerWidth - 390) /
-            (1400 - 390),
+            (
+                window.innerWidth - 390
+            ) /
+            (
+                1400 - 390
+            ),
             0,
             1
         );
 
     const heightProgress =
         THREE.MathUtils.clamp(
-            (window.innerHeight - 700) /
-            (900 - 700),
+            (
+                window.innerHeight - 700
+            ) /
+            (
+                900 - 700
+            ),
             0,
             1
         );
 
-    const baseWidth =
+
+    /*
+     * Expand horizontally and vertically
+     * from the phone arrangement.
+     */
+
+    const width =
         THREE.MathUtils.lerp(
-            mobileWidth,
+            phoneWidth,
             desktopWidth,
             widthProgress
         );
 
-    const baseHeight =
+    const height =
         THREE.MathUtils.lerp(
-            mobileHeight,
+            phoneHeight,
             desktopHeight,
             heightProgress
         );
 
-    let x =
+
+    /*
+     * Keep each planet on its original
+     * constellation line.
+     */
+
+    const x =
         slot.x *
-        baseWidth;
+        width;
 
-    let y =
+    const y =
         slot.y *
-        baseHeight;
+        height;
 
-    let z =
+    const z =
         slot.z *
         4.0;
-
-
-    const scaleBuffer =
-        Math.max(
-            0,
-            radius - 1
-        ) * 0.35;
-
-
-    if (Math.abs(x) > 0.01) {
-
-        x +=
-            Math.sign(x) *
-            scaleBuffer;
-
-    }
-
-
-    if (Math.abs(y) > 0.01) {
-
-        y +=
-            Math.sign(y) *
-            scaleBuffer *
-            0.65;
-
-    }
 
 
     return new THREE.Vector3(
@@ -4575,6 +4576,35 @@ function buildGalaxy() {
 
 }
 
+/* =========================================================
+   RESPONSIVE GALAXY RESIZE
+   ========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        planets.forEach(
+            (planet, index) => {
+
+                const position =
+                    getGalaxyPosition(
+                        index,
+                        planet.userData.radius
+                    );
+
+                planet.position.copy(
+                    position
+                );
+
+            }
+        );
+
+        resolveGalaxySpacing();
+
+    }
+);
+    
  /* =========================================================
    HOLOTABLE / GALAXY PLAYFIELD
    ========================================================= */
