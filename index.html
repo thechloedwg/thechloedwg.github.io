@@ -2959,6 +2959,34 @@ function createResearchPin(
    PLANET
    ========================================================= */
 
+    function applyUndiscoveredStyle(planet) {
+
+    const ghostColour = new THREE.Color(0x8a8a8a);
+
+    planet.traverse(object => {
+
+        if (!object.material) return;
+
+        const materials = Array.isArray(object.material)
+            ? object.material
+            : [object.material];
+
+        materials.forEach(material => {
+
+            if (material.color) {
+                material.color.copy(ghostColour);
+            }
+
+            if (typeof material.opacity === "number") {
+                material.opacity *= 0.55;
+                material.transparent = true;
+            }
+
+            material.needsUpdate = true;
+        });
+    });
+}
+    
 function createProjectPlanet(appearance, position, hasPoints = true) {
 
     const project =
@@ -3410,20 +3438,13 @@ planet.add(
     );
 
 
-    scene.add(
-        planet
-    );
+    scene.add(planet);
+planets.push(planet);
+projectObjects[project] = planet;
 
-
-    planets.push(
-        planet
-    );
-
-
-    projectObjects[
-        project
-    ] =
-        planet;
+if (!hasPoints) {
+    applyUndiscoveredStyle(planet);
+}
 
 
     return planet;
