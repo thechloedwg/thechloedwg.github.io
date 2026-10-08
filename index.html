@@ -4634,6 +4634,7 @@ window.addEventListener(
 
         resolveGalaxySpacing();
 
+updateGalaxyPlayfield();
 
         /*
          * Reframe the camera
@@ -4644,15 +4645,35 @@ window.addEventListener(
     }
 );
     
- /* =========================================================
+/* =========================================================
    HOLOTABLE / GALAXY PLAYFIELD
    ========================================================= */
 
 let galaxyPlayfield = null;
 
+
+/*
+ * Create the circular holographic navigation table.
+ *
+ * This is deliberately procedural:
+ *
+ * - no external texture
+ * - no image
+ * - no dependency
+ *
+ * It is built from circles, lines, ticks,
+ * constellation paths and star markers.
+ */
+
 function createGalaxyPlayfield() {
 
-    if (galaxyPlayfield) {
+    /*
+     * Remove the previous table if one exists.
+     */
+
+    if (
+        galaxyPlayfield
+    ) {
 
         scene.remove(
             galaxyPlayfield
@@ -4660,11 +4681,907 @@ function createGalaxyPlayfield() {
 
     }
 
+
     galaxyPlayfield =
         new THREE.Group();
 
+
     galaxyPlayfield.name =
         "Galaxy Holotable";
+
+
+    /* =====================================================
+       MATERIALS
+       ===================================================== */
+
+    const baseMaterial =
+        new THREE.MeshBasicMaterial({
+
+            color: 0x090909,
+
+            transparent: true,
+
+            opacity: 0.92,
+
+            side: THREE.DoubleSide
+
+        });
+
+
+    const edgeMaterial =
+        new THREE.LineBasicMaterial({
+
+            color: 0x8f7748,
+
+            transparent: true,
+
+            opacity: 0.48
+
+        });
+
+
+    const fineMaterial =
+        new THREE.LineBasicMaterial({
+
+            color: 0x9c8557,
+
+            transparent: true,
+
+            opacity: 0.25
+
+        });
+
+
+    const constellationMaterial =
+        new THREE.LineBasicMaterial({
+
+            color: 0xc0a36a,
+
+            transparent: true,
+
+            opacity: 0.32
+
+        });
+
+
+    const starMaterial =
+        new THREE.MeshBasicMaterial({
+
+            color: 0xd0b477,
+
+            transparent: true,
+
+            opacity: 0.55
+
+        });
+
+
+    const projectorMaterial =
+        new THREE.MeshBasicMaterial({
+
+            color: 0xc9a963,
+
+            transparent: true,
+
+            opacity: 0.65
+
+        });
+
+
+    /* =====================================================
+       BASE DISK
+       ===================================================== */
+
+    const base =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                1,
+                1,
+                0.32,
+                96
+            ),
+
+            baseMaterial
+
+        );
+
+
+    base.name =
+        "Holotable Base";
+
+
+    galaxyPlayfield.add(
+        base
+    );
+
+
+    /* =====================================================
+       OUTER RIM
+       ===================================================== */
+
+    const outerRing =
+        new THREE.RingGeometry(
+            0.96,
+            1.0,
+            96
+        );
+
+
+    const outerMesh =
+        new THREE.Mesh(
+            outerRing,
+            edgeMaterial
+        );
+
+
+    outerMesh.rotation.x =
+        -Math.PI / 2;
+
+
+    outerMesh.position.y =
+        0.18;
+
+
+    galaxyPlayfield.add(
+        outerMesh
+    );
+
+
+    /* =====================================================
+       CONCENTRIC MAP RINGS
+       ===================================================== */
+
+    const ringRadii = [
+
+        0.22,
+        0.38,
+        0.55,
+        0.72,
+        0.86,
+        0.96
+
+    ];
+
+
+    ringRadii.forEach(
+        radius => {
+
+            const points = [];
+
+
+            const segments = 96;
+
+
+            for (
+                let i = 0;
+                i <= segments;
+                i++
+            ) {
+
+                const angle =
+                    (
+                        i /
+                        segments
+                    ) *
+                    Math.PI *
+                    2;
+
+
+                points.push(
+
+                    new THREE.Vector3(
+
+                        Math.cos(angle) *
+                        radius,
+
+                        0,
+
+                        Math.sin(angle) *
+                        radius
+
+                    )
+
+                );
+
+            }
+
+
+            const geometry =
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    );
+
+
+            const ring =
+                new THREE.Line(
+                    geometry,
+                    edgeMaterial
+                );
+
+
+            ring.position.y =
+                0.18;
+
+
+            galaxyPlayfield.add(
+                ring
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       RADIAL MAP LINES
+       ===================================================== */
+
+    const radialCount =
+        24;
+
+
+    for (
+        let i = 0;
+        i < radialCount;
+        i++
+    ) {
+
+        const angle =
+            (
+                i /
+                radialCount
+            ) *
+            Math.PI *
+            2;
+
+
+        const innerRadius =
+            0.20;
+
+
+        const outerRadius =
+            0.96;
+
+
+        const points = [
+
+            new THREE.Vector3(
+
+                Math.cos(angle) *
+                innerRadius,
+
+                0.185,
+
+                Math.sin(angle) *
+                innerRadius
+
+            ),
+
+            new THREE.Vector3(
+
+                Math.cos(angle) *
+                outerRadius,
+
+                0.185,
+
+                Math.sin(angle) *
+                outerRadius
+
+            )
+
+        ];
+
+
+        const geometry =
+            new THREE.BufferGeometry()
+                .setFromPoints(
+                    points
+                );
+
+
+        const line =
+            new THREE.Line(
+                geometry,
+                fineMaterial
+            );
+
+
+        galaxyPlayfield.add(
+            line
+        );
+
+    }
+
+
+    /* =====================================================
+       OUTER TICKS
+       ===================================================== */
+
+    const tickCount =
+        72;
+
+
+    for (
+        let i = 0;
+        i < tickCount;
+        i++
+    ) {
+
+        const angle =
+            (
+                i /
+                tickCount
+            ) *
+            Math.PI *
+            2;
+
+
+        const major =
+            i % 6 === 0;
+
+
+        const innerRadius =
+            major
+                ? 0.90
+                : 0.935;
+
+
+        const outerRadius =
+            0.98;
+
+
+        const points = [
+
+            new THREE.Vector3(
+
+                Math.cos(angle) *
+                innerRadius,
+
+                0.19,
+
+                Math.sin(angle) *
+                innerRadius
+
+            ),
+
+            new THREE.Vector3(
+
+                Math.cos(angle) *
+                outerRadius,
+
+                0.19,
+
+                Math.sin(angle) *
+                outerRadius
+
+            )
+
+        ];
+
+
+        const geometry =
+            new THREE.BufferGeometry()
+                .setFromPoints(
+                    points
+                );
+
+
+        const tick =
+            new THREE.Line(
+                geometry,
+                major
+                    ? edgeMaterial
+                    : fineMaterial
+            );
+
+
+        galaxyPlayfield.add(
+            tick
+        );
+
+    }
+
+
+    /* =====================================================
+       CONSTELLATION MAP
+       ===================================================== */
+
+    const constellations = [
+
+        [
+
+            [-0.70, 0.30],
+            [-0.45, 0.52],
+            [-0.18, 0.38],
+            [0.04, 0.60]
+
+        ],
+
+        [
+
+            [0.18, -0.10],
+            [0.42, 0.08],
+            [0.66, -0.12],
+            [0.78, -0.38]
+
+        ],
+
+        [
+
+            [-0.62, -0.30],
+            [-0.38, -0.52],
+            [-0.10, -0.44],
+            [0.12, -0.68]
+
+        ],
+
+        [
+
+            [0.02, 0.14],
+            [0.18, 0.34],
+            [0.40, 0.40]
+
+        ]
+
+    ];
+
+
+    constellations.forEach(
+        constellation => {
+
+            const points = [];
+
+
+            constellation.forEach(
+                point => {
+
+                    points.push(
+
+                        new THREE.Vector3(
+
+                            point[0],
+
+                            0.20,
+
+                            point[1]
+
+                        )
+
+                    );
+
+                }
+            );
+
+
+            const geometry =
+                new THREE.BufferGeometry()
+                    .setFromPoints(
+                        points
+                    );
+
+
+            const line =
+                new THREE.Line(
+                    geometry,
+                    constellationMaterial
+                );
+
+
+            galaxyPlayfield.add(
+                line
+            );
+
+
+            /*
+             * Star nodes
+             */
+
+            constellation.forEach(
+                point => {
+
+                    const star =
+                        new THREE.Mesh(
+
+                            new THREE.OctahedronGeometry(
+                                0.018,
+                                0
+                            ),
+
+                            starMaterial
+
+                        );
+
+
+                    star.position.set(
+
+                        point[0],
+
+                        0.22,
+
+                        point[1]
+
+                    );
+
+
+                    galaxyPlayfield.add(
+                        star
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       SMALL RANDOM STAR FIELD
+       ===================================================== */
+
+    for (
+        let i = 0;
+        i < 90;
+        i++
+    ) {
+
+        const angle =
+            Math.random() *
+            Math.PI *
+            2;
+
+
+        const radius =
+            0.25 +
+            Math.random() *
+            0.70;
+
+
+        const star =
+            new THREE.Mesh(
+
+                new THREE.OctahedronGeometry(
+                    0.006 +
+                    Math.random() *
+                    0.009,
+
+                    0
+                ),
+
+                starMaterial
+
+            );
+
+
+        star.position.set(
+
+            Math.cos(angle) *
+            radius,
+
+            0.205,
+
+            Math.sin(angle) *
+            radius
+
+        );
+
+
+        galaxyPlayfield.add(
+            star
+        );
+
+    }
+
+
+    /* =====================================================
+       CENTRAL PROJECTOR
+       ===================================================== */
+
+    const projectorBase =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                0.12,
+                0.17,
+                0.08,
+                48
+            ),
+
+            projectorMaterial
+
+        );
+
+
+    projectorBase.position.y =
+        0.23;
+
+
+    galaxyPlayfield.add(
+        projectorBase
+    );
+
+
+    /*
+     * Central rings
+     */
+
+    [0.09, 0.13, 0.18].forEach(
+        radius => {
+
+            const geometry =
+                new THREE.RingGeometry(
+                    radius - 0.008,
+                    radius,
+                    48
+                );
+
+
+            const ring =
+                new THREE.Mesh(
+                    geometry,
+                    projectorMaterial
+                );
+
+
+            ring.rotation.x =
+                -Math.PI / 2;
+
+
+            ring.position.y =
+                0.275;
+
+
+            galaxyPlayfield.add(
+                ring
+            );
+
+        }
+    );
+
+
+    /*
+     * Four projector arms.
+     */
+
+    for (
+        let i = 0;
+        i < 4;
+        i++
+    ) {
+
+        const angle =
+            (
+                i /
+                4
+            ) *
+            Math.PI *
+            2;
+
+
+        const points = [
+
+            new THREE.Vector3(
+                Math.cos(angle) * 0.12,
+                0.24,
+                Math.sin(angle) * 0.12
+            ),
+
+            new THREE.Vector3(
+                Math.cos(angle) * 0.22,
+                0.24,
+                Math.sin(angle) * 0.22
+            )
+
+        ];
+
+
+        const geometry =
+            new THREE.BufferGeometry()
+                .setFromPoints(
+                    points
+                );
+
+
+        const arm =
+            new THREE.Line(
+                geometry,
+                projectorMaterial
+            );
+
+
+        galaxyPlayfield.add(
+            arm
+        );
+
+    }
+
+
+    /*
+     * Make the entire table subtly transparent.
+     */
+
+    galaxyPlayfield.traverse(
+        object => {
+
+            if (
+                object.material
+            ) {
+
+                object.renderOrder =
+                    -10;
+
+            }
+
+        }
+    );
+
+
+    scene.add(
+        galaxyPlayfield
+    );
+
+
+    updateGalaxyPlayfield();
+
+}
+
+
+/* =========================================================
+   POSITION / SCALE HOLOTABLE
+   ========================================================= */
+
+function updateGalaxyPlayfield() {
+
+    if (
+        !galaxyPlayfield ||
+        planets.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Find the lowest planet.
+     */
+
+    let lowestY =
+        Infinity;
+
+
+    let maximumRadius =
+        0;
+
+
+    planets.forEach(
+        planet => {
+
+            lowestY =
+                Math.min(
+                    lowestY,
+                    planet.position.y -
+                    planet.userData.radius
+                );
+
+
+            const horizontalDistance =
+                Math.sqrt(
+
+                    planet.position.x *
+                    planet.position.x +
+
+                    planet.position.z *
+                    planet.position.z
+
+                );
+
+
+            maximumRadius =
+                Math.max(
+                    maximumRadius,
+                    horizontalDistance +
+                    planet.userData.radius
+                );
+
+        }
+    );
+
+
+    /*
+     * Give the table a little breathing room
+     * around the constellation.
+     */
+
+    const tableRadius =
+        Math.max(
+            maximumRadius + 2.5,
+            7
+        );
+
+
+    /*
+     * Our procedural table was built at
+     * radius = 1, so scale it up.
+     */
+
+    galaxyPlayfield.scale.set(
+        tableRadius,
+        tableRadius,
+        tableRadius
+    );
+
+
+    /*
+     * Put the table underneath the
+     * lowest planet.
+     */
+
+    galaxyPlayfield.position.set(
+
+        0,
+
+        lowestY - 0.75,
+
+        0
+
+    );
+
+
+    /*
+     * Tilt the table slightly toward
+     * the camera so the astronomical map
+     * remains visible rather than becoming
+     * a thin edge-on disc.
+     */
+
+    galaxyPlayfield.rotation.x =
+        -0.85;
+
+}
+
+
+/* =========================================================
+   HOLOTABLE SCAN ANIMATION
+   ========================================================= */
+
+function updateGalaxyPlayfieldAnimation(
+    delta
+) {
+
+    if (
+        !galaxyPlayfield
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Very subtle rotation of the
+     * central projector rings.
+     */
+
+    const projector =
+        galaxyPlayfield.children.find(
+
+            child =>
+                child.geometry &&
+                child.geometry.type ===
+                "RingGeometry"
+
+        );
+
+
+    if (
+        projector
+    ) {
+
+        projector.rotation.z +=
+            delta * 0.08;
+
+    }
 
 }
     
@@ -6401,7 +7318,7 @@ renderer.domElement.addEventListener(
                 ) {
 
                     galaxyZoom +=
-                        delta * 0.001;
+                        delta * 0.0025;
 
 
                     galaxyZoom =
@@ -7247,7 +8164,7 @@ renderer.domElement.addEventListener(
 
             galaxyZoom +=
                 event.deltaY *
-                0.00045;
+                0.0012;
 
 
             galaxyZoom =
@@ -7461,20 +8378,25 @@ function animate(
 
 
     const delta =
-        Math.min(
+    Math.min(
 
-            (
-                now -
-                lastTime
-            ) / 1000,
+        (
+            now -
+            lastTime
+        ) / 1000,
 
-            0.05
+        0.05
 
-        );
+    );
 
 
-    lastTime =
-        now;
+lastTime =
+    now;
+
+
+updateGalaxyPlayfieldAnimation(
+    delta
+);
 
 
     updateCameraAnimation(
@@ -8046,6 +8968,11 @@ async function loadData() {
 
 
 buildGalaxy();
+
+createGalaxyPlayfield();
+
+updateGalaxyPlayfield();
+
 updateGalaxyCamera();
 
   
