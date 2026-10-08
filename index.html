@@ -4248,24 +4248,23 @@ function getGalaxyPosition(index, radius) {
         ];
 
 
-    const baseWidth = 8.5;
-    const baseHeight = 6.5;
+    const baseWidth = 11.5;
+const baseHeight = 8.5;
 
 
-    const widthFactor =
-        THREE.MathUtils.clamp(
-            window.innerWidth / 1400,
-            0.48,
-            1
-        );
+   const widthFactor =
+    THREE.MathUtils.clamp(
+        window.innerWidth / 1400,
+        0.42,
+        1
+    );
 
-
-    const heightFactor =
-        THREE.MathUtils.clamp(
-            window.innerHeight / 900,
-            0.58,
-            1
-        );
+const heightFactor =
+    THREE.MathUtils.clamp(
+        window.innerHeight / 900,
+        0.50,
+        1
+    );
 
 
     let x =
