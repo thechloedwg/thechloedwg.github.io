@@ -1567,8 +1567,8 @@ directionalLight.position.set(
 scene.add(
     directionalLight
 );
-
-    /* =========================================================
+```js
+/* =========================================================
    STARS
    ========================================================= */
 
@@ -1662,25 +1662,20 @@ for (
 
 
     /*
-       BRIGHTNESS
-       Most stars remain very faint.
-       A small percentage become visible.
+       BRIGHTNESS + SIZE
+       Most stars are clearly visible,
+       with fewer medium and bright stars.
     */
 
     const brightness =
         Math.random();
 
-    if (brightness < 0.88) {
+    if (brightness < 0.75) {
 
-        starBrightness[i] =
-            0.12 +
-            Math.random() * 0.18;
-
-        starSize[i] =
-            0.018 +
-            Math.random() * 0.018;
-
-    } else if (brightness < 0.985) {
+        /*
+           Most stars:
+           small but clearly visible
+        */
 
         starBrightness[i] =
             0.35 +
@@ -1688,7 +1683,22 @@ for (
 
         starSize[i] =
             0.035 +
-            Math.random() * 0.030;
+            Math.random() * 0.025;
+
+    } else if (brightness < 0.96) {
+
+        /*
+           Medium stars:
+           add richness and depth
+        */
+
+        starBrightness[i] =
+            0.65 +
+            Math.random() * 0.25;
+
+        starSize[i] =
+            0.055 +
+            Math.random() * 0.035;
 
     } else {
 
@@ -1697,12 +1707,12 @@ for (
         */
 
         starBrightness[i] =
-            0.75 +
-            Math.random() * 0.25;
+            0.90 +
+            Math.random() * 0.10;
 
         starSize[i] =
-            0.065 +
-            Math.random() * 0.055;
+            0.085 +
+            Math.random() * 0.065;
 
     }
 
@@ -1773,12 +1783,12 @@ const starMaterial =
 
                 /*
                    Perspective sizing:
-                   nearby stars appear slightly larger.
+                   nearby stars appear larger.
                 */
 
                 gl_PointSize =
                     aSize *
-                    (180.0 / -mvPosition.z);
+                    (280.0 / -mvPosition.z);
 
             }
 
@@ -1810,7 +1820,7 @@ const starMaterial =
                     );
 
                 /*
-                   Very subtle bright centre
+                   Bright central core
                 */
 
                 float core =
@@ -1821,9 +1831,20 @@ const starMaterial =
                         distance
                     );
 
+                /*
+                   Increase overall visibility
+                */
+
                 float alpha =
                     glow *
-                    vBrightness;
+                    vBrightness *
+                    1.35;
+
+                alpha =
+                    min(
+                        alpha,
+                        1.0
+                    );
 
                 vec3 colour =
                     vec3(
@@ -1863,8 +1884,7 @@ const starField =
 scene.add(
     starField
 );
-
-
+```
 /* =========================================================
    TEXTURES
    ========================================================= */
@@ -4414,7 +4434,6 @@ function attachResearchPoints() {
     );
 
 }
-
 /* =========================================================
    RESPONSIVE GALAXY CONSTELLATION
    ========================================================= */
@@ -4424,35 +4443,35 @@ const galaxySlots = [
     // 1 — central anchor
     { x:  0.00, y:  0.00, z:  0.00 },
 
-    // 2 — upper right
-    { x:  0.58, y:  0.18, z: -0.25 },
+    // 2 — upper right / slightly forward
+    { x:  0.58, y:  0.18, z:  0.55 },
 
-    // 3 — upper left
-    { x: -0.62, y:  0.20, z: -0.15 },
+    // 3 — upper left / deep rear
+    { x: -0.62, y:  0.20, z: -0.85 },
 
-    // 4 — lower left
-    { x: -0.48, y: -0.40, z:  0.30 },
+    // 4 — lower left / forward
+    { x: -0.48, y: -0.40, z:  0.75 },
 
-    // 5 — lower right
-    { x:  0.48, y: -0.38, z:  0.25 },
+    // 5 — lower right / deep rear
+    { x:  0.48, y: -0.38, z: -0.65 },
 
     // 6 — high rear
-    { x: -0.08, y:  0.52, z: -0.40 },
+    { x: -0.08, y:  0.52, z: -1.00 },
 
     // 7 — low front
-    { x:  0.12, y: -0.58, z:  0.35 },
+    { x:  0.12, y: -0.58, z:  1.10 },
 
-    // 8 — further left
-    { x: -0.82, y: -0.05, z:  0.15 },
+    // 8 — further left / slightly rear
+    { x: -0.82, y: -0.05, z: -0.45 },
 
-    // 9 — further right
-    { x:  0.82, y:  0.05, z: -0.10 },
+    // 9 — further right / slightly forward
+    { x:  0.82, y:  0.05, z:  0.65 },
 
     // 10 — rear upper
-    { x:  0.30, y:  0.65, z: -0.45 },
+    { x:  0.30, y:  0.65, z: -1.25 },
 
-    // 11 — rear lower
-    { x: -0.30, y: -0.68, z:  0.40 }
+    // 11 — front lower
+    { x: -0.30, y: -0.68, z:  1.25 }
 
 ];
 
@@ -4464,8 +4483,11 @@ function getGalaxyPosition(index, radius) {
             index % galaxySlots.length
         ];
 
+
     /*
+     * =====================================================
      * PHONE = canonical / minimum layout
+     * =====================================================
      */
 
     const phoneWidth = 7.5;
@@ -4473,16 +4495,19 @@ function getGalaxyPosition(index, radius) {
 
 
     /*
+     * =====================================================
      * DESKTOP = expanded layout
+     * =====================================================
      */
 
-   const desktopWidth = 15.0;
-const desktopHeight = 11.5;
+    const desktopWidth = 15.0;
+    const desktopHeight = 11.5;
 
 
     /*
-     * How far between phone and desktop
-     * we currently are.
+     * =====================================================
+     * RESPONSIVE PROGRESS
+     * =====================================================
      */
 
     const widthProgress =
@@ -4496,6 +4521,7 @@ const desktopHeight = 11.5;
             0,
             1
         );
+
 
     const heightProgress =
         THREE.MathUtils.clamp(
@@ -4511,8 +4537,9 @@ const desktopHeight = 11.5;
 
 
     /*
-     * Expand horizontally and vertically
-     * from the phone arrangement.
+     * =====================================================
+     * X / Y SPACE
+     * =====================================================
      */
 
     const width =
@@ -4521,6 +4548,7 @@ const desktopHeight = 11.5;
             desktopWidth,
             widthProgress
         );
+
 
     const height =
         THREE.MathUtils.lerp(
@@ -4531,31 +4559,47 @@ const desktopHeight = 11.5;
 
 
     /*
-     * Keep each planet on its original
-     * constellation line.
+     * =====================================================
+     * Z DEPTH
+     *
+     * This is deliberately independent of screen size.
+     *
+     * The old system only produced roughly:
+     *
+     *     -1.8 → +1.6
+     *
+     * which made the planets look almost flat.
+     *
+     * This produces roughly:
+     *
+     *     -6.25 → +6.25
+     *
+     * creating a genuine 3D distribution.
+     * =====================================================
      */
+
+    const depth =
+        slot.z *
+        5.0;
+
 
     const x =
         slot.x *
         width;
 
+
     const y =
         slot.y *
         height;
-
-    const z =
-        slot.z *
-        4.0;
 
 
     return new THREE.Vector3(
         x,
         y,
-        z
+        depth
     );
 
 }
-
 
 /* =========================================================
    GALAXY SPACING / COLLISION
